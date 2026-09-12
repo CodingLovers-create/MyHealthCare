@@ -17,11 +17,13 @@
     <!-- Right User Info & Context Header -->
     <div class="flex items-center">
       <div class="text-right leading-tight pr-4">
-        <div class="text-[11px] text-[#333333]">
-          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser().name }}</span>
+        <div class="text-[11px] text-[#555555]">
+          Reliance Foundation Hospital Trust
         </div>
-        <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
-          {{ authService.currentUser().roleTitle }}
+        <div (click)="logout()" title="Click to Logout" class="text-[11px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline flex items-center justify-end space-x-1">
+          <i class="fa-solid fa-circle-user text-[13px] mr-0.5"></i>
+          <span>{{ authService.currentUser().name }}</span>
+          <span class="text-[9.5px] font-semibold text-slate-500">({{ authService.currentUser().roleTitle }})</span>
         </div>
       </div>
 
