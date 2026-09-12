@@ -11,22 +11,22 @@
     { "id": "9", "name": "Dr. Ritu Verma", "speciality": "Pulmonology", "fee": 1600 }
   ],
   "specialities": [
-    "All",
-    "Pulmonology",
-    "Cardiology",
-    "General Medicine",
-    "Orthopedics",
-    "Pediatrics",
-    "Dermatology",
-    "Neurology"
+    { "id": "1", "name": "All" },
+    { "id": "2", "name": "Pulmonology" },
+    { "id": "3", "name": "Cardiology" },
+    { "id": "4", "name": "General Medicine" },
+    { "id": "5", "name": "Orthopedics" },
+    { "id": "6", "name": "Pediatrics" },
+    { "id": "7", "name": "Dermatology" },
+    { "id": "8", "name": "Neurology" }
   ],
   "serviceDepartments": [
-    "All Departments",
-    "Pathology & Laboratory",
-    "Radiology & Imaging",
-    "Cardiology Diagnostics",
-    "Physiotherapy & Rehab",
-    "Executive Health Packages"
+    { "id": "1", "name": "All Departments" },
+    { "id": "2", "name": "Pathology & Laboratory" },
+    { "id": "3", "name": "Radiology & Imaging" },
+    { "id": "4", "name": "Cardiology Diagnostics" },
+    { "id": "5", "name": "Physiotherapy & Rehab" },
+    { "id": "6", "name": "Executive Health Packages" }
   ],
   "services": [
     { "id": "s1", "name": "Complete Blood Count (CBC)", "department": "Pathology & Laboratory", "fee": 350 },
@@ -146,8 +146,7 @@
   ],
   "tasks": [
     { "id": "1", "date": "7 Sep 2026", "time": "12:34 PM", "description": "Admission Request Complete - RFH27AR34", "type": "OP", "uhid": "0010723243", "patientName": "Jagdish Ramji Thakkar", "initiatedBy": "Dr. Susheel Bindroo", "patientLocation": "-", "statusCode": "AR", "statusText": "Admission Request Raised" },
-    { "id": "2", "date": "8 Sep 2026", "time": "03:22 PM", "description": "Admission Request Complete - RFH27AR36", "type": "OP", "uhid": "0010109093", "patientName": "Mohd. Zubair Azizur-Rehman Qureshi", "initiatedBy": "Dr. Alok Shah", "patientLocation": "-", "statusCode": "AR", "statusText": "Admission Request Raised" },
-    { "id": "3", "date": "3 Jan 2026", "time": "08:28 AM", "description": "Collect Cashier Scroll - RFH26SN4151", "type": "-", "uhid": "-", "patientName": "-", "initiatedBy": "Ronit Kirtikar", "patientLocation": "-", "statusCode": "CS", "statusText": "Cashier Scroll Submitted" }
+    { "id": "2", "date": "8 Sep 2026", "time": "03:22 PM", "description": "Admission Request Complete - RFH27AR36", "type": "OP", "uhid": "0010109093", "patientName": "Mohd. Zubair Azizur-Rehman Qureshi", "initiatedBy": "Dr. Alok Shah", "patientLocation": "-", "statusCode": "AR", "statusText": "Admission Request Raised" }
   ],
   "users": [
     { "id": "1", "username": "rahul", "role": "admin", "name": "Rahul Yadav", "roleTitle": "Administrator" },
