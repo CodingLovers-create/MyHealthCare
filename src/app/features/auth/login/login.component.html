@@ -1,0 +1,161 @@
+<div class="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-cover bg-center bg-no-repeat select-none"
+     style="background-image: url('assets/images/mountain-bg.jpg'); font-family: 'Inter', 'Roboto', -apple-system, sans-serif;">
+  
+  <!-- Subtle gradient background overlay for ideal text contrast -->
+  <div class="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-white/50 pointer-events-none"></div>
+
+  <!-- TOP HEADER BAR -->
+  <header class="relative z-10 w-full px-8 py-6 flex items-center justify-between">
+    
+    <!-- Logo Left -->
+    <div class="flex items-center">
+      <div class="relative flex items-center">
+        <svg class="w-20 h-16 text-[#d93848]" viewBox="0 0 120 90" fill="none">
+          <path d="M60 82C60 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" 
+                stroke="#d93848" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          <text x="60" y="44" font-size="10.5" font-weight="600" fill="#d93848" text-anchor="middle" font-family="'Inter', sans-serif">MyHealthcare</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Live Clock & Date Right -->
+    <div class="text-right text-[#4a4a4a] tracking-tight">
+      <div class="text-3xl md:text-4xl font-extralight text-[#333333] leading-none tracking-normal font-sans">{{ currentTime }}</div>
+      <div class="text-xs text-[#666666] font-light mt-1">{{ currentDate }}</div>
+    </div>
+  </header>
+
+  <!-- MAIN CENTER LOGIN SECTION -->
+  <main class="relative z-10 flex-1 flex items-center justify-center px-4 py-6">
+    <div class="w-full max-w-3xl text-center">
+      
+      <!-- Heading -->
+      <h1 class="text-2xl md:text-3xl font-light text-[#4a4a4a] mb-8 tracking-normal">
+        Please Enter the Credentials to Login
+      </h1>
+
+      <!-- Success Notification Banner -->
+      @if (isSuccessMessage) {
+        <div class="mb-6 p-3 bg-emerald-50/90 border border-emerald-300 rounded text-emerald-800 font-medium text-xs max-w-md mx-auto shadow-sm flex items-center justify-center space-x-2 animate-fade-in">
+          <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+          <span>{{ isSuccessMessage }}</span>
+        </div>
+      }
+
+      <!-- Form Box -->
+      <form (submit)="onLogin($event)" class="space-y-5">
+        
+        <!-- Side-by-side Inputs Row -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 max-w-xl mx-auto">
+          
+          <!-- Username / Phone / Email Input -->
+          <div class="w-full sm:w-1/2">
+            <input type="text" 
+                   [(ngModel)]="credentials.identifier" 
+                   name="identifier"
+                   placeholder="Enter Username or Email"
+                   class="w-full px-3.5 py-2 bg-white/95 border border-slate-300 rounded text-slate-800 text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#d93848] transition-colors shadow-xs" />
+          </div>
+
+          <!-- Password Input -->
+          <div class="w-full sm:w-1/2">
+            <input type="password" 
+                   [(ngModel)]="credentials.password" 
+                   name="password"
+                   placeholder="Enter Password"
+                   class="w-full px-3.5 py-2 bg-white/95 border border-slate-300 rounded text-slate-800 text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#d93848] transition-colors shadow-xs" />
+          </div>
+
+        </div>
+
+        <!-- LOGIN BUTTON -->
+        <div class="pt-2">
+          <button type="submit" 
+                  class="inline-block px-10 py-2 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] text-white font-semibold text-xs tracking-wider uppercase rounded shadow-xs transition-all duration-150 cursor-pointer">
+            <span>LOGIN</span>
+          </button>
+        </div>
+
+      </form>
+
+      <!-- Terms & Privacy Policy text -->
+      <p class="text-[11px] text-[#555555] mt-5 font-normal">
+        By signing in, you agree to our 
+        <a href="https://www.myhealthcare.life/terms-of-service/" target="_blank" class="text-[#d93848] hover:underline">Terms of Service</a> 
+        and 
+        <a href="https://www.myhealthcare.life/privacy-policy/" target="_blank" class="text-[#d93848] hover:underline">Privacy Policy</a>
+      </p>
+
+      <!-- Lock Graphic & Forgot Password Link -->
+      <div class="mt-7 flex flex-col items-center justify-center">
+        <button (click)="openForgotPassword()" class="group flex flex-col items-center focus:outline-none cursor-pointer">
+          <!-- Lock box element -->
+          <div class="w-9 h-8 border border-slate-700/80 rounded flex flex-col items-center justify-center bg-white/40 group-hover:bg-white/70 transition-all shadow-xs">
+            <div class="flex space-x-1 mb-0.5 text-slate-700 text-[10px]">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <div class="text-[8px] font-mono text-slate-800 tracking-tighter leading-none">***</div>
+          </div>
+          <span class="text-[10px] font-medium tracking-wider text-[#555555] group-hover:text-slate-900 uppercase mt-2">
+            FORGOT PASSWORD?
+          </span>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- BOTTOM CERTIFICATION BADGES FOOTER with @for loop -->
+  <footer class="relative z-10 w-full py-5 px-4">
+    <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+      
+      @for (badge of badges; track badge.id) {
+        <div [class]="'flex items-center space-x-1 px-2.5 py-0.5 bg-white/90 border rounded-md shadow-2xs ' + badge.borderColor">
+          @if (badge.isTextBadge) {
+            <div [class]="'w-5 h-5 rounded flex items-center justify-center text-white text-[8px] font-bold ' + badge.iconBg">
+              {{ badge.textBadge }}
+            </div>
+          } @else {
+            <div [class]="'w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] ' + badge.iconBg">
+              <i [class]="badge.icon"></i>
+            </div>
+          }
+          <div class="text-[9px] text-slate-700 leading-tight">
+            <span [class]="'font-bold block ' + badge.titleColor">{{ badge.title }}</span>
+            <span class="text-[7px] text-slate-500">{{ badge.subText }}</span>
+          </div>
+        </div>
+      }
+
+    </div>
+  </footer>
+
+  <!-- Forgot Password Modal Popup with @if -->
+  @if (showForgotModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4">
+      <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border border-slate-100 text-left animate-scale-up">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-base font-semibold text-slate-800">Reset Password</h3>
+          <button (click)="showForgotModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <p class="text-xs text-slate-600 mb-4">
+          Enter your registered username, phone, or email to receive a password reset code.
+        </p>
+        <input type="text" 
+               placeholder="Username / Phone / Email" 
+               class="w-full px-3.5 py-2 border border-slate-300 rounded text-xs mb-4 focus:ring-1 focus:ring-[#d93848] focus:outline-none" />
+        <div class="flex justify-end space-x-3">
+          <button (click)="showForgotModal = false" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded cursor-pointer">
+            Cancel
+          </button>
+          <button (click)="submitForgot()" class="px-5 py-2 text-xs font-semibold bg-[#d93848] text-white rounded hover:bg-[#c02a3a] cursor-pointer">
+            Send Reset Link
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

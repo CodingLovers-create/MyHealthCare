@@ -1,0 +1,498 @@
+<div class="min-h-screen bg-white flex flex-col font-sans text-[#333333] select-none text-[11px]">
+  
+  <!-- 1. TOP HEADER NAVBAR -->
+  <header class="h-[46px] bg-white border-b border-[#cccccc] px-4 py-2 flex items-center justify-between shrink-0">
+    
+    <!-- Left Logo -->
+    <div class="flex items-center space-x-2 cursor-pointer" (click)="logout()" routerLink="/login">
+      <svg class="w-[22px] h-[22px]" viewBox="0 0 100 100" fill="none">
+        <path d="M50 88C50 88 12 60 12 34C12 19 24 10 38 10C46 10 50 14 50 14C50 14 54 10 62 10C76 10 88 19 88 34C88 60 50 88 50 88Z" fill="#d93848"/>
+        <path d="M22 38H34L42 24L50 52L58 30L66 38H78" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[16px] font-bold tracking-tight">
+        <span class="text-[#0277bd]">My</span><span class="text-[#0091ea]">Healthcare</span>
+      </span>
+    </div>
+
+    <!-- Right User Info & Context Header -->
+    <div class="flex items-center">
+      <div class="text-right leading-tight pr-4">
+        <div class="text-[11px] text-[#333333]">
+          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser().name }}</span>
+        </div>
+        <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
+          {{ authService.currentUser().roleTitle }}
+        </div>
+      </div>
+
+      <!-- Vertical Line Divider -->
+      <div class="h-6 w-[1px] bg-[#cccccc] mx-3"></div>
+
+      <!-- Far Right Emblem Badge -->
+      <div class="flex items-center space-x-1.5 pl-3">
+        <svg class="w-5 h-5" viewBox="0 0 100 90" fill="none">
+          <path d="M50 82C50 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" fill="#d93848"/>
+          <path d="M25 35H35L42 22L50 48L58 28L65 35H75" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="flex flex-col">
+          <span class="text-[7.5px] text-[#d93848] font-bold leading-none">MyHealthcare</span>
+          <span class="text-[6.5px] text-[#555555] font-semibold leading-tight">Enterprise Application</span>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+
+  <!-- 2. MODULE NAVIGATION TAB BAR (Dark Gray #4c4c4c) -->
+  <nav class="bg-[#4c4c4c] text-white px-4 py-2 flex items-center justify-between text-[11px] h-[44px] shrink-0">
+    
+    <div class="flex items-center space-x-2 overflow-x-auto py-0.5">
+      <!-- Sidebar Toggle Hamburger -->
+      <button (click)="toggleSidebar()" class="px-2.5 py-1.5 text-white hover:text-gray-200 cursor-pointer border-r border-[#666666] pr-4 mr-2 flex items-center justify-center">
+        <i class="fa-solid fa-bars text-[13px]"></i>
+      </button>
+
+      <!-- Dynamic Module Tabs -->
+      @for (tab of moduleTabs(); track tab.id) {
+        <button (click)="selectModuleTab(tab.id)" 
+                [class]="'px-3.5 py-1.5 text-[11px] font-medium cursor-pointer whitespace-nowrap transition-all rounded-[4px] ' + 
+                         (tab.id === 'MyDesk' || tab.id === 'MagicSearch'
+                           ? 'bg-white text-[#222222] border border-[#cccccc]'
+                           : 'bg-[#3f3f3f] border border-[#6b6b6b] text-white hover:bg-[#4a4a4a]')">
+          @if (tab.id === 'MyDesk') {
+            <span class="text-[#222222]">My</span><span class="text-[#d93848] font-bold">Desk</span>
+          } @else if (tab.id === 'MagicSearch') {
+            <span class="text-[#222222]">Magic</span><span class="text-[#d93848] font-bold">Search</span>
+          } @else {
+            {{ tab.label }}
+          }
+        </button>
+      }
+    </div>
+
+    <!-- Far Right HELP Button -->
+    <button (click)="openHelp()" type="button" class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[3px] px-3.5 py-1.5 flex items-center space-x-1.5 shadow-2xs cursor-pointer uppercase tracking-wider ml-3 shrink-0">
+      <span>HELP</span>
+      <i class="fa-solid fa-video text-[10px]"></i>
+    </button>
+
+  </nav>
+
+
+  <!-- 3. PAGE TITLE SUB-HEADER BAR -->
+  <div class="bg-white px-4 py-2 border-b border-[#cccccc] flex items-center justify-between shrink-0">
+    <div class="flex items-center space-x-6">
+      <h1 class="text-[16px] font-bold text-[#222222] leading-none">Appointment</h1>
+      
+      <!-- Radio Selection: Doctor Consult / Service -->
+      <div class="flex items-center space-x-4 text-[11px] font-medium text-[#333333]">
+        <label class="flex items-center space-x-1.5 cursor-pointer">
+          <input type="radio" name="apptType" [checked]="appointmentType() === 'doctor'" (change)="appointmentType.set('doctor')" class="accent-[#d93848] w-3.5 h-3.5" />
+          <span>Doctor Consult/Service</span>
+        </label>
+        <label class="flex items-center space-x-1.5 cursor-pointer">
+          <input type="radio" name="apptType" [checked]="appointmentType() === 'service'" (change)="appointmentType.set('service')" class="accent-[#d93848] w-3.5 h-3.5" />
+          <span>Service Appointment</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="text-[11px] font-medium text-[#333333]">
+      Payor Type : <span class="font-bold text-[#d93848]">{{ payorType() }}</span>
+    </div>
+  </div>
+
+
+  <!-- 4. MAIN APPOINTMENT BOOKING CONTENT LAYOUT -->
+  <main class="flex-1 p-3 bg-white flex flex-col md:flex-row gap-3 overflow-y-auto">
+    
+    <!-- LEFT SIDEBAR FILTER & CALENDAR PANEL (~240px) -->
+    <div class="w-full md:w-[240px] shrink-0 space-y-2.5">
+      
+      <!-- Phone Number Fieldset -->
+      <fieldset class="border border-[#cccccc] rounded-[3px] px-1.5 py-1 bg-white relative">
+        <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">Phone Number *</legend>
+        <div class="flex items-center space-x-1">
+          <div class="flex items-center space-x-0.5 px-1 py-0.5 bg-gray-50 border border-[#cccccc] rounded-[2px] text-[10px] shrink-0">
+            <span>🇮🇳</span>
+            <span>+91</span>
+            <i class="fa-solid fa-caret-down text-[8px] text-[#666666] ml-0.5"></i>
+          </div>
+          <input type="text" [ngModel]="mobileNo()" (ngModelChange)="mobileNo.set($event)" placeholder="" class="w-full h-6 px-1 text-[11px] text-[#333333] border-none outline-none focus:ring-0" />
+          <select class="h-6 px-1 bg-gray-50 border border-[#cccccc] rounded-[2px] text-[10px] text-[#555555] appearance-none pr-3 relative">
+            <option>Mobile</option>
+          </select>
+          <button (click)="clearSelection()" class="w-6 h-6 bg-[#d93848] text-white rounded-[2px] flex items-center justify-center hover:bg-[#c22d3d] shrink-0 cursor-pointer">
+            <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+          </button>
+        </div>
+      </fieldset>
+
+      <!-- Select Facility Fieldset -->
+      <fieldset class="border border-[#cccccc] rounded-[3px] px-2 py-0.5 bg-white relative">
+        <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">Select Facility</legend>
+        <div class="relative">
+          <select [ngModel]="selectedFacility()" (ngModelChange)="selectedFacility.set($event)" class="w-full h-6 bg-transparent text-[11px] text-[#333333] border-none outline-none appearance-none pr-4 cursor-pointer">
+            <option value="Reliance Foundation Hospital Trust">Reliance Foundation Hospital Trust</option>
+            <option value="City Clinic Branch">City Clinic Branch</option>
+          </select>
+          <i class="fa-solid fa-chevron-down text-[9px] text-[#666666] absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        </div>
+      </fieldset>
+
+      <!-- Interactive Calendar Widget -->
+      <div class="bg-white border border-[#cccccc] rounded-[3px] overflow-hidden">
+        <!-- Calendar Header -->
+        <div class="bg-[#555555] text-white px-2.5 py-1.5 flex items-center justify-between text-[11px] font-bold">
+          <button class="hover:text-gray-300 cursor-pointer"><i class="fa-solid fa-caret-left"></i></button>
+          <div class="flex items-center space-x-2">
+            <span>2026</span>
+            <i class="fa-solid fa-caret-down text-[9px]"></i>
+            <span>September</span>
+            <i class="fa-solid fa-caret-down text-[9px]"></i>
+          </div>
+          <button class="hover:text-gray-300 cursor-pointer"><i class="fa-solid fa-caret-right"></i></button>
+        </div>
+
+        <!-- Days of Week Row -->
+        <div class="grid grid-cols-7 text-center py-1 bg-[#f5f5f5] border-b border-[#e0e0e0] text-[10px] font-semibold text-[#666666]">
+          <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+        </div>
+
+        <!-- Dates Grid -->
+        <div class="grid grid-cols-7 text-center p-1 gap-1 text-[11px] text-[#333333]">
+          <div class="text-[#bbbbbb] py-0.5">30</div>
+          <div class="text-[#bbbbbb] py-0.5">31</div>
+          <div (click)="selectDate(1)" class="py-0.5 cursor-pointer hover:bg-gray-100">1</div>
+          <div (click)="selectDate(2)" class="py-0.5 cursor-pointer hover:bg-gray-100">2</div>
+          <div (click)="selectDate(3)" class="py-0.5 cursor-pointer hover:bg-gray-100">3</div>
+          <div (click)="selectDate(4)" class="py-0.5 cursor-pointer hover:bg-gray-100">4</div>
+          <div (click)="selectDate(5)" class="py-0.5 cursor-pointer hover:bg-gray-100">5</div>
+          
+          <div (click)="selectDate(6)" class="py-0.5 cursor-pointer hover:bg-gray-100">6</div>
+          <div (click)="selectDate(7)" class="py-0.5 cursor-pointer hover:bg-gray-100">7</div>
+          <div (click)="selectDate(8)" class="py-0.5 cursor-pointer hover:bg-gray-100">8</div>
+          <div (click)="selectDate(9)" class="py-0.5 cursor-pointer hover:bg-gray-100">9</div>
+          <div (click)="selectDate(10)" class="py-0.5 cursor-pointer hover:bg-gray-100">10</div>
+          <div (click)="selectDate(11)" class="py-0.5 cursor-pointer hover:bg-gray-100">11</div>
+          
+          <!-- Active Highlighted Date 12 -->
+          <div (click)="selectDate(12)" class="py-0.5 bg-[#d93848] text-white font-bold rounded-[2px] cursor-pointer">12</div>
+          
+          <div (click)="selectDate(13)" class="py-0.5 cursor-pointer hover:bg-gray-100">13</div>
+          <div (click)="selectDate(14)" class="py-0.5 cursor-pointer hover:bg-gray-100">14</div>
+          <div (click)="selectDate(15)" class="py-0.5 cursor-pointer hover:bg-gray-100">15</div>
+          <div (click)="selectDate(16)" class="py-0.5 cursor-pointer hover:bg-gray-100">16</div>
+          <div (click)="selectDate(17)" class="py-0.5 cursor-pointer hover:bg-gray-100">17</div>
+          <div (click)="selectDate(18)" class="py-0.5 cursor-pointer hover:bg-gray-100">18</div>
+          <div (click)="selectDate(19)" class="py-0.5 cursor-pointer hover:bg-gray-100">19</div>
+          
+          <div (click)="selectDate(20)" class="py-0.5 cursor-pointer hover:bg-gray-100">20</div>
+          <div (click)="selectDate(21)" class="py-0.5 cursor-pointer hover:bg-gray-100">21</div>
+          <div (click)="selectDate(22)" class="py-0.5 cursor-pointer hover:bg-gray-100">22</div>
+          <div (click)="selectDate(23)" class="py-0.5 cursor-pointer hover:bg-gray-100">23</div>
+          <div (click)="selectDate(24)" class="py-0.5 cursor-pointer hover:bg-gray-100">24</div>
+          <div (click)="selectDate(25)" class="py-0.5 cursor-pointer hover:bg-gray-100">25</div>
+          <div (click)="selectDate(26)" class="py-0.5 cursor-pointer hover:bg-gray-100">26</div>
+          
+          <div (click)="selectDate(27)" class="py-0.5 cursor-pointer hover:bg-gray-100">27</div>
+          <div (click)="selectDate(28)" class="py-0.5 cursor-pointer hover:bg-gray-100">28</div>
+          <div (click)="selectDate(29)" class="py-0.5 cursor-pointer hover:bg-gray-100">29</div>
+          <div (click)="selectDate(30)" class="py-0.5 cursor-pointer hover:bg-gray-100">30</div>
+          
+          <div class="text-[#bbbbbb] py-0.5">1</div>
+          <div class="text-[#bbbbbb] py-0.5">2</div>
+          <div class="text-[#bbbbbb] py-0.5">3</div>
+        </div>
+      </div>
+
+      <!-- Clear Button -->
+      <div class="text-center pt-1">
+        <button (click)="clearSelection()" class="w-[110px] py-1 border border-[#d93848] text-[#d93848] font-bold text-[11px] rounded-[3px] hover:bg-[#d93848] hover:text-white transition-colors cursor-pointer inline-block">
+          Clear
+        </button>
+      </div>
+
+      <!-- Consultation Amount Card -->
+      <div class="p-2 bg-white border border-[#cccccc] rounded-[3px] text-[11px] font-medium text-[#333333]">
+        Consultation Amount : <span class="text-[#d93848] font-bold">INR {{ consultationFee() }}</span>
+      </div>
+
+    </div>
+
+
+    <!-- RIGHT MAIN SCHEDULE & TIME SLOTS GRID PANEL -->
+    <div class="flex-1 space-y-2.5">
+      
+      <!-- Top Filters Row of 5 Fieldsets -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 items-center">
+        
+        <!-- Select Patient -->
+        <fieldset class="border border-[#cccccc] rounded-[3px] px-2 py-0.5 bg-white relative">
+          <div class="relative">
+            <select [ngModel]="selectedPatient()" (ngModelChange)="selectedPatient.set($event)" class="w-full h-6 bg-transparent text-[11px] text-[#333333] border-none outline-none appearance-none pr-4 cursor-pointer">
+              <option value="">Select Patient</option>
+              <option value="Jagdish Thakkar">Jagdish Thakkar (RFH2026001)</option>
+              <option value="Mohd Qureshi">Mohd Qureshi (RFH2026002)</option>
+            </select>
+            <i class="fa-solid fa-chevron-down text-[9px] text-[#666666] absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+        </fieldset>
+
+        <!-- Speciality / Service Department -->
+        @if (appointmentType() === 'doctor') {
+          <fieldset class="border border-[#cccccc] rounded-[3px] px-2 py-0.5 bg-white relative">
+            <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">Speciality</legend>
+            <div class="relative">
+              <select [ngModel]="selectedSpeciality()" (ngModelChange)="onSpecialityChange($event)" class="w-full h-6 bg-transparent text-[11px] text-[#333333] border-none outline-none appearance-none pr-4 cursor-pointer">
+                @for (spec of specialities; track spec) {
+                  <option [value]="spec">{{ spec }}</option>
+                }
+              </select>
+              <i class="fa-solid fa-chevron-down text-[9px] text-[#666666] absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+          </fieldset>
+        } @else {
+          <fieldset class="border border-[#cccccc] rounded-[3px] px-2 py-0.5 bg-white relative">
+            <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">Service Department *</legend>
+            <div class="relative">
+              <select [ngModel]="selectedServiceDepartment()" (ngModelChange)="onServiceDepartmentChange($event)" class="w-full h-6 bg-transparent text-[11px] text-[#333333] border-none outline-none appearance-none pr-4 cursor-pointer">
+                @for (dept of serviceDepartments; track dept) {
+                  <option [value]="dept">{{ dept }}</option>
+                }
+              </select>
+              <i class="fa-solid fa-chevron-down text-[9px] text-[#666666] absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+          </fieldset>
+        }
+
+        <!-- Select Practitioner (Doctor mode) / Add Service (Service mode) -->
+        @if (appointmentType() === 'doctor') {
+          <fieldset class="border border-[#cccccc] rounded-[3px] px-2 py-0.5 bg-white relative">
+            <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">Select Practitioner *</legend>
+            <div class="relative">
+              <select [ngModel]="selectedPractitioner()" (ngModelChange)="selectedPractitioner.set($event)" class="w-full h-6 bg-transparent text-[11px] text-[#333333] border-none outline-none appearance-none pr-4 cursor-pointer">
+                <option value="all">Select Practitioner ({{ filteredPractitioners().length }})</option>
+                @for (doc of filteredPractitioners(); track doc.id) {
+                  <option [value]="doc.id">{{ doc.name }} ({{ doc.speciality }})</option>
+                }
+              </select>
+              <i class="fa-solid fa-chevron-down text-[9px] text-[#666666] absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+          </fieldset>
+        } @else {
+          <fieldset class="border border-[#d93848] rounded-[3px] px-2 py-0.5 bg-rose-50/30 relative">
+            <legend class="px-1 text-[9.5px] font-bold text-[#d93848] leading-none">+ Add Service (Multiple)</legend>
+            <div class="relative">
+              <select (change)="addServiceToSelection($any($event.target).value); $any($event.target).value=''" class="w-full h-6 bg-transparent text-[11px] text-[#333333] border-none outline-none appearance-none pr-4 cursor-pointer font-medium">
+                <option value="">Select Service to Add ({{ filteredServicesList().length }})</option>
+                @for (srv of filteredServicesList(); track srv.id) {
+                  <option [value]="srv.id" [disabled]="isServiceSelected(srv.id)">
+                    {{ srv.name }} - INR {{ srv.fee }} {{ isServiceSelected(srv.id) ? '(Added)' : '' }}
+                  </option>
+                }
+              </select>
+              <i class="fa-solid fa-plus text-[10px] text-[#d93848] absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none font-bold"></i>
+            </div>
+          </fieldset>
+        }
+
+        <!-- Mode * -->
+        <fieldset class="border border-[#cccccc] rounded-[3px] px-2 py-0.5 bg-white relative">
+          <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">Mode *</legend>
+          <div class="relative">
+            <select [ngModel]="selectedMode()" (ngModelChange)="selectedMode.set($event)" class="w-full h-6 bg-transparent text-[11px] text-[#333333] border-none outline-none appearance-none pr-4 cursor-pointer">
+              <option value="OP">OP</option>
+              <option value="IP">IP</option>
+            </select>
+            <i class="fa-solid fa-chevron-down text-[9px] text-[#666666] absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+        </fieldset>
+
+        <!-- Select Service (Doctor Consult / OPD) -->
+        <fieldset class="border border-[#cccccc] rounded-[3px] px-2 py-0.5 bg-white relative">
+          <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">Category Service</legend>
+          <div class="relative">
+            <select [ngModel]="selectedService()" (ngModelChange)="selectedService.set($event)" class="w-full h-6 bg-transparent text-[11px] text-[#333333] border-none outline-none appearance-none pr-4 cursor-pointer">
+              <option value="">Default Service</option>
+              <option value="General OPD">General OPD</option>
+              <option value="Specialist Consult">Specialist Consult</option>
+            </select>
+            <i class="fa-solid fa-chevron-down text-[9px] text-[#666666] absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+        </fieldset>
+
+      </div>
+
+      <!-- Selected Services Removable Pill Tags Bar (Only in Service mode) -->
+      @if (appointmentType() === 'service') {
+        <div class="flex flex-wrap items-center gap-1.5 p-2 bg-rose-50/60 border border-rose-200 rounded-[3px] text-[10.5px]">
+          <span class="font-bold text-[#d93848] mr-1">
+            Selected Services ({{ selectedServices().length }}):
+          </span>
+          @if (selectedServices().length === 0) {
+            <span class="text-slate-500 italic text-[10px]">No service selected yet. Choose from "+ Add Service (Multiple)" dropdown above.</span>
+          }
+          @for (srv of selectedServices(); track srv.id) {
+            <span class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 bg-white border border-[#d93848] text-[#d93848] rounded-full font-bold shadow-2xs">
+              <span>{{ srv.name }}</span>
+              <span class="text-[9px] text-slate-500 font-semibold">(INR {{ srv.fee }})</span>
+              <button (click)="removeService(srv.id)" type="button" title="Remove Service" class="hover:text-red-700 cursor-pointer ml-1">
+                <i class="fa-solid fa-circle-xmark text-[11px]"></i>
+              </button>
+            </span>
+          }
+        </div>
+      }
+
+
+      <!-- Right Actions Bar (Buttons & View Switcher) -->
+      <div class="flex items-center justify-end space-x-2 pt-1">
+        <button routerLink="/dashboard" class="px-2.5 py-1 bg-white border border-[#cccccc] hover:bg-gray-50 rounded-[2px] text-[10px] text-[#333333] font-medium cursor-pointer">Appointment List</button>
+        <button (click)="createPrioritySlot()" class="px-2.5 py-1 bg-white border border-[#cccccc] hover:bg-gray-50 rounded-[2px] text-[10px] text-[#333333] font-medium cursor-pointer">Create Priority Slot</button>
+        <div class="flex items-center space-x-1 pl-1">
+          <button (click)="scheduleViewMode.set('table')" 
+                  [class]="'p-1 cursor-pointer transition-colors ' + (scheduleViewMode() === 'table' ? 'text-[#d93848]' : 'text-[#666666] hover:text-[#d93848]')"
+                  title="MHC Table View">
+            <i class="fa-solid fa-list text-[13px]"></i>
+          </button>
+          <button (click)="scheduleViewMode.set('grid')" 
+                  [class]="'p-1 cursor-pointer transition-colors ' + (scheduleViewMode() === 'grid' ? 'text-[#d93848]' : 'text-[#666666] hover:text-[#d93848]')"
+                  title="MHC Grid View">
+            <i class="fa-solid fa-border-all text-[13px]"></i>
+          </button>
+        </div>
+      </div>
+
+
+      <!-- 3-DAY SCHEDULE TIME SLOTS TABLE / GRID (MHC STYLE) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1">
+        @for (day of scheduleDays(); track day.dateLabel) {
+          <div class="border border-[#cccccc] rounded-[3px] bg-white overflow-hidden shadow-2xs flex flex-col">
+            
+            <!-- MHC Column Header Bar -->
+            <div class="bg-[#cadbe5] px-3 py-1.5 font-bold text-[11px] text-[#222222] flex items-center justify-between border-b border-[#b0c4de]">
+              <span>TIME</span>
+              <span>({{ day.dateLabel }})</span>
+            </div>
+
+            <!-- MHC Table View -->
+            @if (scheduleViewMode() === 'table') {
+              <div class="divide-y divide-[#eeeeee] min-h-[300px] max-h-[420px] overflow-y-auto">
+                @for (slot of day.slots; track slot.time) {
+                  <div [class]="'flex items-center justify-between px-3.5 py-2.5 transition-colors border-b border-[#f0f0f0] ' +
+                               (slot.isAvailable ? 'hover:bg-blue-50/50 bg-white' : 'bg-gray-100/80 select-none')">
+                    
+                    <!-- Left Time Only -->
+                    <span [class]="'text-[12px] font-bold ' + (slot.isAvailable ? 'text-[#222222]' : 'text-gray-400 line-through decoration-gray-400')">
+                      {{ slot.time }}
+                    </span>
+
+                    <!-- Right Action: Book Button IF Available, else Grayed Out Status -->
+                    <div>
+                      @if (slot.isAvailable) {
+                        <button (click)="openSlotModal(day.dateLabel, slot)"
+                                type="button"
+                                class="bg-[#d93848] hover:bg-[#c22d3d] active:scale-[0.97] text-white font-bold text-[10px] px-3.5 py-1 rounded-[3px] cursor-pointer transition-all shadow-2xs uppercase tracking-wider">
+                          BOOK
+                        </button>
+                      } @else {
+                        <span class="inline-flex items-center space-x-1 bg-gray-200 text-gray-500 font-bold text-[9.5px] px-2.5 py-0.5 rounded-[3px] border border-gray-300">
+                          <i class="fa-solid fa-ban text-[8px]"></i>
+                          <span>{{ slot.type === 'blocked' ? 'BLOCKED' : 'BOOKED' }}</span>
+                        </span>
+                      }
+                    </div>
+
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- MHC Grid View -->
+            @if (scheduleViewMode() === 'grid') {
+              <div class="p-2 grid grid-cols-2 gap-1.5 min-h-[300px] max-h-[420px] overflow-y-auto">
+                @for (slot of day.slots; track slot.time) {
+                  <div [class]="'p-2.5 rounded-[4px] flex flex-col justify-between text-[11px] font-semibold border transition-all ' +
+                               (slot.isAvailable ? 'bg-white border-slate-200 shadow-2xs hover:border-[#d93848]' : 'bg-gray-100 border-gray-300 text-gray-400 select-none')">
+                    
+                    <div class="flex items-center justify-between w-full mb-1">
+                      <span [class]="'font-bold ' + (slot.isAvailable ? 'text-slate-800' : 'text-gray-400 line-through')">{{ slot.time }}</span>
+                    </div>
+
+                    <div class="mt-1">
+                      @if (slot.isAvailable) {
+                        <button (click)="openSlotModal(day.dateLabel, slot)"
+                                type="button"
+                                class="w-full bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[9.5px] py-1 rounded-[2px] cursor-pointer transition-colors uppercase tracking-wider shadow-2xs">
+                          BOOK
+                        </button>
+                      } @else {
+                        <div class="w-full bg-gray-200 text-gray-500 font-bold text-[9px] py-1 rounded-[2px] text-center border border-gray-300 uppercase">
+                          {{ slot.type === 'blocked' ? 'BLOCKED' : 'BOOKED' }}
+                        </div>
+                      }
+                    </div>
+
+                  </div>
+                }
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- SLOT BOOKING MODAL -->
+  @if (showBookingModal()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-[4px] shadow-2xl w-full max-w-[440px] overflow-hidden border border-[#cccccc]">
+        <div class="bg-[#d93848] text-white px-4 py-2.5 flex items-center justify-between">
+          <h3 class="font-bold text-[13px]">Confirm Appointment Slot</h3>
+          <button (click)="showBookingModal.set(false)" class="text-white hover:text-gray-200 cursor-pointer"><i class="fa-solid fa-xmark text-[14px]"></i></button>
+        </div>
+
+        <div class="p-4 space-y-3 text-[11px]">
+          @if (selectedSlot(); as slot) {
+            <div class="p-3 bg-[#f8f9fa] rounded border border-[#e0e0e0] space-y-1">
+              <div>
+                <span class="font-semibold text-[#555555]">{{ appointmentType() === 'service' ? 'Department / Center:' : 'Doctor:' }}</span> 
+                <span class="font-bold text-[#222222] ml-1">{{ slot.practitioner }}</span>
+              </div>
+              @if (slot.servicesSummary) {
+                <div>
+                  <span class="font-semibold text-[#555555]">Selected Services:</span> 
+                  <span class="font-bold text-slate-800 ml-1 block mt-0.5 text-[10.5px] leading-tight text-[#d93848]">{{ slot.servicesSummary }}</span>
+                </div>
+              }
+              <div><span class="font-semibold text-[#555555]">Date & Time:</span> <span class="font-bold text-[#d93848] ml-1">{{ slot.dateStr }} at {{ slot.time }}</span></div>
+              <div><span class="font-semibold text-[#555555]">Total Amount:</span> <span class="font-bold text-[#2e7d32] ml-1">INR {{ slot.fee }}</span></div>
+            </div>
+          }
+
+          <div>
+            <label class="block font-medium text-[#555555] mb-1">Patient Name *</label>
+            <input type="text" [ngModel]="patientName()" (ngModelChange)="patientName.set($event)" placeholder="Enter patient name..." class="w-full h-8 px-2 border border-[#cccccc] rounded-[2px] text-[11px]" />
+          </div>
+
+          <div>
+            <label class="block font-medium text-[#555555] mb-1">Mobile Number *</label>
+            <input type="text" [ngModel]="patientMobile()" (ngModelChange)="patientMobile.set($event)" placeholder="Enter 10-digit mobile number..." class="w-full h-8 px-2 border border-[#cccccc] rounded-[2px] text-[11px]" />
+          </div>
+        </div>
+
+        <div class="px-4 py-2.5 bg-gray-50 border-t border-[#cccccc] flex justify-end space-x-2">
+          <button (click)="showBookingModal.set(false)" class="px-3 py-1 bg-white border border-[#cccccc] rounded-[2px] hover:bg-gray-100 cursor-pointer">Cancel</button>
+          <button (click)="confirmBooking()" class="px-4 py-1 bg-[#d93848] text-white font-bold rounded-[2px] hover:bg-[#c22d3d] cursor-pointer">Book Appointment</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

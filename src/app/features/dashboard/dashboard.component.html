@@ -1,0 +1,274 @@
+<div class="min-h-screen bg-[#dedede] flex flex-col font-sans text-[#333333] select-none text-[11px]">
+  
+  <!-- 1. TOP HEADER NAVBAR -->
+  <header class="h-[46px] bg-white border-b border-[#cccccc] px-4 py-2 flex items-center justify-between">
+    
+    <!-- Left Logo -->
+    <div class="flex items-center space-x-2 cursor-pointer" (click)="logout()" routerLink="/login">
+      <svg class="w-[22px] h-[22px]" viewBox="0 0 100 100" fill="none">
+        <path d="M50 88C50 88 12 60 12 34C12 19 24 10 38 10C46 10 50 14 50 14C50 14 54 10 62 10C76 10 88 19 88 34C88 60 50 88 50 88Z" fill="#d93848"/>
+        <path d="M22 38H34L42 24L50 52L58 30L66 38H78" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[16px] font-bold tracking-tight">
+        <span class="text-[#0277bd]">My</span><span class="text-[#0091ea]">Healthcare</span>
+      </span>
+    </div>
+
+    <!-- Right User Info & Context Header -->
+    <div class="flex items-center">
+      <div class="text-right leading-tight pr-4">
+        <div class="text-[11px] text-[#333333]">
+          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser().name }}</span>
+        </div>
+        <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
+          {{ authService.currentUser().roleTitle }}
+        </div>
+      </div>
+
+      <!-- Vertical Line Divider -->
+      <div class="h-6 w-[1px] bg-[#cccccc] mx-3"></div>
+
+      <!-- Far Right Emblem Badge -->
+      <div class="flex items-center space-x-1.5 pl-3">
+        <svg class="w-5 h-5" viewBox="0 0 100 90" fill="none">
+          <path d="M50 82C50 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" fill="#d93848"/>
+          <path d="M25 35H35L42 22L50 48L58 28L65 35H75" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="flex flex-col">
+          <span class="text-[7.5px] text-[#d93848] font-bold leading-none">MyHealthcare</span>
+          <span class="text-[6.5px] text-[#555555] font-semibold leading-tight">Enterprise Application</span>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+
+  <!-- 2. MODULE NAVIGATION TAB BAR (Dark Gray #4c4c4c) -->
+  <nav class="bg-[#4c4c4c] text-white px-4 py-2 flex items-center justify-between text-[11px] h-[44px]">
+    
+    <div class="flex items-center space-x-2 overflow-x-auto py-0.5">
+      <!-- Sidebar Toggle Hamburger -->
+      <button (click)="toggleSidebar()" class="px-2.5 py-1.5 text-white hover:text-gray-200 cursor-pointer border-r border-[#666666] pr-4 mr-2 flex items-center justify-center">
+        <i class="fa-solid fa-bars text-[13px]"></i>
+      </button>
+
+      <!-- Dynamic Module Tabs -->
+      @for (tab of moduleTabs(); track tab.id) {
+        <button (click)="selectModuleTab(tab.id)" 
+                [class]="'px-3.5 py-1.5 text-[11px] font-medium cursor-pointer whitespace-nowrap transition-all rounded-[4px] ' + 
+                         (activeModuleTab() === tab.id 
+                           ? 'bg-white text-[#222222] border-2 border-[#d93848] shadow-2xs' 
+                           : (tab.id === 'MyDesk' || tab.id === 'MagicSearch')
+                             ? 'bg-white text-[#222222] border border-[#cccccc] hover:border-[#d93848]'
+                             : 'bg-[#3f3f3f] border border-[#6b6b6b] text-white hover:bg-[#4a4a4a]')">
+          @if (tab.id === 'MyDesk') {
+            <span class="text-[#222222]">My</span><span class="text-[#d93848] font-bold">Desk</span>
+          } @else if (tab.id === 'MagicSearch') {
+            <span class="text-[#222222]">Magic</span><span class="text-[#d93848] font-bold">Search</span>
+          } @else {
+            {{ tab.label }}
+          }
+        </button>
+      }
+    </div>
+
+    <!-- Far Right HELP Button -->
+    <button (click)="openHelp()" type="button" class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[3px] px-3.5 py-1.5 flex items-center space-x-1.5 shadow-2xs cursor-pointer uppercase tracking-wider ml-3 shrink-0">
+      <span>HELP</span>
+      <i class="fa-solid fa-video text-[10px]"></i>
+    </button>
+
+  </nav>
+
+  <!-- 3. SUB-HEADER WORKLIST / SEARCH FILTER BAR -->
+  <div class="bg-[#dedede] px-4 py-3 border-b border-[#cccccc] flex flex-col md:flex-row items-center justify-between gap-2">
+    
+    <!-- Left Worklist Tabs -->
+    <div class="flex items-center space-x-1 w-full md:w-auto">
+      
+      <!-- Worklist Tab (5841) -->
+      <button (click)="selectWorklistTab('Worklist')"
+              [class]="'px-3 py-1 text-[11px] font-bold flex items-center space-x-1.5 cursor-pointer rounded-t-[3px] transition-colors ' + 
+                       (activeWorklistTab() === 'Worklist' ? 'bg-white text-[#333333] border-t-2 border-[#d93848] shadow-2xs' : 'text-[#333333] hover:text-black')">
+        <i class="fa-solid fa-bookmark text-[#d93848] text-xs"></i>
+        <span>Worklist</span>
+        <span class="px-1.5 py-[0.5px] bg-[#d93848] text-white text-[9.5px] font-bold rounded-full leading-none shrink-0 ml-1">5841</span>
+      </button>
+
+      <!-- Completed Tab -->
+      <button (click)="selectWorklistTab('Completed')"
+              [class]="'px-3 py-1 text-[11px] font-bold flex items-center space-x-1.5 cursor-pointer rounded-t-[3px] transition-colors ' + 
+                       (activeWorklistTab() === 'Completed' ? 'bg-white text-[#333333] border-t-2 border-[#d93848] shadow-2xs' : 'text-[#555555] hover:text-black')">
+        <i class="fa-solid fa-circle-check text-[#666666] text-xs"></i>
+        <span>Completed</span>
+      </button>
+
+      <!-- Notifications Tab -->
+      <button (click)="selectWorklistTab('Notifications')"
+              [class]="'px-3 py-1 text-[11px] font-bold flex items-center space-x-1.5 cursor-pointer rounded-t-[3px] transition-colors ' + 
+                       (activeWorklistTab() === 'Notifications' ? 'bg-white text-[#333333] border-t-2 border-[#d93848] shadow-2xs' : 'text-[#555555] hover:text-black')">
+        <i class="fa-solid fa-bell text-[#666666] text-xs"></i>
+        <span>Notifications</span>
+      </button>
+
+    </div>
+
+    <!-- Center MagicSearch Input Bar -->
+    <div class="flex items-center space-x-2 w-full md:w-auto">
+      <div class="relative w-full md:w-72">
+        <input type="text" 
+               [ngModel]="searchQuery()" 
+               (ngModelChange)="searchQuery.set($event)"
+               placeholder="MagicSearch" 
+               class="w-full pl-3 pr-8 h-7 bg-white border border-[#bbbbbb] rounded-[2px] text-xs text-[#333333] placeholder:text-[#d93848] placeholder:font-semibold focus:outline-none focus:border-[#d93848]" />
+        <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-[#666666] cursor-pointer">
+          <i class="fa-solid fa-border-all text-xs"></i>
+        </span>
+      </div>
+
+      <!-- Action Buttons Right -->
+      <button class="w-7 h-7 bg-[#d93848] text-white rounded-[2px] flex items-center justify-center text-xs font-bold hover:bg-[#b80a09] cursor-pointer">
+        <i class="fa-solid fa-filter"></i>
+      </button>
+      <button (click)="refreshTasks()" class="w-7 h-7 bg-white text-[#d93848] border border-[#cccccc] rounded-[2px] flex items-center justify-center text-xs font-bold hover:bg-slate-50 cursor-pointer">
+        <i class="fa-solid fa-arrow-rotate-right"></i>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- 4. WORKLIST DATA TABLE -->
+  <main class="flex-1 p-0.5 overflow-x-auto bg-white">
+    <div class="bg-white border border-[#cccccc]">
+      
+      <table class="w-full text-left mhc-table border-collapse">
+        
+        <!-- Table Header matching exact screenshot -->
+        <thead class="bg-white border-b border-[#cccccc]">
+          <tr>
+            <th>TASK DATE</th>
+            <th>TASK DESCRIPTION</th>
+            <th>TYPE</th>
+            <th>UHID</th>
+            <th>PATIENT NAME</th>
+            <th>TASK INITIATED BY</th>
+            <th>PATIENT LOCATION</th>
+            <th>STATUS</th>
+            <th class="text-right"></th>
+          </tr>
+        </thead>
+
+        <!-- Table Body matching exact rows -->
+        <tbody class="divide-y divide-[#eeeeee]">
+          
+          @for (task of filteredTasks(); track task.id) {
+            <tr class="hover:bg-[#f9f9f9] transition-colors">
+              
+              <!-- TASK DATE -->
+              <td class="whitespace-nowrap">
+                <div class="font-normal text-[#333333] leading-tight">{{ task.date }}</div>
+                <div class="text-[10px] text-[#666666] font-normal leading-tight mt-0.5">{{ task.time }}</div>
+              </td>
+
+              <!-- TASK DESCRIPTION -->
+              <td class="font-normal text-[#333333]">
+                {{ task.description }}
+              </td>
+
+              <!-- TYPE -->
+              <td class="font-normal text-[#555555]">
+                {{ task.type }}
+              </td>
+
+              <!-- UHID -->
+              <td class="font-normal text-[#555555]">
+                {{ task.uhid }}
+              </td>
+
+              <!-- PATIENT NAME -->
+              <td class="font-normal text-[#333333]">
+                {{ task.patientName }}
+              </td>
+
+              <!-- TASK INITIATED BY -->
+              <td class="text-[#555555]">
+                {{ task.initiatedBy }}
+              </td>
+
+              <!-- PATIENT LOCATION -->
+              <td class="text-[#777777]">
+                {{ task.patientLocation }}
+              </td>
+
+              <!-- STATUS BADGE -->
+              <td class="whitespace-nowrap">
+                <div class="flex items-center space-x-1.5">
+                  @if (task.statusCode === 'AR') {
+                    <span class="mhc-badge-ar">AR</span>
+                  } @else {
+                    <span class="mhc-badge-cs">CS</span>
+                  }
+                  <span class="text-[11px] font-normal text-[#333333]">{{ task.statusText }}</span>
+                </div>
+              </td>
+
+              <!-- ACTIONS MENU -->
+              <td class="text-right">
+                <button class="text-[#666666] hover:text-black cursor-pointer p-1">
+                  <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
+                </button>
+              </td>
+
+            </tr>
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+  </main>
+
+  <!-- 5. BOTTOM LEGEND & PAGINATION BAR -->
+  <footer class="bg-[#dedede] border-t border-[#cccccc] px-2.5 py-1 text-[10.5px] text-[#333333] flex flex-col md:flex-row items-center justify-between gap-1.5">
+    
+    <!-- Urgent / STAT Left -->
+    <div class="flex items-center space-x-1.5">
+      <span class="font-bold text-[#333333]">Urgent</span>
+      <span class="text-[#d93848] font-bold">|</span>
+      <span class="font-bold text-[#333333]">STAT</span>
+    </div>
+
+    <!-- Escalation Legend Center matching screenshot -->
+    <div class="flex flex-wrap items-center space-x-3 text-[10.5px]">
+      <span class="flex items-center space-x-1">
+        <i class="fa-solid fa-flag text-[#d93848] text-[10px]"></i>
+        <span>Escalated to Me</span>
+      </span>
+      <span class="flex items-center space-x-1">
+        <i class="fa-solid fa-circle-info text-[#d93848] text-[10px]"></i>
+        <span>Escalated to level 1</span>
+      </span>
+      <span class="flex items-center space-x-1">
+        <i class="fa-solid fa-user-group text-[#d93848] text-[10px]"></i>
+        <span>Escalated to level 2</span>
+      </span>
+      <span class="flex items-center space-x-1">
+        <i class="fa-solid fa-users text-[#d93848] text-[10px]"></i>
+        <span>Escalated to level 3</span>
+      </span>
+    </div>
+
+    <!-- Pagination Right matching screenshot -->
+    <div class="flex items-center space-x-1 text-xs">
+      <button class="w-4.5 h-4.5 bg-[#d93848] text-white font-bold text-[10.5px] flex items-center justify-center rounded-[2px]">1</button>
+      <button class="w-4.5 h-4.5 bg-white text-[#333333] border border-[#cccccc] font-medium text-[10.5px] hover:bg-slate-100 flex items-center justify-center rounded-[2px]">2</button>
+      <span class="text-[#777777] px-0.5 text-[9.5px]">...</span>
+      <button class="px-1.5 py-[1px] bg-white text-[#333333] border border-[#cccccc] font-medium text-[10.5px] hover:bg-slate-100 rounded-[2px]">390</button>
+      <button class="px-1.5 py-[1px] bg-white text-[#333333] border border-[#cccccc] font-medium text-[10.5px] hover:bg-slate-100 rounded-[2px]">Next</button>
+    </div>
+
+  </footer>
+
+</div>

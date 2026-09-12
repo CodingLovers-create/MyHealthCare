@@ -1,0 +1,792 @@
+<div class="min-h-screen bg-[#dedede] flex flex-col font-sans text-[#333333] select-none text-[11px]">
+  
+  <!-- 1. TOP HEADER NAVBAR -->
+  <header class="h-[46px] bg-white border-b border-[#cccccc] px-4 py-2 flex items-center justify-between">
+    
+    <!-- Left Logo -->
+    <div class="flex items-center space-x-2 cursor-pointer" (click)="logout()" routerLink="/login">
+      <svg class="w-[22px] h-[22px]" viewBox="0 0 100 100" fill="none">
+        <path d="M50 88C50 88 12 60 12 34C12 19 24 10 38 10C46 10 50 14 50 14C50 14 54 10 62 10C76 10 88 19 88 34C88 60 50 88 50 88Z" fill="#d93848"/>
+        <path d="M22 38H34L42 24L50 52L58 30L66 38H78" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[16px] font-bold tracking-tight">
+        <span class="text-[#0277bd]">My</span><span class="text-[#0091ea]">Healthcare</span>
+      </span>
+    </div>
+
+    <!-- Right User Info & Context Header -->
+    <div class="flex items-center">
+      <div class="text-right leading-tight pr-4">
+        <div class="text-[11px] text-[#333333]">
+          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser().name }}</span>
+        </div>
+        <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
+          {{ authService.currentUser().roleTitle }}
+        </div>
+      </div>
+
+      <!-- Vertical Line Divider -->
+      <div class="h-6 w-[1px] bg-[#cccccc] mx-3"></div>
+
+      <!-- Far Right Emblem Badge -->
+      <div class="flex items-center space-x-1.5 pl-3">
+        <svg class="w-5 h-5" viewBox="0 0 100 90" fill="none">
+          <path d="M50 82C50 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" fill="#d93848"/>
+          <path d="M25 35H35L42 22L50 48L58 28L65 35H75" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="flex flex-col">
+          <span class="text-[7.5px] text-[#d93848] font-bold leading-none">MyHealthcare</span>
+          <span class="text-[6.5px] text-[#555555] font-semibold leading-tight">Enterprise Application</span>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- 2. MODULE NAVIGATION TAB BAR (Dark Gray #4c4c4c) -->
+  <nav class="bg-[#4c4c4c] text-white px-4 py-2 flex items-center justify-between text-[11px] h-[44px]">
+    
+    <div class="flex items-center space-x-2 overflow-x-auto py-0.5">
+      <!-- Sidebar Toggle Hamburger -->
+      <button (click)="toggleSidebar()" class="px-2.5 py-1.5 text-white hover:text-gray-200 cursor-pointer border-r border-[#666666] pr-4 mr-2 flex items-center justify-center">
+        <i class="fa-solid fa-bars text-[13px]"></i>
+      </button>
+
+      <!-- Dynamic Module Tabs -->
+      @for (tab of moduleTabs(); track tab.id) {
+        <button (click)="selectModuleTab(tab.id)" 
+                [class]="'px-3.5 py-1.5 text-[11px] font-medium cursor-pointer whitespace-nowrap transition-all rounded-[4px] ' + 
+                         (activeModuleTab() === tab.id 
+                           ? 'bg-white text-[#222222] border-2 border-[#d93848] shadow-2xs' 
+                           : (tab.id === 'MyDesk' || tab.id === 'MagicSearch')
+                             ? 'bg-white text-[#222222] border border-[#cccccc] hover:border-[#d93848]'
+                             : 'bg-[#3f3f3f] border border-[#6b6b6b] text-white hover:bg-[#4a4a4a]')">
+          @if (tab.id === 'MyDesk') {
+            <span class="text-[#222222]">My</span><span class="text-[#d93848] font-bold">Desk</span>
+          } @else if (tab.id === 'MagicSearch') {
+            <span class="text-[#222222]">Magic</span><span class="text-[#d93848] font-bold">Search</span>
+          } @else {
+            {{ tab.label }}
+          }
+        </button>
+      }
+    </div>
+
+    <!-- Far Right HELP Button -->
+    <button (click)="openHelp()" type="button" class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[3px] px-3.5 py-1.5 flex items-center space-x-1.5 shadow-2xs cursor-pointer uppercase tracking-wider ml-3 shrink-0">
+      <span>HELP</span>
+      <i class="fa-solid fa-video text-[10px]"></i>
+    </button>
+
+  </nav>
+
+  <!-- 3. PAGE TITLE SUB-HEADER -->
+  <div class="bg-white px-5 py-3 border-b border-[#cccccc]">
+    <h1 class="text-[17px] font-bold text-[#222222] leading-none">Registration</h1>
+  </div>
+
+  <!-- 4. MAIN FORM CONTENT -->
+  <main class="flex-1 p-4 bg-white space-y-4 overflow-y-auto">
+    
+    <!-- Main Top Layout: Form Fields Left + Photo Upload Box Right -->
+    <div class="flex flex-col lg:flex-row gap-3">
+      
+      <!-- Left Main Input Fields Grid (approx 82% width) -->
+      <div class="flex-1 space-y-2.5">
+        
+        <!-- ROW 1: Registration Type, Mobile No, Whatsapp No, UHID -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          
+          <!-- Registration Type (Floating Label) -->
+          <div class="relative">
+            <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Registration Type *</label>
+            <select [ngModel]="registrationType()" (ngModelChange)="registrationType.set($event)" 
+                    class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+              <option value="General">General</option>
+              <option value="Emergency">Emergency</option>
+              <option value="VIP">VIP</option>
+              <option value="Staff">Staff</option>
+            </select>
+          </div>
+
+          <!-- Mobile No * -->
+          <div class="relative">
+            <div class="flex items-center h-8 border border-[#bbbbbb] rounded-[2px] bg-white px-2 focus-within:border-[#d93848]">
+              <span class="text-xs mr-1 select-none">🇮🇳</span>
+              <i class="fa-solid fa-caret-down text-[9px] text-[#777777] mr-1.5"></i>
+              <div class="relative w-full">
+                <input type="text" [ngModel]="mobileNo()" (ngModelChange)="mobileNo.set($event)" 
+                       class="w-full text-[11px] text-[#333333] focus:outline-none bg-transparent" />
+                @if (!mobileNo()) {
+                  <span class="absolute left-0 top-0 pointer-events-none text-[11px] text-[#777777]">
+                    Mobile No <span class="text-[#d93848] font-bold ml-0.5">*</span>
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Whatsapp No -->
+          <div class="relative">
+            <div class="flex items-center h-8 border border-[#bbbbbb] rounded-[2px] bg-white px-2 focus-within:border-[#d93848]">
+              <span class="text-xs mr-1 select-none">🇮🇳</span>
+              <i class="fa-solid fa-caret-down text-[9px] text-[#777777] mr-1.5"></i>
+              <input type="text" [ngModel]="whatsappNo()" (ngModelChange)="whatsappNo.set($event)" placeholder="Whatsapp No" 
+                     class="w-full text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none bg-transparent" />
+            </div>
+          </div>
+
+          <!-- UHID -->
+          <div class="relative">
+            <div class="flex items-center h-8 border border-[#bbbbbb] rounded-[2px] bg-white px-2 focus-within:border-[#d93848]">
+              <input type="text" [ngModel]="uhid()" (ngModelChange)="uhid.set($event)" placeholder="UHID" 
+                     class="w-full text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none bg-transparent" />
+              <button type="button" class="text-[#777777] hover:text-[#333333] ml-1 cursor-pointer">
+                <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+              </button>
+              <button type="button" class="text-[#777777] hover:text-[#333333] ml-1.5 cursor-pointer">
+                <i class="fa-solid fa-ellipsis-vertical text-[11px]"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ROW 2: Aadhar ID, Abha Integration, Title, First Name *, Middle Name, Last Name * -->
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+          
+          <!-- Aadhar ID -->
+          <div class="md:col-span-1">
+            <input type="text" [ngModel]="aadharId()" (ngModelChange)="aadharId.set($event)" placeholder="Aadhar ID" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+          </div>
+
+          <!-- Abha Integration -->
+          <div class="md:col-span-1">
+            <div class="flex items-center h-8 border border-[#bbbbbb] rounded-[2px] bg-white px-2 focus-within:border-[#d93848] justify-between">
+              <input type="text" [ngModel]="abhaId()" (ngModelChange)="abhaId.set($event)" placeholder="Abha Integration" 
+                     class="w-full text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none bg-transparent pr-1" />
+              <button type="button" (click)="sendAbhaOtp()" class="text-[#d93848] text-[9px] font-bold whitespace-nowrap hover:underline cursor-pointer">
+                SEND OTP
+              </button>
+            </div>
+          </div>
+
+          <!-- Title -->
+          <div class="md:col-span-1">
+            <select [ngModel]="title()" (ngModelChange)="title.set($event)" 
+                    class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+              <option value="Mr.">Title (Mr.)</option>
+              <option value="Mrs.">Mrs.</option>
+              <option value="Ms.">Ms.</option>
+              <option value="Dr.">Dr.</option>
+              <option value="Master">Master</option>
+              <option value="Baby">Baby</option>
+            </select>
+          </div>
+
+          <!-- First Name * -->
+          <div class="md:col-span-1 relative">
+            <input type="text" [ngModel]="firstName()" (ngModelChange)="firstName.set($event)" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+            @if (!firstName()) {
+              <span class="absolute left-2 top-2 pointer-events-none text-[11px] text-[#777777]">
+                First Name <span class="text-[#d93848] font-bold ml-0.5">*</span>
+              </span>
+            }
+          </div>
+
+          <!-- Middle Name -->
+          <div class="md:col-span-1">
+            <input type="text" [ngModel]="middleName()" (ngModelChange)="middleName.set($event)" placeholder="Middle Name" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+          </div>
+
+          <!-- Last Name * -->
+          <div class="md:col-span-1 relative">
+            <input type="text" [ngModel]="lastName()" (ngModelChange)="lastName.set($event)" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+            @if (!lastName()) {
+              <span class="absolute left-2 top-2 pointer-events-none text-[11px] text-[#777777]">
+                Last Name <span class="text-[#d93848] font-bold ml-0.5">*</span>
+              </span>
+            }
+          </div>
+
+        </div>
+
+        <!-- ROW 3: Date of Birth, Age Group, Gender *, Marital Status, Father / Spouse -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+          
+          <!-- Date of Birth (dd/mm/yyyy) * -->
+          <div class="relative">
+            <div class="flex items-center h-8 border border-[#bbbbbb] rounded-[2px] bg-white px-2 focus-within:border-[#d93848]">
+              <input type="text" [ngModel]="dob()" (ngModelChange)="onDobChange($event)" 
+                     class="w-full text-[11px] text-[#333333] focus:outline-none bg-transparent" />
+              @if (!dob()) {
+                <span class="absolute left-2 top-2 pointer-events-none text-[11px] text-[#777777] whitespace-nowrap">
+                  Date of Birth (dd/mm/yyyy) <span class="text-[#d93848] font-bold ml-0.5">*</span>
+                </span>
+              }
+              <i class="fa-regular fa-calendar text-[#777777] text-[11px] ml-1"></i>
+            </div>
+          </div>
+
+          <!-- Age Group: Checkbox + Input + Select -->
+          <div class="flex items-center space-x-1.5 h-8">
+            <label class="inline-flex items-center space-x-1 cursor-pointer">
+              <input type="checkbox" [ngModel]="isAgeChecked()" (ngModelChange)="isAgeChecked.set($event)" class="rounded-xs text-[#d93848] border-[#bbbbbb]" />
+              <span class="text-[11px] text-[#333333]">Age</span>
+            </label>
+            <input type="text" [ngModel]="age()" (ngModelChange)="age.set($event)" placeholder="" 
+                   class="w-14 h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+            <select [ngModel]="ageUnit()" (ngModelChange)="ageUnit.set($event)" 
+                    class="w-full h-8 px-1.5 bg-[#eeeeee] border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none cursor-pointer">
+              <option value="Year">Year</option>
+              <option value="Month">Month</option>
+              <option value="Day">Day</option>
+            </select>
+          </div>
+
+          <!-- Gender * -->
+          <div>
+            <select [ngModel]="gender()" (ngModelChange)="gender.set($event)" 
+                    class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+              <option value="Male">Gender * (Male)</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- Marital Status -->
+          <div>
+            <select [ngModel]="maritalStatus()" (ngModelChange)="maritalStatus.set($event)" 
+                    class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+              <option value="Single">Marital Status (Single)</option>
+              <option value="Married">Married</option>
+              <option value="Widowed">Widowed</option>
+              <option value="Divorced">Divorced</option>
+            </select>
+          </div>
+
+          <!-- Father / Spouse -->
+          <div class="flex items-center h-8 border border-[#bbbbbb] rounded-[2px] bg-white focus-within:border-[#d93848]">
+            <input type="text" [ngModel]="fatherSpouseName()" (ngModelChange)="fatherSpouseName.set($event)" placeholder="Father / Spouse" 
+                   class="w-full px-2 text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none bg-transparent" />
+            <select [ngModel]="fatherSpouseType()" (ngModelChange)="fatherSpouseType.set($event)" 
+                    class="h-full bg-[#eeeeee] text-[11px] text-[#555555] px-1 border-l border-[#bbbbbb] focus:outline-none cursor-pointer">
+              <option value="Father">Father</option>
+              <option value="Spouse">Spouse</option>
+              <option value="Mother">Mother</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- ROW 4: Patient Email *, Nationality, PAN Card No. -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          
+          <!-- Patient Email * with N/A Checkbox -->
+          <div class="flex items-center space-x-1.5 h-8">
+            <label class="inline-flex items-center space-x-1 cursor-pointer">
+              <input type="checkbox" [ngModel]="isEmailNA()" (ngModelChange)="toggleEmailNA($event)" class="rounded-xs text-[#d93848] border-[#bbbbbb]" />
+              <span class="text-[11px] text-[#555555] whitespace-nowrap">N/A</span>
+            </label>
+            <div class="relative w-full">
+              <input type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" [disabled]="isEmailNA()"
+                     [class]="'w-full h-8 px-2 border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] ' + (isEmailNA() ? 'bg-slate-100 cursor-not-allowed' : 'bg-white')" />
+              @if (!email() && !isEmailNA()) {
+                <span class="absolute left-2 top-2 pointer-events-none text-[11px] text-[#777777]">
+                  Patient Email <span class="text-[#d93848] font-bold ml-0.5">*</span>
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Nationality (Floating Label) -->
+          <div class="relative">
+            <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Nationality</label>
+            <select [ngModel]="nationality()" (ngModelChange)="nationality.set($event)" 
+                    class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+              <option value="Indian">Indian</option>
+              <option value="NRI">NRI</option>
+              <option value="Foreigner">Foreigner</option>
+            </select>
+          </div>
+
+          <!-- PAN Card No. -->
+          <div>
+            <input type="text" [ngModel]="panCardNo()" (ngModelChange)="panCardNo.set($event)" placeholder="PAN Card No." 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+          </div>
+
+        </div>
+
+        <!-- ROW 5: Emergency Contact Name *, Relation, Emergency No *, Registration Source -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          
+          <!-- Emergency Contact Name * -->
+          <div class="relative">
+            <input type="text" [ngModel]="emergencyContactName()" (ngModelChange)="emergencyContactName.set($event)" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+            @if (!emergencyContactName()) {
+              <span class="absolute left-2 top-2 pointer-events-none text-[11px] text-[#777777]">
+                Emergency Contact Name <span class="text-[#d93848] font-bold ml-0.5">*</span>
+              </span>
+            }
+          </div>
+
+          <!-- Relation -->
+          <div>
+            <select [ngModel]="relation()" (ngModelChange)="relation.set($event)" 
+                    class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+              <option value="Spouse">Relation (Spouse)</option>
+              <option value="Parent">Parent</option>
+              <option value="Child">Child</option>
+              <option value="Sibling">Sibling</option>
+              <option value="Friend">Friend</option>
+            </select>
+          </div>
+
+          <!-- Emergency No * -->
+          <div class="relative">
+            <div class="flex items-center h-8 border border-[#bbbbbb] rounded-[2px] bg-white px-2 focus-within:border-[#d93848]">
+              <span class="text-xs mr-1 select-none">🇮🇳</span>
+              <i class="fa-solid fa-caret-down text-[9px] text-[#777777] mr-1.5"></i>
+              <div class="relative w-full">
+                <input type="text" [ngModel]="emergencyNo()" (ngModelChange)="emergencyNo.set($event)" 
+                       class="w-full text-[11px] text-[#333333] focus:outline-none bg-transparent" />
+                @if (!emergencyNo()) {
+                  <span class="absolute left-0 top-0 pointer-events-none text-[11px] text-[#777777]">
+                    Emergency No <span class="text-[#d93848] font-bold ml-0.5">*</span>
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Registration Source -->
+          <div>
+            <select [ngModel]="registrationSource()" (ngModelChange)="registrationSource.set($event)" 
+                    class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+              <option value="Walk-in">Registration Source (Walk-in)</option>
+              <option value="Online">Online</option>
+              <option value="Referral">Referral</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- ROW 6: Employment Status, Grade, Department, Plant -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <input type="text" [ngModel]="employmentStatus()" (ngModelChange)="employmentStatus.set($event)" placeholder="Employment Status" 
+                 class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+          
+          <input type="text" [ngModel]="grade()" (ngModelChange)="grade.set($event)" placeholder="Grade" 
+                 class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+          
+          <input type="text" [ngModel]="department()" (ngModelChange)="department.set($event)" placeholder="Department" 
+                 class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+          
+          <input type="text" [ngModel]="plant()" (ngModelChange)="plant.set($event)" placeholder="Plant" 
+                 class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+        </div>
+
+        <!-- ROW 7: Employee Cadre -->
+        <div class="w-full md:w-1/4">
+          <input type="text" [ngModel]="employeeCadre()" (ngModelChange)="employeeCadre.set($event)" placeholder="Employee Cadre" 
+                 class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+        </div>
+
+      </div>
+
+      <!-- Right Photo Capture Box (~18% width) -->
+      <div class="w-full lg:w-[220px] bg-[#f9f9f9] border border-[#cccccc] p-3 rounded-[2px] flex flex-col items-center justify-center space-y-4">
+        
+        <!-- Avatar Circle -->
+        <div class="w-24 h-24 rounded-full border border-[#cccccc] bg-white flex items-center justify-center overflow-hidden relative shadow-2xs">
+          @if (capturedPhoto()) {
+            <img [src]="capturedPhoto()" alt="Patient Photo" class="w-full h-full object-cover" />
+          } @else {
+            <i class="fa-solid fa-user text-4xl text-[#cccccc]"></i>
+          }
+        </div>
+
+        <!-- 3 Upload Actions matching screenshot -->
+        <div class="flex items-center justify-center space-x-2 w-full">
+          <!-- Click -->
+          <button type="button" (click)="clickPhoto()" class="flex flex-col items-center justify-center w-14 h-14 bg-white border border-[#cccccc] rounded-full hover:bg-slate-50 cursor-pointer shadow-2xs transition-transform active:scale-95">
+            <i class="fa-solid fa-camera text-slate-600 text-xs mb-0.5"></i>
+            <span class="text-[9px] text-[#333333] font-medium">Click</span>
+          </button>
+
+          <!-- Browse -->
+          <button type="button" (click)="browsePhoto()" class="flex flex-col items-center justify-center w-14 h-14 bg-white border border-[#cccccc] rounded-full hover:bg-slate-50 cursor-pointer shadow-2xs transition-transform active:scale-95">
+            <i class="fa-solid fa-folder-open text-slate-600 text-xs mb-0.5"></i>
+            <span class="text-[9px] text-[#333333] font-medium">Browse</span>
+          </button>
+
+          <!-- Scan -->
+          <button type="button" (click)="scanDoc()" class="flex flex-col items-center justify-center w-14 h-14 bg-white border border-[#cccccc] rounded-full hover:bg-slate-50 cursor-pointer shadow-2xs transition-transform active:scale-95">
+            <i class="fa-solid fa-id-card text-slate-600 text-xs mb-0.5"></i>
+            <span class="text-[9px] text-[#333333] font-medium">Scan</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 5. ADDRESS SECTION TABS -->
+    <div class="space-y-0 pt-1">
+      
+      <!-- Address Tab Navigation -->
+      <div class="flex items-center space-x-1 border-b border-[#cccccc]">
+        <button type="button" (click)="selectAddressTab('present')" 
+                [class]="'px-3 py-1 text-[11px] font-bold cursor-pointer rounded-t-[2px] ' + 
+                         (activeAddressTab() === 'present' ? 'bg-[#777777] text-white' : 'bg-[#eeeeee] text-[#555555] hover:text-black')">
+          Present Address
+        </button>
+        
+        <button type="button" (click)="selectAddressTab('permanent')" 
+                [class]="'px-3 py-1 text-[11px] font-bold cursor-pointer rounded-t-[2px] ' + 
+                         (activeAddressTab() === 'permanent' ? 'bg-[#777777] text-white' : 'bg-[#eeeeee] text-[#555555] hover:text-black')">
+          Permanent Address
+        </button>
+
+        <button type="button" (click)="selectAddressTab('other')" 
+                [class]="'px-3 py-1 text-[11px] font-bold cursor-pointer rounded-t-[2px] ' + 
+                         (activeAddressTab() === 'other' ? 'bg-[#777777] text-white' : 'bg-[#eeeeee] text-[#555555] hover:text-black')">
+          Other Details
+        </button>
+
+        <button type="button" (click)="selectAddressTab('family')" 
+                [class]="'px-3 py-1 text-[11px] font-bold cursor-pointer rounded-t-[2px] ' + 
+                         (activeAddressTab() === 'family' ? 'bg-[#777777] text-white' : 'bg-[#eeeeee] text-[#555555] hover:text-black')">
+          Registered Family Details
+        </button>
+      </div>
+
+      <!-- Active Tab Form Panel -->
+      <div class="bg-white border border-[#cccccc] border-t-0 p-3 space-y-3">
+        
+        <!-- Tab 1: Present Address -->
+        @if (activeAddressTab() === 'present') {
+          <div class="space-y-3">
+            
+            <!-- Row 1: Country *, PIN Code *, House/Flat No. * -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              
+              <!-- Country (Floating Label) -->
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Country *</label>
+                <select [ngModel]="country()" (ngModelChange)="country.set($event)" 
+                        class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+                  <option value="India">India</option>
+                  <option value="USA">USA</option>
+                  <option value="UAE">UAE</option>
+                </select>
+              </div>
+
+              <!-- PIN Code * -->
+              <div class="relative">
+                <input type="text" [ngModel]="pinCode()" (ngModelChange)="pinCode.set($event)" 
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+                @if (!pinCode()) {
+                  <span class="absolute left-2 top-2 pointer-events-none text-[11px] text-[#777777]">
+                    PIN Code <span class="text-[#d93848] font-bold ml-0.5">*</span>
+                  </span>
+                }
+              </div>
+
+              <!-- House/Flat No. * -->
+              <div class="relative">
+                <input type="text" [ngModel]="houseNo()" (ngModelChange)="houseNo.set($event)" 
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+                @if (!houseNo()) {
+                  <span class="absolute left-2 top-2 pointer-events-none text-[11px] text-[#777777]">
+                    House/Flat No. <span class="text-[#d93848] font-bold ml-0.5">*</span>
+                  </span>
+                }
+              </div>
+
+            </div>
+
+            <!-- Row 2: Street Locality, State *, City *, Area -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+              
+              <!-- Street Locality -->
+              <div>
+                <input type="text" [ngModel]="streetLocality()" (ngModelChange)="streetLocality.set($event)" placeholder="Street Locality" 
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+              </div>
+
+              <!-- State (Floating Label) -->
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">State *</label>
+                <select [ngModel]="state()" (ngModelChange)="onStateChange($event)" 
+                        class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                </select>
+              </div>
+
+              <!-- City (Floating Label) -->
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">City *</label>
+                <select [ngModel]="city()" (ngModelChange)="city.set($event)" 
+                        class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+                  @for (c of availableCities(); track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+              </div>
+
+              <!-- Area -->
+              <div>
+                <select [ngModel]="area()" (ngModelChange)="area.set($event)" 
+                        class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848] cursor-pointer">
+                  <option value="">Area</option>
+                  <option value="Andheri">Andheri</option>
+                  <option value="Bandra">Bandra</option>
+                  <option value="Worli">Worli</option>
+                  <option value="Dadar">Dadar</option>
+                  <option value="Powai">Powai</option>
+                </select>
+              </div>
+
+            </div>
+
+            <!-- Bottom Checkbox right aligned -->
+            <div class="flex justify-end pt-0.5">
+              <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+                <input type="checkbox" [ngModel]="isSameAddress()" (ngModelChange)="toggleSameAddress($event)" class="rounded-xs text-[#d93848] border-[#bbbbbb]" />
+                <span class="text-[11px] text-[#333333]">Permanent Address same as Present Address</span>
+              </label>
+            </div>
+
+          </div>
+        }
+
+        <!-- Tab 2: Permanent Address -->
+        @if (activeAddressTab() === 'permanent') {
+          <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Country *</label>
+                <select [ngModel]="permCountry()" (ngModelChange)="permCountry.set($event)" 
+                        class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]">
+                  <option value="India">India</option>
+                  <option value="USA">USA</option>
+                  <option value="UAE">UAE</option>
+                </select>
+              </div>
+
+              <div class="relative">
+                <input type="text" [ngModel]="permPinCode()" (ngModelChange)="permPinCode.set($event)" placeholder="PIN Code *" 
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#d93848] placeholder:font-medium focus:outline-none focus:border-[#d93848]" />
+              </div>
+
+              <div class="relative">
+                <input type="text" [ngModel]="permHouseNo()" (ngModelChange)="permHouseNo.set($event)" placeholder="House/Flat No. *" 
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#d93848] placeholder:font-medium focus:outline-none focus:border-[#d93848]" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+              <div>
+                <input type="text" [ngModel]="permStreetLocality()" (ngModelChange)="permStreetLocality.set($event)" placeholder="Street Locality" 
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">State *</label>
+                <select [ngModel]="permState()" (ngModelChange)="onPermStateChange($event)" 
+                        class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]">
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Karnataka">Karnataka</option>
+                </select>
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">City *</label>
+                <select [ngModel]="permCity()" (ngModelChange)="permCity.set($event)" 
+                        class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]">
+                  @for (c of availablePermCities(); track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <input type="text" [ngModel]="permArea()" (ngModelChange)="permArea.set($event)" placeholder="Area" 
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Tab 3: Other Details -->
+        @if (activeAddressTab() === 'other') {
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <input type="text" [ngModel]="occupation()" (ngModelChange)="occupation.set($event)" placeholder="Occupation" 
+                     class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+            </div>
+
+            <div>
+              <select [ngModel]="bloodGroup()" (ngModelChange)="bloodGroup.set($event)" 
+                      class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]">
+                <option value="O+">Blood Group (O+)</option>
+                <option value="A+">A+</option>
+                <option value="B+">B+</option>
+                <option value="AB+">AB+</option>
+                <option value="O-">O-</option>
+                <option value="A-">A-</option>
+                <option value="B-">B-</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+
+            <div>
+              <input type="text" [ngModel]="referredBy()" (ngModelChange)="referredBy.set($event)" placeholder="Referred By Doctor / Hospital" 
+                     class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+            </div>
+          </div>
+        }
+
+        <!-- Tab 4: Registered Family Details -->
+        @if (activeAddressTab() === 'family') {
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <input type="text" [ngModel]="kinName()" (ngModelChange)="kinName.set($event)" placeholder="Next of Kin Name" 
+                     class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+            </div>
+
+            <div>
+              <select [ngModel]="kinRelation()" (ngModelChange)="kinRelation.set($event)" 
+                      class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]">
+                <option value="Spouse">Kin Relation (Spouse)</option>
+                <option value="Parent">Parent</option>
+                <option value="Child">Child</option>
+                <option value="Sibling">Sibling</option>
+              </select>
+            </div>
+
+            <div>
+              <input type="text" [ngModel]="kinContact()" (ngModelChange)="kinContact.set($event)" placeholder="Next of Kin Phone No." 
+                     class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+            </div>
+          </div>
+        }
+
+      </div>
+
+    </div>
+
+    <!-- 6. PAYOR DETAILS SECTION -->
+    <div class="space-y-0">
+      <div class="bg-[#777777] text-white px-3 py-1 font-bold text-[11px] rounded-t-[2px]">
+        Payor Details
+      </div>
+      <div class="bg-white border border-[#cccccc] border-t-0 p-3 space-y-3">
+        <div class="flex items-center space-x-6">
+          <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+            <input type="radio" name="payor" [checked]="payorType() === 'self'" (change)="setPayorType('self')" class="text-[#d93848] focus:ring-[#d93848]" />
+            <span class="text-[11px] text-[#333333] font-medium">Self-Pay</span>
+          </label>
+
+          <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+            <input type="radio" name="payor" [checked]="payorType() === 'corporate'" (change)="setPayorType('corporate')" class="text-[#d93848] focus:ring-[#d93848]" />
+            <span class="text-[11px] text-[#333333] font-medium">Corporate</span>
+          </label>
+
+          <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+            <input type="radio" name="payor" [checked]="payorType() === 'insurance'" (change)="setPayorType('insurance')" class="text-[#d93848] focus:ring-[#d93848]" />
+            <span class="text-[11px] text-[#333333] font-medium">Insurance</span>
+          </label>
+        </div>
+
+        <!-- Conditional sub-fields for Corporate / Insurance -->
+        @if (payorType() === 'corporate') {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-[#eeeeee]">
+            <input type="text" [ngModel]="corporateName()" (ngModelChange)="corporateName.set($event)" placeholder="Corporate Company Name *" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#d93848] placeholder:font-medium focus:outline-none focus:border-[#d93848]" />
+            <input type="text" [ngModel]="employeeId()" (ngModelChange)="employeeId.set($event)" placeholder="Corporate Employee ID *" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#d93848] placeholder:font-medium focus:outline-none focus:border-[#d93848]" />
+          </div>
+        }
+
+        @if (payorType() === 'insurance') {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-[#eeeeee]">
+            <input type="text" [ngModel]="insuranceCompany()" (ngModelChange)="insuranceCompany.set($event)" placeholder="Insurance TPA / Provider Name *" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#d93848] placeholder:font-medium focus:outline-none focus:border-[#d93848]" />
+            <input type="text" [ngModel]="tpaCardNo()" (ngModelChange)="tpaCardNo.set($event)" placeholder="TPA Policy / Card No. *" 
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#d93848] placeholder:font-medium focus:outline-none focus:border-[#d93848]" />
+          </div>
+        }
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 7. FOOTER ACTION BAR -->
+  <footer class="bg-white border-t border-[#cccccc] px-4 py-2 flex flex-col md:flex-row items-center justify-between gap-2">
+    
+    <!-- Consents Left -->
+    <div class="flex flex-wrap items-center space-x-4">
+      <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+        <input type="checkbox" [ngModel]="consentResearch()" (ngModelChange)="consentResearch.set($event)" class="rounded-xs text-[#d93848] border-[#bbbbbb]" />
+        <span class="text-[11px] text-[#333333]">Consent to use patient data for research purposes</span>
+      </label>
+
+      <label class="inline-flex items-center space-x-1.5 cursor-pointer">
+        <input type="checkbox" [ngModel]="consentPromotional()" (ngModelChange)="consentPromotional.set($event)" class="rounded-xs text-[#d93848] border-[#bbbbbb]" />
+        <span class="text-[11px] text-[#333333]">Consent to receive promotional communication</span>
+      </label>
+    </div>
+
+    <!-- Buttons Right -->
+    <div class="flex items-center space-x-2">
+      <button type="button" (click)="onClear()" class="px-5 py-1.5 bg-white border border-[#cccccc] hover:bg-slate-100 active:scale-[0.98] text-[#333333] font-semibold text-xs tracking-wider uppercase rounded-[2px] transition-all duration-150 cursor-pointer">
+        CLEAR
+      </button>
+
+      <button type="button" (click)="onPrint()" class="px-5 py-1.5 bg-white border border-[#d93848] hover:bg-red-50 active:scale-[0.98] text-[#d93848] font-semibold text-xs tracking-wider uppercase rounded-[2px] transition-all duration-150 cursor-pointer">
+        PRINT
+      </button>
+
+      <button type="button" (click)="onRegister()" class="px-6 py-1.5 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] text-white font-semibold text-xs tracking-wider uppercase rounded-[2px] shadow-xs transition-all duration-150 cursor-pointer">
+        REGISTER
+      </button>
+    </div>
+
+  </footer>
+
+  <!-- Registration Success Modal -->
+  @if (showSuccessModal()) {
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-md shadow-xl border border-slate-300 w-full max-w-sm p-5 text-center animate-in fade-in zoom-in duration-200">
+        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-xl font-bold">
+          ✓
+        </div>
+        <h3 class="text-base font-bold text-slate-800 mb-1">Patient Registered Successfully!</h3>
+        <p class="text-xs text-slate-600 mb-4">
+          Assigned UHID: <span class="font-mono font-bold text-[#d93848]">{{ registeredUhid() }}</span>
+        </p>
+        <button type="button" (click)="closeModal()" class="w-full py-2 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] text-white font-semibold text-xs tracking-wider uppercase rounded-[2px] shadow-xs transition-all duration-150 cursor-pointer">
+          Proceed to Dashboard
+        </button>
+      </div>
+    </div>
+  }
+
+
+</div>
