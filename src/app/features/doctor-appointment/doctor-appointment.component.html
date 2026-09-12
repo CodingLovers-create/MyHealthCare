@@ -112,20 +112,33 @@
     <!-- LEFT SIDEBAR FILTER & CALENDAR PANEL (~240px) -->
     <div class="w-full md:w-[240px] shrink-0 space-y-2.5">
       
-      <!-- Phone Number Fieldset -->
+      <!-- Mobile / Phone Number Fieldset -->
       <fieldset class="border border-[#cccccc] rounded-[3px] px-1.5 py-1 bg-white relative">
-        <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">Phone Number *</legend>
+        <legend class="px-1 text-[9.5px] font-semibold text-[#d93848] leading-none">{{ phoneType() }} Number *</legend>
         <div class="flex items-center space-x-1">
           <div class="flex items-center space-x-0.5 px-1 py-0.5 bg-gray-50 border border-[#cccccc] rounded-[2px] text-[10px] shrink-0">
             <span>🇮🇳</span>
             <span>+91</span>
             <i class="fa-solid fa-caret-down text-[8px] text-[#666666] ml-0.5"></i>
           </div>
-          <input type="text" [ngModel]="mobileNo()" (ngModelChange)="mobileNo.set($event)" placeholder="" class="w-full h-6 px-1 text-[11px] text-[#333333] border-none outline-none focus:ring-0" />
-          <select class="h-6 px-1 bg-gray-50 border border-[#cccccc] rounded-[2px] text-[10px] text-[#555555] appearance-none pr-3 relative">
-            <option>Mobile</option>
-          </select>
-          <button (click)="clearSelection()" class="w-6 h-6 bg-[#d93848] text-white rounded-[2px] flex items-center justify-center hover:bg-[#c22d3d] shrink-0 cursor-pointer">
+          <input type="text" 
+                 [ngModel]="mobileNo()" 
+                 (ngModelChange)="mobileNo.set($event)" 
+                 [placeholder]="phoneType() === 'Mobile' ? 'Enter Mobile No' : 'Enter Phone No'" 
+                 class="w-full h-6 px-1 text-[11px] text-[#333333] border-none outline-none focus:ring-0" />
+          <div class="relative shrink-0">
+            <select [ngModel]="phoneType()" 
+                    (ngModelChange)="phoneType.set($event)" 
+                    class="h-6 px-1 bg-gray-50 border border-[#cccccc] rounded-[2px] text-[10px] text-[#555555] appearance-none pr-3.5 relative cursor-pointer font-medium">
+              <option value="Mobile">Mobile</option>
+              <option value="Phone">Phone</option>
+            </select>
+            <i class="fa-solid fa-chevron-down text-[8px] text-[#666666] absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+          <button (click)="searchPatientByPhone()" 
+                  type="button" 
+                  title="Search Patient" 
+                  class="w-6 h-6 bg-[#d93848] text-white rounded-[2px] flex items-center justify-center hover:bg-[#c22d3d] shrink-0 cursor-pointer">
             <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
           </button>
         </div>

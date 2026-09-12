@@ -48,6 +48,7 @@ export class DoctorAppointmentComponent implements OnInit {
 
   // Filter signals
   mobileNo = signal<string>('');
+  phoneType = signal<'Mobile' | 'Phone'>('Mobile');
   selectedFacility = signal<string>('Reliance Foundation Hospital Trust');
   selectedPatient = signal<string>('');
   selectedSpeciality = signal<string>('All');
@@ -319,8 +320,19 @@ export class DoctorAppointmentComponent implements OnInit {
     this.toastService.info(`Selected date: ${day} ${this.monthNames[this.currentMonth()]} ${this.currentYear()}`);
   }
 
+  searchPatientByPhone(): void {
+    const val = this.mobileNo().trim();
+    const type = this.phoneType();
+    if (!val) {
+      this.toastService.warning(`Please enter a ${type} number to search patient records.`);
+      return;
+    }
+    this.toastService.info(`Searching patient database by ${type}: +91 ${val}...`);
+  }
+
   clearSelection(): void {
     this.mobileNo.set('');
+    this.phoneType.set('Mobile');
     this.selectedPatient.set('');
     this.selectedSpeciality.set('All');
     this.selectedPractitioner.set('all');
