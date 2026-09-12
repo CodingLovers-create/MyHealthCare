@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -6,6 +6,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ApiService } from '../../core/services/api.service';
 
 export interface TimeSlot {
   time: string;
@@ -34,7 +35,13 @@ export interface HospitalServiceItem {
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './doctor-appointment.component.html'
 })
-export class DoctorAppointmentComponent {
+export class DoctorAppointmentComponent implements OnInit {
+  private apiService = inject(ApiService);
+  private router = inject(Router);
+  private toastService = inject(ToastService);
+  public sidebarService = inject(SidebarService);
+  public authService = inject(AuthService);
+
   activeModuleTab = signal<string>('DoctorAppointment');
   appointmentType = signal<'doctor' | 'service'>('doctor');
   scheduleViewMode = signal<'table' | 'grid'>('table');
@@ -269,12 +276,22 @@ export class DoctorAppointmentComponent {
 
   moduleTabs = computed(() => this.authService.allowedModules());
 
-  constructor(
-    private router: Router,
-    private toastService: ToastService,
-    public sidebarService: SidebarService,
-    public authService: AuthService
-  ) {}
+  ngOnInit(): void {
+    // Fetch data from JSON Server
+    this.apiService.get<Practitioner[]>('practitioners').subscribe(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        this.practitioners = data;
+      }
+    });
+
+    this.apiService.get<HospitalServiceItem[]>('services').subscribe(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        this.servicesList = data;
+      }
+    });
+  }
+
+  constructor() {}
 
   toggleSidebar(): void {
     this.sidebarService.toggle();
