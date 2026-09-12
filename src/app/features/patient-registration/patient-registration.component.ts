@@ -1,10 +1,11 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-patient-registration',
@@ -13,6 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './patient-registration.component.html'
 })
 export class PatientRegistrationComponent {
+  private apiService = inject(ApiService);
   // ...
   constructor(
     private router: Router, 
@@ -326,6 +328,41 @@ export class PatientRegistrationComponent {
     }
 
     const generatedUhid = 'RFH' + Math.floor(10000000 + Math.random() * 90000000);
+
+    const newPatient = {
+      uhid: generatedUhid,
+      registrationType: this.registrationType(),
+      title: this.title(),
+      name: `${this.title()} ${this.firstName()} ${this.middleName()} ${this.lastName()}`.replace(/\s+/g, ' ').trim(),
+      firstName: this.firstName(),
+      middleName: this.middleName(),
+      lastName: this.lastName(),
+      mobile: this.mobileNo(),
+      whatsapp: this.whatsappNo(),
+      dob: this.dob(),
+      age: this.age(),
+      gender: this.gender(),
+      maritalStatus: this.maritalStatus(),
+      email: this.email(),
+      nationality: this.nationality(),
+      address: {
+        houseNo: this.houseNo(),
+        street: this.streetLocality(),
+        city: this.city(),
+        state: this.state(),
+        pinCode: this.pinCode()
+      },
+      bloodGroup: this.bloodGroup(),
+      registeredOn: new Date().toISOString()
+    };
+
+    // Save to JSON Server /patients endpoint
+    this.apiService.post('patients', newPatient).subscribe({
+      next: (res) => {
+        console.log('[JSON-Server] Patient registered & stored:', res);
+      }
+    });
+
     this.registeredUhid.set(generatedUhid);
     this.showSuccessModal.set(true);
     this.toastService.success(`Patient registered successfully! Assigned UHID: ${generatedUhid}`);
