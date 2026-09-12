@@ -88,17 +88,19 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onLogin(event?: Event): void {
     if (event) event.preventDefault();
-    const id = (this.credentials.identifier || '').toLowerCase().trim();
-    let role: UserRoleType = 'admin';
-    if (id.includes('executive') || id.includes('priya') || id.includes('patient') || id.includes('booking') || id === 'pe') {
-      role = 'patient_executive';
-    } else {
-      role = 'admin';
-    }
-    const targetRoute = this.authService.loginAs(role);
-    const user = this.authService.currentUser();
-    this.toastService.success(`Welcome ${user.name}! Logged in as ${user.roleTitle}.`);
-    this.router.navigate([targetRoute]);
+    this.isLoading = true;
+    this.authService.authenticateUser(this.credentials.identifier).subscribe({
+      next: ({ user, targetRoute }) => {
+        this.isLoading = false;
+        this.toastService.success(`Welcome ${user.name}! Logged in as ${user.roleTitle}.`);
+        this.router.navigate([targetRoute]);
+      },
+      error: () => {
+        this.isLoading = false;
+        const targetRoute = this.authService.loginAs('admin');
+        this.router.navigate([targetRoute]);
+      }
+    });
   }
 
   openForgotPassword(): void {
