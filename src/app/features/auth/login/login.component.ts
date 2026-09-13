@@ -39,9 +39,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   currentTime: string = '';
   currentDate: string = '';
   errorMessage: string = '';
-  isSuccessMessage: string = '';
   isLoading: boolean = false;
-  showForgotModal: boolean = false;
 
   badges: CertificationBadge[] = [
     { id: 'abdm', title: 'ABDM', subText: 'M1 M2 M3', icon: 'fa-solid fa-check', iconBg: 'bg-emerald-600', borderColor: 'border-slate-200', titleColor: 'text-emerald-800' },
@@ -122,14 +120,5 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.toastService.error(this.errorMessage);
       }
     });
-  }
-
-  openForgotPassword(): void {
-    this.showForgotModal = true;
-  }
-
-  submitForgot(): void {
-    this.showForgotModal = false;
-    this.toastService.success('Password reset link sent to your registered contact.');
   }
 }

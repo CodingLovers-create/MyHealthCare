@@ -734,6 +734,36 @@
       "description": "Doctor Consultation - Dr. Pankaj Gupta",
       "bookedOn": "2026-09-13T14:37:52.728Z",
       "id": "Moy_ZzKC614"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "20:27",
+      "patientName": "Jagdish Ramji Thakkar",
+      "uhid": "RFH2026001",
+      "mobile": "9820198201",
+      "practitioner": "General OPD Clinic",
+      "fee": 1500,
+      "status": "ARRIVED AT DESK",
+      "visitId": "OPV-2026-11223",
+      "type": "OP",
+      "description": "Active Desk Arrival Visit (OPV-2026-11223)",
+      "bookedOn": "2026-09-13T14:57:44.294Z",
+      "id": "xNQY571P8OU"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "10:30 AM",
+      "patientName": "Mohd Qureshi",
+      "uhid": "",
+      "mobile": "",
+      "practitioner": "Dr. Alok Shah",
+      "fee": 2000,
+      "status": "ARRIVED AT DESK",
+      "visitId": "OPV-2026-41759",
+      "type": "OP",
+      "description": "Auto Desk Arrival on PDF View (OPV-2026-41759)",
+      "bookedOn": "2026-09-13T15:37:43.187Z",
+      "id": "kKOW1QIct60"
     }
   ],
   "tasks": [
@@ -808,6 +838,16 @@
           "id": "OpBilling",
           "label": "OP Billing & Cashier",
           "route": "/op-billing"
+        },
+        {
+          "id": "VitalsRecording",
+          "label": "Vitals Recording",
+          "route": "/vitals-recording"
+        },
+        {
+          "id": "DoctorPatientList",
+          "label": "OPD Queue",
+          "route": "/doctor-patient-list"
         }
       ]
     },
@@ -854,6 +894,16 @@
           "id": "OpBilling",
           "label": "OP Billing & Cashier",
           "route": "/op-billing"
+        },
+        {
+          "id": "VitalsRecording",
+          "label": "Vitals Recording",
+          "route": "/vitals-recording"
+        },
+        {
+          "id": "DoctorPatientList",
+          "label": "OPD Queue",
+          "route": "/doctor-patient-list"
         }
       ]
     },

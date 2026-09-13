@@ -4,15 +4,9 @@
   <app-navbar activeModule="OpBilling"></app-navbar>
 
   <!-- Sub-Header Title Bar -->
-  <div class="bg-white px-5 py-3 border-b border-[#cccccc] flex items-center justify-between shadow-2xs">
-    <div class="flex items-center space-x-3">
-      <div class="w-8 h-8 rounded-full bg-[#d93848]/10 text-[#d93848] flex items-center justify-center font-bold text-sm">
-        <i class="fa-solid fa-receipt"></i>
-      </div>
-      <div>
-        <h1 class="text-[16px] font-bold text-[#222222] leading-none">OP Billing & Cashier Desk</h1>
-        <p class="text-[10px] text-[#666666] mt-0.5">Process Outpatient Consultation Charges, Dynamic Tariff Discounts, & Official Receipts</p>
-      </div>
+  <app-subheader title="OP Billing & Cashier Desk">
+    <div subheader-left class="text-[10px] text-[#666666] hidden md:block">
+      Process Outpatient Consultation Charges, Dynamic Tariff Discounts, & Official Receipts
     </div>
 
     <!-- Active Visit Badge -->
@@ -22,7 +16,7 @@
         <span>Active Visit: {{ visitId() }}</span>
       </span>
     </div>
-  </div>
+  </app-subheader>
 
   <!-- Main Content Grid -->
   <main class="flex-1 p-4 max-w-7xl mx-auto w-full space-y-4">

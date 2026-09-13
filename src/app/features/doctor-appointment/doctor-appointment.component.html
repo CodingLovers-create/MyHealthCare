@@ -5,27 +5,23 @@
 
 
   <!-- 3. PAGE TITLE SUB-HEADER BAR -->
-  <div class="bg-white px-4 py-2 border-b border-[#cccccc] flex items-center justify-between shrink-0">
-    <div class="flex items-center space-x-6">
-      <h1 class="text-[16px] font-bold text-[#222222] leading-none">Appointment</h1>
-      
-      <!-- Radio Selection: Doctor Consult / Service -->
-      <div class="flex items-center space-x-4 text-[11px] font-medium text-[#333333]">
-        <label class="flex items-center space-x-1.5 cursor-pointer">
-          <input type="radio" name="apptType" [checked]="appointmentType() === 'doctor'" (change)="appointmentType.set('doctor')" class="accent-[#d93848] w-3.5 h-3.5" />
-          <span>Doctor Consult/Service</span>
-        </label>
-        <label class="flex items-center space-x-1.5 cursor-pointer">
-          <input type="radio" name="apptType" [checked]="appointmentType() === 'service'" (change)="appointmentType.set('service')" class="accent-[#d93848] w-3.5 h-3.5" />
-          <span>Service Appointment</span>
-        </label>
-      </div>
+  <app-subheader title="Appointment">
+    <!-- Radio Selection: Doctor Consult / Service -->
+    <div subheader-left class="flex items-center space-x-4 text-[11px] font-medium text-[#333333]">
+      <label class="flex items-center space-x-1.5 cursor-pointer">
+        <input type="radio" name="apptType" [checked]="appointmentType() === 'doctor'" (change)="appointmentType.set('doctor')" class="accent-[#d93848] w-3.5 h-3.5" />
+        <span>Doctor Consult/Service</span>
+      </label>
+      <label class="flex items-center space-x-1.5 cursor-pointer">
+        <input type="radio" name="apptType" [checked]="appointmentType() === 'service'" (change)="appointmentType.set('service')" class="accent-[#d93848] w-3.5 h-3.5" />
+        <span>Service Appointment</span>
+      </label>
     </div>
 
     <div class="text-[11px] font-medium text-[#333333]">
       Payor Type : <span class="font-bold text-[#d93848]">{{ payorType() }}</span>
     </div>
-  </div>
+  </app-subheader>
 
 
   <!-- 4. MAIN APPOINTMENT BOOKING CONTENT LAYOUT -->
@@ -586,7 +582,7 @@
             </div>
             <div>
               <label class="block text-[10px] font-semibold text-[#555555] mb-1">First Name *</label>
-              <input type="text" [ngModel]="quickFirstName()" (ngModelChange)="quickFirstName.set($event)" placeholder="e.g. Prathamesh" class="w-full h-8 px-2 border border-[#cccccc] rounded text-[11px]" />
+              <input type="text" [ngModel]="quickFirstName()" (ngModelChange)="quickFirstName.set($event)" placeholder="First Name" class="w-full h-8 px-2 border border-[#cccccc] rounded text-[11px]" />
             </div>
             <div>
               <label class="block text-[10px] font-semibold text-[#555555] mb-1">Last Name *</label>

@@ -34,13 +34,6 @@
         Please Enter the Credentials to Login
       </h1>
 
-      <!-- Success Notification Banner -->
-      @if (isSuccessMessage) {
-        <div class="mb-6 p-3 bg-emerald-50/90 border border-emerald-300 rounded text-emerald-800 font-medium text-xs max-w-md mx-auto shadow-sm flex items-center justify-center space-x-2 animate-fade-in">
-          <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
-          <span>{{ isSuccessMessage }}</span>
-        </div>
-      }
 
       <!-- Template-Driven Form Box with #loginForm="ngForm" -->
       <form #loginForm="ngForm" (ngSubmit)="onLogin(loginForm)" class="space-y-4">
@@ -54,7 +47,7 @@
                    [(ngModel)]="credentials.identifier" 
                    name="identifier"
                    #identifierCtrl="ngModel"
-                   placeholder="Enter Username or Email (e.g. prathamesh)"
+                   placeholder="Enter Username or Email"
                    class="w-full px-3.5 py-2 bg-white/95 border border-slate-300 rounded text-slate-800 text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#d93848] transition-colors shadow-xs" />
           </div>
 
@@ -95,22 +88,6 @@
         <a href="https://www.myhealthcare.life/privacy-policy/" target="_blank" class="text-[#d93848] hover:underline">Privacy Policy</a>
       </p>
 
-      <!-- Lock Graphic & Forgot Password Link -->
-      <div class="mt-7 flex flex-col items-center justify-center">
-        <button (click)="openForgotPassword()" class="group flex flex-col items-center focus:outline-none cursor-pointer">
-          <!-- Lock box element -->
-          <div class="w-9 h-8 border border-slate-700/80 rounded flex flex-col items-center justify-center bg-white/40 group-hover:bg-white/70 transition-all shadow-xs">
-            <div class="flex space-x-1 mb-0.5 text-slate-700 text-[10px]">
-              <i class="fa-solid fa-lock"></i>
-            </div>
-            <div class="text-[8px] font-mono text-slate-800 tracking-tighter leading-none">***</div>
-          </div>
-          <span class="text-[10px] font-medium tracking-wider text-[#555555] group-hover:text-slate-900 uppercase mt-2">
-            FORGOT PASSWORD?
-          </span>
-        </button>
-      </div>
-
     </div>
   </main>
 
@@ -138,33 +115,5 @@
 
     </div>
   </footer>
-
-  <!-- Forgot Password Modal Popup with @if -->
-  @if (showForgotModal) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4">
-      <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border border-slate-100 text-left animate-scale-up">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-base font-semibold text-slate-800">Reset Password</h3>
-          <button (click)="showForgotModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
-            <i class="fa-solid fa-xmark text-lg"></i>
-          </button>
-        </div>
-        <p class="text-xs text-slate-600 mb-4">
-          Enter your registered username, phone, or email to receive a password reset code.
-        </p>
-        <input type="text" 
-               placeholder="Username / Phone / Email" 
-               class="w-full px-3.5 py-2 border border-slate-300 rounded text-xs mb-4 focus:ring-1 focus:ring-[#d93848] focus:outline-none" />
-        <div class="flex justify-end space-x-3">
-          <button (click)="showForgotModal = false" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded cursor-pointer">
-            Cancel
-          </button>
-          <button (click)="submitForgot()" class="px-5 py-2 text-xs font-semibold bg-[#d93848] text-white rounded hover:bg-[#c02a3a] cursor-pointer">
-            Send Reset Link
-          </button>
-        </div>
-      </div>
-    </div>
-  }
 
 </div>

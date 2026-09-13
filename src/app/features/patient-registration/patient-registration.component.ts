@@ -7,11 +7,12 @@ import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { SubheaderComponent } from '../../shared/components/subheader/subheader.component';
 
 @Component({
   selector: 'app-patient-registration',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, SubheaderComponent],
   templateUrl: './patient-registration.component.html'
 })
 export class PatientRegistrationComponent implements OnInit {
@@ -45,13 +46,7 @@ export class PatientRegistrationComponent implements OnInit {
   uhid = signal<string>('');
 
   // Existing Patient Matching Popup Signals
-  patientsList = signal<any[]>([
-    { uhid: 'RFH2026001', name: 'Jagdish Ramji Thakkar', title: 'Mr.', firstName: 'Jagdish', lastName: 'Thakkar', mobile: '9820198201', age: '58', gender: 'Male', city: 'Mumbai', state: 'Maharashtra' },
-    { uhid: 'RFH2026002', name: 'Mohd. Zubair Qureshi', title: 'Mr.', firstName: 'Mohd.', lastName: 'Qureshi', mobile: '9819283746', age: '42', gender: 'Male', city: 'Mumbai', state: 'Maharashtra' },
-    { uhid: 'RFH23241854', name: 'Mr. PRATHAMESH SHASHANK KHOCHADE', title: 'Mr.', firstName: 'Prathamesh', lastName: 'Khochade', mobile: '9892011223', age: '30', gender: 'Male', city: 'Mumbai', state: 'Maharashtra' },
-    { uhid: 'RFH2026003', name: 'Anuradha Jadhav', title: 'Mrs.', firstName: 'Anuradha', lastName: 'Jadhav', mobile: '9765432109', age: '35', gender: 'Female', city: 'Mumbai', state: 'Maharashtra' },
-    { uhid: 'RFH2026005', name: 'Pooja Dhanecha', title: 'Ms.', firstName: 'Pooja', lastName: 'Dhanecha', mobile: '9123456789', age: '31', gender: 'Female', city: 'Mumbai', state: 'Maharashtra' }
-  ]);
+  patientsList = signal<any[]>([]);
 
   matchingPatientsList = signal<any[]>([]);
   showMatchingPatientsDropdown = signal<boolean>(false);
@@ -67,30 +62,30 @@ export class PatientRegistrationComponent implements OnInit {
       next: (apiData) => {
         if (Array.isArray(apiData) && apiData.length > 0) {
           const loaded = apiData.map(p => ({
-            uhid: p.uhid || 'RFH2026' + Math.floor(1000 + Math.random() * 9000),
-            name: p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
-            title: p.title || 'Mr.',
-            firstName: p.firstName || p.name?.split(' ')[0] || '',
+            uhid: p.uhid || '',
+            name: p.name || `${p.title || ''} ${p.firstName || ''} ${p.middleName || ''} ${p.lastName || ''}`.replace(/\s+/g, ' ').trim(),
+            title: p.title || '',
+            firstName: p.firstName || (p.name ? p.name.split(' ')[0] : ''),
             middleName: p.middleName || '',
-            lastName: p.lastName || p.name?.split(' ').slice(-1)[0] || '',
-            mobile: p.mobile ? p.mobile.replace(/\+91\s?/, '') : '9820198201',
-            age: p.age || '32',
-            gender: p.gender || 'Male',
+            lastName: p.lastName || (p.name ? p.name.split(' ').slice(-1)[0] : ''),
+            mobile: p.mobile ? p.mobile.replace(/\+91\s?/, '') : '',
+            age: p.age !== undefined && p.age !== null ? String(p.age) : '',
+            gender: p.gender || '',
             dob: p.dob || '',
             email: p.email || '',
-            city: p.address?.city || p.city || 'Mumbai',
-            state: p.address?.state || p.state || 'Maharashtra',
+            city: p.address?.city || p.city || '',
+            state: p.address?.state || p.state || '',
             houseNo: p.address?.houseNo || p.houseNo || '',
             streetLocality: p.address?.street || p.streetLocality || '',
             pinCode: p.address?.pinCode || p.pinCode || ''
           }));
-          const existingUhids = new Set(loaded.map(p => p.uhid));
-          const combined = [
-            ...loaded,
-            ...this.patientsList().filter(dp => !existingUhids.has(dp.uhid))
-          ];
-          this.patientsList.set(combined);
+          this.patientsList.set(loaded);
+        } else {
+          this.patientsList.set([]);
         }
+      },
+      error: () => {
+        this.patientsList.set([]);
       }
     });
   }

@@ -47,6 +47,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   selectModuleTab(tabId: string): void {
+    const matchedModule = this.moduleTabs().find(m => m.id === tabId);
+    if (matchedModule && matchedModule.route) {
+      this.router.navigate([matchedModule.route]);
+      return;
+    }
+
     if (tabId === 'MyDesk') {
       this.router.navigate(['/dashboard']);
     } else if (tabId === 'MagicSearch') {
@@ -57,6 +63,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.router.navigate(['/doctor-appointment']);
     } else if (tabId === 'OpBilling') {
       this.router.navigate(['/op-billing']);
+    } else if (tabId === 'VitalsRecording') {
+      this.router.navigate(['/vitals-recording']);
+    } else if (tabId === 'DoctorPatientList') {
+      this.router.navigate(['/doctor-patient-list']);
     }
   }
 

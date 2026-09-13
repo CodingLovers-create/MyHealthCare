@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { ToastService } from './toast.service';
 
 export interface ToastNotification {
   id: string;
@@ -11,29 +12,25 @@ export interface ToastNotification {
   providedIn: 'root'
 })
 export class NotificationService {
-  toasts = signal<ToastNotification[]>([]);
+  private toastService = inject(ToastService);
 
   showSuccess(title: string, message: string): void {
-    this.addToast('success', title, message);
+    this.toastService.success(title ? `${title}: ${message}` : message);
   }
 
   showError(title: string, message: string): void {
-    this.addToast('error', title, message);
+    this.toastService.error(title ? `${title}: ${message}` : message);
   }
 
   showInfo(title: string, message: string): void {
-    this.addToast('info', title, message);
+    this.toastService.info(title ? `${title}: ${message}` : message);
+  }
+
+  showWarning(title: string, message: string): void {
+    this.toastService.warning(title ? `${title}: ${message}` : message);
   }
 
   removeToast(id: string): void {
-    this.toasts.update(current => current.filter(t => t.id !== id));
-  }
-
-  private addToast(type: ToastNotification['type'], title: string, message: string): void {
-    const id = Math.random().toString(36).substring(2, 9);
-    const toast: ToastNotification = { id, type, title, message };
-    this.toasts.update(current => [...current, toast]);
-
-    setTimeout(() => this.removeToast(id), 4000);
+    this.toastService.remove(id);
   }
 }

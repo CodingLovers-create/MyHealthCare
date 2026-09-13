@@ -8,6 +8,7 @@ import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { SubheaderComponent } from '../../shared/components/subheader/subheader.component';
 
 export interface BillItem {
   id: string;
@@ -27,7 +28,7 @@ export interface TariffPlan {
 @Component({
   selector: 'app-op-billing',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, SubheaderComponent],
   templateUrl: './op-billing.component.html'
 })
 export class OpBillingComponent implements OnInit {

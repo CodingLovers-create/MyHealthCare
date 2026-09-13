@@ -22,6 +22,11 @@ export interface WorklistTask {
   statusCode: 'AR' | 'CS' | 'IP' | 'PD' | 'CONFIRMED' | 'SCHEDULED';
   statusText: string;
   isUpcomingAppointment?: boolean;
+  mobile?: string;
+  ageGender?: string;
+  fee?: number;
+  practitioner?: string;
+  department?: string;
 }
 
 @Component({
@@ -45,69 +50,7 @@ export class DashboardComponent implements OnInit {
 
   moduleTabs = computed(() => this.authService.allowedModules());
 
-  defaultTasks: WorklistTask[] = [
-    { 
-      id: 'apt-1', 
-      date: 'SAT 12 SEP', 
-      time: '09:30 AM', 
-      description: 'Upcoming Doctor Consultation - Dr. Susheel Bindroo', 
-      type: 'OP', 
-      uhid: 'RFH2026001', 
-      patientName: 'Jagdish Ramji Thakkar', 
-      initiatedBy: 'Dr. Susheel Bindroo', 
-      patientLocation: 'Pulmonology OPD', 
-      statusCode: 'CONFIRMED', 
-      statusText: 'Upcoming Appointment Confirmed',
-      isUpcomingAppointment: true 
-    },
-    { 
-      id: 'apt-2', 
-      date: 'SAT 12 SEP', 
-      time: '10:30 AM', 
-      description: 'Upcoming Doctor Consultation - Dr. Alok Shah', 
-      type: 'OP', 
-      uhid: 'RFH2026002', 
-      patientName: 'Mohd. Zubair Qureshi', 
-      initiatedBy: 'Dr. Alok Shah', 
-      patientLocation: 'Cardiology OPD', 
-      statusCode: 'CONFIRMED', 
-      statusText: 'Upcoming Appointment Confirmed',
-      isUpcomingAppointment: true 
-    },
-    { 
-      id: 'apt-3', 
-      date: 'SUN 13 SEP', 
-      time: '11:00 AM', 
-      description: 'Upcoming Doctor Consultation - Dr. Sneha Patil', 
-      type: 'OP', 
-      uhid: 'RFH23241854', 
-      patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', 
-      initiatedBy: 'Dr. Sneha Patil', 
-      patientLocation: 'General Medicine OPD', 
-      statusCode: 'CONFIRMED', 
-      statusText: 'Upcoming Appointment Confirmed',
-      isUpcomingAppointment: true 
-    },
-    { 
-      id: 'apt-4', 
-      date: 'SUN 13 SEP', 
-      time: '02:30 PM', 
-      description: 'Upcoming Service - Complete Blood Count (CBC)', 
-      type: 'Service', 
-      uhid: 'RFH2026003', 
-      patientName: 'Anuradha Jadhav', 
-      initiatedBy: 'Pathology & Laboratory', 
-      patientLocation: 'Central Lab 2F', 
-      statusCode: 'SCHEDULED', 
-      statusText: 'Diagnostic Test Scheduled',
-      isUpcomingAppointment: true 
-    },
-    { id: '1', date: '7 Sep 2026', time: '12:34 PM', description: 'Admission Request Complete - RFH27AR34', type: 'OP', uhid: 'RFH2026001', patientName: 'Jagdish Ramji Thakkar', initiatedBy: 'Dr. Susheel Bindroo', patientLocation: 'Ward 4B', statusCode: 'AR', statusText: 'Admission Request Raised' },
-    { id: '2', date: '8 Sep 2026', time: '03:22 PM', description: 'Admission Request Complete - RFH27AR36', type: 'OP', uhid: 'RFH2026002', patientName: 'Mohd. Zubair Qureshi', initiatedBy: 'Dr. Alok Shah', patientLocation: 'ICU Unit 2', statusCode: 'AR', statusText: 'Admission Request Raised' },
-    { id: '3', date: '3 Jan 2026', time: '08:28 AM', description: 'Collect Cashier Scroll - RFH26SN4151', type: '-', uhid: '-', patientName: '-', initiatedBy: 'Ronit Kirtikar', patientLocation: '-', statusCode: 'CS', statusText: 'Cashier Scroll Submitted' },
-    { id: '4', date: '3 Jan 2026', time: '02:47 PM', description: 'Collect Cashier Scroll - RFH26SN4152', type: '-', uhid: '-', patientName: '-', initiatedBy: 'Rushikesh Mondkar', patientLocation: '-', statusCode: 'CS', statusText: 'Cashier Scroll Submitted' },
-    { id: '5', date: '3 Jan 2026', time: '04:04 PM', description: 'Collect Cashier Scroll - RFH26SN4153', type: '-', uhid: '-', patientName: '-', initiatedBy: 'Kajal Vaishnav', patientLocation: '-', statusCode: 'CS', statusText: 'Cashier Scroll Submitted' }
-  ];
+  defaultTasks: WorklistTask[] = [];
 
   tasks = signal<WorklistTask[]>([]);
 
@@ -156,18 +99,10 @@ export class DashboardComponent implements OnInit {
         if (Array.isArray(apiData) && apiData.length > 0) {
           loadedApts = apiData.map(apt => this.mapApiAppointmentToTask(apt));
         }
-
-        // Combine API appointments with default tasks, avoiding duplicate IDs
-        const existingIds = new Set(loadedApts.map(a => a.id));
-        const combined = [
-          ...loadedApts,
-          ...this.defaultTasks.filter(dt => !existingIds.has(dt.id))
-        ];
-
-        this.tasks.set(combined);
+        this.tasks.set(loadedApts);
       },
       error: () => {
-        this.tasks.set(this.defaultTasks);
+        this.tasks.set([]);
       }
     });
   }
@@ -175,17 +110,22 @@ export class DashboardComponent implements OnInit {
   private mapApiAppointmentToTask(apt: any): WorklistTask {
     return {
       id: apt.id ? `apt-${apt.id}` : 'apt-' + Math.floor(Math.random() * 100000),
-      date: apt.dateStr || 'SAT 12 SEP',
-      time: apt.time || '10:00 AM',
-      description: apt.description || `Upcoming Doctor Consultation - ${apt.practitioner || 'Doctor'}`,
+      date: apt.dateStr || '',
+      time: apt.time || '',
+      description: apt.description || (apt.practitioner ? `Upcoming Doctor Consultation - ${apt.practitioner}` : ''),
       type: apt.type || 'OP',
-      uhid: apt.uhid || 'RFH202600' + (apt.id || Math.floor(Math.random() * 9)),
-      patientName: apt.patientName || 'Registered Patient',
-      initiatedBy: apt.practitioner || 'OPD Clinic',
-      patientLocation: 'Main OPD Clinic',
+      uhid: apt.uhid || '',
+      patientName: apt.patientName || '',
+      initiatedBy: apt.practitioner || apt.initiatedBy || '',
+      patientLocation: apt.patientLocation || apt.department || '',
       statusCode: (apt.status === 'CONFIRMED' ? 'CONFIRMED' : 'SCHEDULED') as any,
-      statusText: `Upcoming Appointment (${apt.status || 'Confirmed'})`,
-      isUpcomingAppointment: true
+      statusText: apt.status ? `Upcoming Appointment (${apt.status})` : '',
+      isUpcomingAppointment: true,
+      mobile: (apt.mobile || '').replace(/\+91\s?/, ''),
+      ageGender: apt.ageGender || (apt.age ? `${apt.age} Y` : ''),
+      fee: apt.fee,
+      practitioner: apt.practitioner,
+      department: apt.department
     };
   }
 
@@ -276,6 +216,71 @@ export class DashboardComponent implements OnInit {
   refreshTasks(): void {
     this.loadAppointmentsFromApi();
     this.toastService.info('Worklist refreshed from JSON Server.');
+  }
+
+  showPdfModal = signal<boolean>(false);
+  selectedPdfData = signal<{ name: string; uhid: string; visitId: string; mobile: string; ageGender: string; doctorName: string; department: string; dateStr: string; timeStr: string } | null>(null);
+
+  openPatientPdf(task: WorklistTask): void {
+    let visitId = 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000);
+    const isArrived = task.statusCode === 'CONFIRMED' && task.statusText.includes('Arrived');
+
+    if (!isArrived) {
+      this.tasks.update(current =>
+        current.map(t => {
+          if (t.id === task.id) {
+            return {
+              ...t,
+              statusCode: 'CONFIRMED',
+              statusText: `Arrived at Desk (Active Visit ID: ${visitId})`,
+              patientLocation: 'Front Desk / Waiting Area'
+            };
+          }
+          return t;
+        })
+      );
+
+      const newAppointmentVisit = {
+        dateStr: task.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        time: task.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        patientName: task.patientName,
+        uhid: task.uhid,
+        mobile: (task.mobile || '').replace(/\+91\s?/, ''),
+        practitioner: task.initiatedBy || task.practitioner || '',
+        fee: task.fee || 1500,
+        status: 'ARRIVED AT DESK',
+        visitId: visitId,
+        type: task.type || 'OP',
+        description: `Auto Desk Arrival on PDF View (${visitId})`,
+        bookedOn: new Date().toISOString()
+      };
+      this.apiService.post('appointments', newAppointmentVisit).subscribe();
+
+      this.toastService.success(`⚡ Desk Arrival automatically marked for "${task.patientName}"! Visit ID: ${visitId}`);
+    } else {
+      const matchGroup = (task.statusText || '').match(/OPV-2026-\d+/);
+      if (matchGroup) {
+        visitId = matchGroup[0];
+      }
+      this.toastService.info(`Opening Patient Case Paper PDF for ${task.patientName}...`);
+    }
+
+    this.selectedPdfData.set({
+      name: task.patientName || '',
+      uhid: task.uhid || '',
+      visitId: visitId,
+      mobile: (task.mobile || '').replace(/\+91\s?/, ''),
+      ageGender: task.ageGender || '',
+      doctorName: task.initiatedBy || task.practitioner || '',
+      department: task.patientLocation || task.department || '',
+      dateStr: task.date || new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+      timeStr: task.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    this.showPdfModal.set(true);
+  }
+
+  printPdf(): void {
+    window.print();
   }
 
   logout(): void {

@@ -49,13 +49,7 @@ export class MagicSearchComponent implements OnInit {
   advAadhar = signal<string>('');
   advGender = signal<string>('All');
 
-  defaultPatients: PatientSearchResult[] = [
-    { id: '1', uhid: 'RFH2026001', name: 'Jagdish Ramji Thakkar', ageGender: '58 Y / Male', mobile: '+91 9820198201', aadhar: '4532 8901 2345', email: 'jagdish.thakkar@gmail.com', city: 'Mumbai', lastVisit: '07 Sep 2026' },
-    { id: '2', uhid: 'RFH2026002', name: 'Mohd. Zubair Qureshi', ageGender: '42 Y / Male', mobile: '+91 9819283746', aadhar: '9012 3456 7890', email: 'zubair.qureshi@yahoo.com', city: 'Thane', lastVisit: '08 Sep 2026' },
-    { id: '3', uhid: 'RFH2026003', name: 'Anuradha Jadhav', ageGender: '35 Y / Female', mobile: '+91 9765432109', aadhar: '1234 5678 9012', email: 'anuradha.j@gmail.com', city: 'Navi Mumbai', lastVisit: '03 Jan 2026' },
-    { id: '4', uhid: 'RFH2026004', name: 'Rushikesh Mondkar', ageGender: '29 Y / Male', mobile: '+91 9892011223', aadhar: '6789 0123 4567', email: 'rushi.mondkar@gmail.com', city: 'Pune', lastVisit: '03 Jan 2026' },
-    { id: '5', uhid: 'RFH2026005', name: 'Pooja Dhanecha', ageGender: '31 Y / Female', mobile: '+91 9123456789', aadhar: '8901 2345 6789', email: 'pooja.d@gmail.com', city: 'Mumbai', lastVisit: '03 Jan 2026' }
-  ];
+  defaultPatients: PatientSearchResult[] = [];
 
   allPatientsList = signal<PatientSearchResult[]>([]);
   searchResults = signal<PatientSearchResult[]>([]);
@@ -81,37 +75,30 @@ export class MagicSearchComponent implements OnInit {
           loadedPatients = apiData.map(p => this.mapApiPatientToSearchResult(p));
         }
 
-        // Merge API patients with defaultPatients avoiding duplicate UHIDs
-        const existingUhids = new Set(loadedPatients.map(p => p.uhid.toUpperCase()));
-        const combined = [
-          ...loadedPatients,
-          ...this.defaultPatients.filter(dp => !existingUhids.has(dp.uhid.toUpperCase()))
-        ];
-
-        this.allPatientsList.set(combined);
-        this.searchResults.set(combined);
+        this.allPatientsList.set(loadedPatients);
+        this.searchResults.set(loadedPatients);
       },
       error: () => {
-        this.allPatientsList.set(this.defaultPatients);
-        this.searchResults.set(this.defaultPatients);
+        this.allPatientsList.set([]);
+        this.searchResults.set([]);
       }
     });
   }
 
   private mapApiPatientToSearchResult(p: any): PatientSearchResult {
-    let ageGender = 'N/A';
+    let ageGender = '';
     if (p.age) {
-      ageGender = `${p.age} Y / ${p.gender || 'Unknown'}`;
+      ageGender = `${p.age} Y / ${p.gender || ''}`.trim();
     } else if (p.dob) {
       const birthYear = new Date(p.dob).getFullYear();
-      const age = isNaN(birthYear) ? '' : `${2026 - birthYear} Y / `;
-      ageGender = `${age}${p.gender || 'Unknown'}`;
+      const age = isNaN(birthYear) ? '' : `${2026 - birthYear} Y`;
+      ageGender = [age, p.gender || ''].filter(Boolean).join(' / ');
     } else if (p.gender) {
       ageGender = p.gender;
     }
 
-    let city = p.city || p.address?.city || 'Mumbai';
-    let lastVisit = '12 Sep 2026';
+    let city = p.city || p.address?.city || '';
+    let lastVisit = '';
     if (p.registeredOn) {
       try {
         const d = new Date(p.registeredOn);
@@ -129,12 +116,12 @@ export class MagicSearchComponent implements OnInit {
 
     return {
       id: p.id,
-      uhid: p.uhid || 'RFH' + Math.floor(100000 + Math.random() * 900000),
+      uhid: p.uhid || '',
       name: fullName || 'Unknown Patient',
-      ageGender: ageGender,
-      mobile: p.mobile ? (p.mobile.startsWith('+91') ? p.mobile : `+91 ${p.mobile}`) : 'N/A',
-      aadhar: p.aadhar || p.aadharId || 'N/A',
-      email: p.email || 'N/A',
+      ageGender: ageGender || 'N/A',
+      mobile: p.mobile ? (p.mobile.startsWith('+91') ? p.mobile : `+91 ${p.mobile}`) : '',
+      aadhar: p.aadhar || p.aadharId || '',
+      email: p.email || '',
       city: city,
       lastVisit: lastVisit
     };
@@ -291,54 +278,11 @@ export class MagicSearchComponent implements OnInit {
           });
         }
 
-        // If no matching appointments found in API, generate realistic active appointments for demo cancellation
-        if (matches.length === 0) {
-          matches = [
-            {
-              id: 'mock-101',
-              dateStr: 'SAT 12 SEP',
-              time: '09:30 AM',
-              patientName: patient.name,
-              uhid: patient.uhid,
-              mobile: cleanMobile || '9820198201',
-              practitioner: 'Dr. Susheel Bindroo (Pulmonology)',
-              fee: 1500,
-              status: 'CONFIRMED',
-              type: 'OP'
-            },
-            {
-              id: 'mock-102',
-              dateStr: 'SUN 13 SEP',
-              time: '11:00 AM',
-              patientName: patient.name,
-              uhid: patient.uhid,
-              mobile: cleanMobile || '9820198201',
-              practitioner: 'Dr. Alok Shah (Cardiology)',
-              fee: 2000,
-              status: 'CONFIRMED',
-              type: 'OP'
-            }
-          ];
-        }
-
         this.patientAppointments.set(matches);
       },
       error: () => {
         this.isLoadingAppts.set(false);
-        this.patientAppointments.set([
-          {
-            id: 'mock-101',
-            dateStr: 'SAT 12 SEP',
-            time: '09:30 AM',
-            patientName: patient.name,
-            uhid: patient.uhid,
-            mobile: cleanMobile || '9820198201',
-            practitioner: 'Dr. Susheel Bindroo (Pulmonology)',
-            fee: 1500,
-            status: 'CONFIRMED',
-            type: 'OP'
-          }
-        ]);
+        this.patientAppointments.set([]);
       }
     });
   }
@@ -366,12 +310,12 @@ export class MagicSearchComponent implements OnInit {
   markArrival(patient: PatientSearchResult): void {
     const generatedVisitId = 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000);
     const newAppointmentVisit = {
-      dateStr: 'SAT 12 SEP',
+      dateStr: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       patientName: patient.name,
       uhid: patient.uhid,
-      mobile: patient.mobile.replace(/\+91\s?/, ''),
-      practitioner: 'General OPD Clinic',
+      mobile: (patient.mobile || '').replace(/\+91\s?/, ''),
+      practitioner: '',
       fee: 1500,
       status: 'ARRIVED AT DESK',
       visitId: generatedVisitId,
@@ -392,7 +336,7 @@ export class MagicSearchComponent implements OnInit {
         name: patient.name,
         uhid: patient.uhid,
         visitId: generatedVisitId,
-        mobile: patient.mobile.replace(/\+91\s?/, '')
+        mobile: (patient.mobile || '').replace(/\+91\s?/, '')
       }
     });
   }
@@ -405,6 +349,58 @@ export class MagicSearchComponent implements OnInit {
   openWorklist(patient: PatientSearchResult): void {
     this.toastService.info(`Opening MyDesk worklist for ${patient.name}...`);
     this.router.navigate(['/dashboard']);
+  }
+
+  showPdfModal = signal<boolean>(false);
+  selectedPdfData = signal<{ name: string; uhid: string; visitId: string; mobile: string; ageGender: string; doctorName: string; department: string; dateStr: string; timeStr: string } | null>(null);
+
+  openPatientPdf(patient: any): void {
+    let visitId = patient.visitId;
+    let isArrived = patient.isArrivalMarked || patient.status === 'ARRIVED AT DESK' || (patient.statusText && patient.statusText.includes('Arrived'));
+
+    if (!isArrived || !visitId) {
+      visitId = 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000);
+      patient.visitId = visitId;
+      patient.status = 'ARRIVED AT DESK';
+      patient.isArrivalMarked = true;
+
+      const newAppointmentVisit = {
+        dateStr: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        patientName: patient.name || patient.patientName || '',
+        uhid: patient.uhid || '',
+        mobile: (patient.mobile || '').replace(/\+91\s?/, ''),
+        practitioner: patient.doctorName || patient.initiatedBy || patient.practitioner || '',
+        fee: patient.fee || 1500,
+        status: 'ARRIVED AT DESK',
+        visitId: visitId,
+        type: patient.type || 'OP',
+        description: `Auto Desk Arrival on PDF Click (${visitId})`,
+        bookedOn: new Date().toISOString()
+      };
+
+      this.apiService.post('appointments', newAppointmentVisit).subscribe();
+      this.toastService.success(`⚡ Desk Arrival automatically marked for "${patient.name || patient.patientName}"! Visit ID: ${visitId}`);
+    } else {
+      this.toastService.info(`Opening Patient Case Paper PDF for ${patient.name || patient.patientName}...`);
+    }
+
+    this.selectedPdfData.set({
+      name: patient.name || patient.patientName || '',
+      uhid: patient.uhid || '',
+      visitId: visitId,
+      mobile: (patient.mobile || '').replace(/\+91\s?/, ''),
+      ageGender: patient.ageGender || patient.age || '',
+      doctorName: patient.doctorName || patient.initiatedBy || patient.practitioner || '',
+      department: patient.department || patient.patientLocation || '',
+      dateStr: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
+      timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    this.showPdfModal.set(true);
+  }
+
+  printPdf(): void {
+    window.print();
   }
 
   logout(): void {

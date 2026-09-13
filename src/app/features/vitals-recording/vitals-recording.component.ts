@@ -18,10 +18,12 @@ import {
   VitalStatus
 } from '../../core/utils/vital-status.util';
 
+import { SubheaderComponent } from '../../shared/components/subheader/subheader.component';
+
 @Component({
   selector: 'app-vitals-recording',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, SubheaderComponent],
   templateUrl: './vitals-recording.component.html'
 })
 export class VitalsRecordingComponent {

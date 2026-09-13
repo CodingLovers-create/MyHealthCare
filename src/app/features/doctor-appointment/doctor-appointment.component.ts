@@ -8,6 +8,7 @@ import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { SubheaderComponent } from '../../shared/components/subheader/subheader.component';
 import { UhidFormatPipe } from '../../shared/pipes/uhid-format.pipe';
 import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
 import { PriorityHighlightDirective } from '../../shared/directives/priority-highlight.directive';
@@ -47,6 +48,7 @@ export interface HospitalServiceItem {
     FormsModule, 
     RouterModule, 
     NavbarComponent,
+    SubheaderComponent,
     UhidFormatPipe,
     InrCurrencyPipe,
     PriorityHighlightDirective,
@@ -586,13 +588,7 @@ export class DoctorAppointmentComponent implements OnInit {
   moduleTabs = computed(() => this.authService.allowedModules());
 
   // Registered Patients List for Dropdown
-  patientsList = signal<any[]>([
-    { uhid: 'RFH2026001', name: 'Jagdish Ramji Thakkar', mobile: '9820198201', ageGender: '58 Y / Male' },
-    { uhid: 'RFH2026002', name: 'Mohd. Zubair Qureshi', mobile: '9819283746', ageGender: '42 Y / Male' },
-    { uhid: 'RFH23241854', name: 'Mr. PRATHAMESH SHASHANK KHOCHADE', mobile: '9892011223', ageGender: '30 Y / Male' },
-    { uhid: 'RFH2026003', name: 'Anuradha Jadhav', mobile: '9765432109', ageGender: '35 Y / Female' },
-    { uhid: 'RFH2026005', name: 'Pooja Dhanecha', mobile: '9123456789', ageGender: '31 Y / Female' }
-  ]);
+  patientsList = signal<any[]>([]);
 
   activeSelectedPatientInfo = computed(() => {
     const sel = this.selectedPatient();
@@ -659,16 +655,16 @@ export class DoctorAppointmentComponent implements OnInit {
           const loaded = apiData.map(p => ({
             uhid: p.uhid || 'RFH2026' + Math.floor(1000 + Math.random() * 9000),
             name: p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
-            mobile: p.mobile ? p.mobile.replace(/\+91\s?/, '') : '9820198201',
+            mobile: p.mobile ? p.mobile.replace(/\+91\s?/, '') : '',
             ageGender: `${p.age || '32'} Y / ${p.gender || 'Male'}`
           }));
-          const existingUhids = new Set(loaded.map(p => p.uhid));
-          const combined = [
-            ...loaded,
-            ...this.patientsList().filter(dp => !existingUhids.has(dp.uhid))
-          ];
-          this.patientsList.set(combined);
+          this.patientsList.set(loaded);
+        } else {
+          this.patientsList.set([]);
         }
+      },
+      error: () => {
+        this.patientsList.set([]);
       }
     });
 

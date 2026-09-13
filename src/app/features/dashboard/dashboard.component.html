@@ -151,16 +151,24 @@
               <!-- ACTIONS MENU -->
               <td class="text-right whitespace-nowrap space-x-1">
                 @if (task.isUpcomingAppointment || task.statusCode === 'CONFIRMED' || task.statusCode === 'SCHEDULED') {
+                  <button (click)="openPatientPdf(task)" title="View Patient Case Paper PDF & Auto Mark Arrival" class="px-2 py-0.5 bg-[#d93848] hover:bg-[#c22d3d] text-white rounded-[2px] text-[10px] font-bold cursor-pointer inline-flex items-center space-x-1">
+                    <i class="fa-solid fa-file-pdf text-[10px]"></i>
+                    <span>PDF</span>
+                  </button>
                   <button (click)="markPatientArrival(task)" title="Record Patient Arrival at Front Desk" class="px-2 py-0.5 bg-[#059669] hover:bg-[#047857] text-white rounded-[2px] text-[10px] font-bold cursor-pointer">
                     <i class="fa-solid fa-location-dot mr-1"></i>Mark Arrival
                   </button>
-                  <button (click)="openOpBilling(task)" title="Process OP Consultation Charges & Receipt" class="px-2 py-0.5 bg-[#d93848] hover:bg-[#c22d3d] text-white rounded-[2px] text-[10px] font-bold cursor-pointer">
+                  <button (click)="openOpBilling(task)" title="Process OP Consultation Charges & Receipt" class="px-2 py-0.5 bg-[#0088cc] hover:bg-[#0077bb] text-white rounded-[2px] text-[10px] font-bold cursor-pointer">
                     <i class="fa-solid fa-receipt mr-1"></i>OP Bill
                   </button>
                   <button (click)="cancelAppointmentTask(task)" title="Cancel Patient Appointment" class="px-2 py-0.5 bg-rose-700 hover:bg-rose-800 text-white rounded-[2px] text-[10px] font-bold cursor-pointer">
                     <i class="fa-solid fa-calendar-xmark mr-1"></i>Cancel
                   </button>
                 } @else {
+                  <button (click)="openPatientPdf(task)" title="View Patient Case Paper PDF & Auto Mark Arrival" class="px-2 py-0.5 bg-[#d93848] hover:bg-[#c22d3d] text-white rounded-[2px] text-[10px] font-bold cursor-pointer inline-flex items-center space-x-1">
+                    <i class="fa-solid fa-file-pdf text-[10px]"></i>
+                    <span>PDF</span>
+                  </button>
                   <button class="text-[#666666] hover:text-black cursor-pointer p-1">
                     <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
                   </button>
@@ -217,5 +225,95 @@
     </div>
 
   </footer>
+
+  <!-- OFFICIAL PATIENT PDF CASE PAPER / OPD SLIP MODAL -->
+  @if (showPdfModal()) {
+    <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-[6px] shadow-2xl max-w-lg w-full overflow-hidden border border-[#cccccc] animate-fade-in text-left">
+        
+        <!-- Header -->
+        <div class="bg-[#d93848] text-white px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-file-pdf text-lg"></i>
+            <span class="font-bold text-[13px] tracking-wide uppercase">Patient OPD Case Paper & Slip (PDF)</span>
+          </div>
+          <button (click)="showPdfModal.set(false)" class="text-white hover:text-gray-200 cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        @if (selectedPdfData(); as pdf) {
+          <div id="printableDashboardPdfDoc" class="p-5 text-[11px] text-[#333333] space-y-4 bg-white">
+            
+            <!-- Hospital Header -->
+            <div class="text-center border-b border-[#e2e8f0] pb-3">
+              <h2 class="text-[16px] font-bold text-[#0277bd]">Reliance Foundation Hospital Trust</h2>
+              <p class="text-[10px] text-[#64748b]">Outpatient Department & EMR Clinical Case Sheet</p>
+              <p class="text-[9.5px] text-[#94a3b8] mt-0.5">
+                Active OP Visit ID: <strong class="text-[#d93848] font-mono">{{ pdf.visitId }}</strong> | Date: {{ pdf.dateStr }} {{ pdf.timeStr }}
+              </p>
+            </div>
+
+            <!-- Patient Information Box -->
+            <div class="grid grid-cols-2 gap-2 bg-rose-50/60 p-3 rounded border border-rose-200 text-[10.5px]">
+              <div><strong>Patient Name:</strong> {{ pdf.name }}</div>
+              <div><strong>UHID:</strong> <span class="font-mono font-bold text-cyan-800">{{ pdf.uhid }}</span></div>
+              <div><strong>Age / Gender:</strong> {{ pdf.ageGender }}</div>
+              <div><strong>Mobile:</strong> +91 {{ pdf.mobile }}</div>
+              <div><strong>Attending Practitioner:</strong> {{ pdf.doctorName }}</div>
+              <div><strong>Department:</strong> {{ pdf.department }}</div>
+            </div>
+
+            <!-- Clinical Status & Arrival Badge -->
+            <div class="p-3 bg-emerald-50 border border-emerald-300 rounded flex items-center justify-between text-[11px]">
+              <div>
+                <span class="font-bold text-emerald-900 block">DESK ARRIVAL STATUS: MARKED & VERIFIED</span>
+                <span class="text-[9.5px] text-emerald-700">Patient arrival recorded automatically on PDF view. Active visit generated.</span>
+              </div>
+              <span class="px-2.5 py-1 bg-emerald-600 text-white font-bold text-[9.5px] rounded uppercase tracking-wider">
+                ARRIVED AT DESK
+              </span>
+            </div>
+
+            <!-- Doctor Notes Area -->
+            <div class="border border-slate-200 rounded p-3 text-[10px] text-slate-600 space-y-2">
+              <div class="font-bold text-slate-800 uppercase text-[10.5px] border-b border-slate-200 pb-1">Clinical Assessment Notes</div>
+              <div class="grid grid-cols-2 gap-2">
+                <div><strong>Vitals Status:</strong> Pending OPD Recording</div>
+                <div><strong>Chief Complaints:</strong> OPD Consultation</div>
+              </div>
+              <div class="h-12 border border-dashed border-slate-300 rounded p-1.5 text-slate-400 italic">
+                Physician EMR Notes & Prescription area...
+              </div>
+            </div>
+
+            <!-- Footer Stamp -->
+            <div class="pt-2 flex items-center justify-between border-t border-dashed border-[#cbd5e1] text-[9px] text-[#64748b]">
+              <div>
+                <p>System Generated PDF Case Document</p>
+                <p>Reliance Foundation Hospital OPD Desk</p>
+              </div>
+              <div class="border-2 border-[#d93848] text-[#d93848] px-2 py-0.5 rounded text-[9.5px] font-bold uppercase rotate-[-2deg]">
+                OFFICIAL OP DOCUMENT
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- Actions -->
+        <div class="bg-[#f8fafc] px-4 py-3 border-t border-[#cccccc] flex justify-end space-x-2">
+          <button (click)="showPdfModal.set(false)" class="px-3 py-1.5 bg-white border border-[#cbd5e1] rounded text-[11px] font-bold text-[#475569] hover:bg-slate-100 cursor-pointer">
+            Close
+          </button>
+          <button (click)="printPdf()" class="px-4 py-1.5 bg-[#d93848] hover:bg-[#c02a3a] text-white rounded text-[11px] font-bold cursor-pointer flex items-center space-x-1.5 shadow-2xs">
+            <i class="fa-solid fa-print"></i>
+            <span>Print PDF Case Paper</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
 
 </div>
