@@ -20,8 +20,8 @@
       </div>
       <div (click)="logout()" title="Click to Logout" class="text-[11px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline flex items-center justify-end space-x-1">
         <i class="fa-solid fa-circle-user text-[13px] mr-0.5"></i>
-        <span>{{ (currentUser$ | async)?.name || userProfile?.name || authService.currentUser().name }}</span>
-        <span class="text-[9.5px] font-semibold text-slate-500">({{ (currentUser$ | async)?.roleTitle || userProfile?.roleTitle || authService.currentUser().roleTitle }})</span>
+        <span>{{ (currentUser$ | async)?.name || userProfile?.name || authService.currentUser()?.name || 'Staff User' }}</span>
+        <span class="text-[9.5px] font-semibold text-slate-500">({{ (currentUser$ | async)?.roleTitle || userProfile?.roleTitle || authService.currentUser()?.roleTitle || 'Staff' }})</span>
       </div>
     </div>
 

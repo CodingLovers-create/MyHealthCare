@@ -54,7 +54,6 @@ export interface HospitalServiceItem {
     CardContainerComponent,
     CardHeaderDirective,
     CardBodyDirective,
-    CardFooterDirective,
     InfoCardComponent
   ],
   templateUrl: './doctor-appointment.component.html'

@@ -18,10 +18,10 @@
     <div class="flex items-center">
       <div class="text-right leading-tight pr-4">
         <div class="text-[11px] text-[#333333]">
-          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser().name }}</span>
+          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser()?.name || 'Doctor' }}</span>
         </div>
         <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
-          {{ authService.currentUser().roleTitle }}
+          {{ authService.currentUser()?.roleTitle || 'Consultant Physician' }}
         </div>
       </div>
 
