@@ -97,7 +97,3 @@ Use the following credentials to test different user roles:
 - **Multi-Slot Content Projection**: `CardContainerComponent` & `InfoCardComponent` using `<ng-content select="[card-header]">`.
 
 ---
-
-## 📚 Technical Documentation & Guides
-
-- 📄 **[PDF Architectural Guide](./MyHealthcare_Angular_Architecture_Guide.pdf)**: Complete PDF documentation covering execution flows, state diagrams, and concept matrices.
