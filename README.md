@@ -1,59 +1,103 @@
-# MyhealthCare
+# MyHealthcare (MHC) - Hospital Information System
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.27.
+Enterprise-grade Hospital Information System (HIS) web application built with **Angular 18 Standalone Component Architecture**, **RxJS**, **Angular Signals**, and a **JSON REST API Backend**.
 
-## Development server
+---
 
-To start a local development server, run:
+## 🚀 How to Run the Project
 
-```bash
-ng serve
-```
+### Prerequisites
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Step 1: Install Dependencies
+Open a terminal in the project root directory and run:
 
 ```bash
-ng generate --help
+npm install
 ```
 
-## Building
+---
 
-To build the project run:
+### Step 2: Start the REST API Backend Server
+The backend runs on `json-server` and persists data in `db.json` at `http://localhost:3000`.
+
+In Terminal Window 1, run:
 
 ```bash
-ng build
+npm run api
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+> **API Server URL**: `http://localhost:3000`  
+> *(Endpoints available: `/users`, `/patients`, `/appointments`, `/doctors`, `/services`)*
 
-## Running unit tests
+---
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### Step 3: Start the Angular Frontend Application
+The Angular development server serves the app at `http://localhost:4200`.
+
+In Terminal Window 2, run:
 
 ```bash
-ng test
+npm start
 ```
+*(or `ng serve`)*
 
-## Running end-to-end tests
+> **Application Web URL**: `http://localhost:4200`
 
-For end-to-end (e2e) testing, run:
+---
+
+### ⚡ Option: Run Both Frontend & Backend Concurrently
+You can also launch both servers with a single command:
 
 ```bash
-ng e2e
+npm run dev
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+## 🔑 Login Credentials
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Use the following credentials to test different user roles:
+
+| Username | Password | Full Name | Role Title | Available Modules / Access |
+| :--- | :--- | :--- | :--- | :--- |
+| **`prathamesh`** | **`Welcome@123`** | Mr. PRATHAMESH KHOCHADE | Administrator | **Full Access** (*MyDesk, MagicSearch, Registration, Doctor Appointments, Billing*) |
+| **`priya`** | **`Welcome@123`** | Priya Sharma | Patient Executive | **Doctor Appointments** |
+| **`rahul`** | **`Welcome@123`** | Rahul Yadav | Administrator | **Full Access** |
+| **`kavita`** | **`Welcome@123`** | Kavita Rane | Staff Nurse | **Vitals Recording** |
+| **`susheel`** | **`Welcome@123`** | Dr. Susheel Bindroo | Consultant Physician | **OPD Queue & Consultation** |
+
+---
+
+## 🗺️ Application Routes
+
+| Route Path | Feature Component | Description |
+| :--- | :--- | :--- |
+| `/login` | `LoginComponent` | Template-driven authentication gateway |
+| `/dashboard` | `DashboardComponent` | **MyDesk Worklist**: Metric cards, active patient list, cancellation modal |
+| `/magic-search` | `MagicSearchComponent` | **Magic Search**: Global multi-field patient lookup & drawer |
+| `/doctor-appointment` | `DoctorAppointmentComponent` | **Doctor Appointment**: Doctor schedule grids, slot hover popover tooltips, booking/cancellation |
+| `/registration` | `PatientRegistrationComponent` | **Patient Registration**: Multi-section demographic form with auto-formatted UHID |
+| `/op-billing` | `OpBillingComponent` | **OP Billing & Cashier**: Itemized billing calculator using `InrCurrencyPipe` |
+| `/vitals-recording` | `VitalsRecordingComponent` | **Vitals Recording**: Clinical vitals entry for staff nurses |
+| `/doctor-patient-list` | `DoctorPatientListComponent` | **OPD Queue**: Physician queue management & clinical consultation launcher |
+
+---
+
+## 🏗️ Architecture & Angular Best Practices
+
+- **Standalone Components (`standalone: true`)**: Lightweight dependency tree without legacy `NgModule` declarations.
+- **RxJS `BehaviorSubject` State Stream**: `AuthService.currentUser$` stream maintains reactive user session across top navigation (`NavbarComponent`) and application modules.
+- **Angular Signals**: Fine-grained reactivity using `signal()`, `computed()`, and `update()` for UI state without Zone.js overhead.
+- **Custom Directives**: `PriorityHighlightDirective` (`[appPriorityHighlight]`) applies visual crimson accents for high-priority appointments.
+- **Custom Pipes**: `UhidFormatPipe` (`| uhidFormat`) for standardizing UHIDs (`0010-72-3243`) and `InrCurrencyPipe` (`| inrCurrency`) for Indian Rupee price formatting (`₹ 1,800.00`).
+- **Multi-Slot Content Projection**: `CardContainerComponent` & `InfoCardComponent` using `<ng-content select="[card-header]">`.
+
+---
+
+## 📚 Technical Documentation & Guides
+
+- 📄 **[PDF Architectural Guide](./MyHealthcare_Angular_Architecture_Guide.pdf)**: Complete PDF documentation covering execution flows, state diagrams, and concept matrices.
