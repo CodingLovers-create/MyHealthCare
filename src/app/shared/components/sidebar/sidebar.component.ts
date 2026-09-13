@@ -26,7 +26,9 @@ export class SidebarComponent {
     { label: 'MyDesk / Worklist', icon: 'fa-desktop', route: '/dashboard', badge: '5841', badgeColor: 'bg-[#d93848]', moduleId: 'MyDesk' },
     { label: 'MagicSearch', icon: 'fa-wand-magic-sparkles', route: '/magic-search', badge: 'HOT', badgeColor: 'bg-[#0088cc]', moduleId: 'MagicSearch' },
     { label: 'Patient Registration', icon: 'fa-user-plus', route: '/registration', moduleId: 'Registration' },
-    { label: 'Doctor Appointment', icon: 'fa-calendar-check', route: '/doctor-appointment', moduleId: 'DoctorAppointment' }
+    { label: 'Doctor Appointment', icon: 'fa-calendar-check', route: '/doctor-appointment', moduleId: 'DoctorAppointment' },
+    { label: 'Vitals Recording', icon: 'fa-heart-pulse', route: '/vitals-recording', moduleId: 'VitalsRecording' },
+    { label: 'OPD Queue / Consultation', icon: 'fa-stethoscope', route: '/doctor-patient-list', moduleId: 'DoctorPatientList' }
   ];
 
   filteredMenuItems = computed(() => {

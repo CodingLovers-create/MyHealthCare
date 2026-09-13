@@ -312,6 +312,10 @@ export class DoctorAppointmentComponent implements OnInit {
       this.router.navigate(['/registration']);
     } else if (tabId === 'DoctorAppointment') {
       this.router.navigate(['/doctor-appointment']);
+    } else if (tabId === 'VitalsRecording') {
+      this.router.navigate(['/vitals-recording']);
+    } else if (tabId === 'DoctorPatientList') {
+      this.router.navigate(['/doctor-patient-list']);
     }
   }
 

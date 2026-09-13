@@ -1,0 +1,289 @@
+@if (patient(); as p) {
+<div class="min-h-screen bg-[#dedede] flex flex-col font-sans text-[#333333] select-none text-[11px]">
+
+  <!-- 1. TOP HEADER NAVBAR -->
+  <header class="h-[46px] bg-white border-b border-[#cccccc] px-4 py-2 flex items-center justify-between">
+
+    <!-- Left Logo -->
+    <div class="flex items-center space-x-2 cursor-pointer" (click)="logout()" routerLink="/login">
+      <svg class="w-[22px] h-[22px]" viewBox="0 0 100 100" fill="none">
+        <path d="M50 88C50 88 12 60 12 34C12 19 24 10 38 10C46 10 50 14 50 14C50 14 54 10 62 10C76 10 88 19 88 34C88 60 50 88 50 88Z" fill="#d93848"/>
+        <path d="M22 38H34L42 24L50 52L58 30L66 38H78" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[16px] font-bold tracking-tight">
+        <span class="text-[#0277bd]">My</span><span class="text-[#0091ea]">Healthcare</span>
+      </span>
+    </div>
+
+    <!-- Right User Info & Context Header -->
+    <div class="flex items-center">
+      <div class="text-right leading-tight pr-4">
+        <div class="text-[11px] text-[#333333]">
+          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser().name }}</span>
+        </div>
+        <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
+          {{ authService.currentUser().roleTitle }}
+        </div>
+      </div>
+
+      <!-- Vertical Line Divider -->
+      <div class="h-6 w-[1px] bg-[#cccccc] mx-3"></div>
+
+      <!-- Far Right Emblem Badge -->
+      <div class="flex items-center space-x-1.5 pl-3">
+        <svg class="w-5 h-5" viewBox="0 0 100 90" fill="none">
+          <path d="M50 82C50 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" fill="#d93848"/>
+          <path d="M25 35H35L42 22L50 48L58 28L65 35H75" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="flex flex-col">
+          <span class="text-[7.5px] text-[#d93848] font-bold leading-none">MyHealthcare</span>
+          <span class="text-[6.5px] text-[#555555] font-semibold leading-tight">Enterprise Application</span>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- 2. MODULE NAVIGATION TAB BAR -->
+  <nav class="bg-[#4c4c4c] text-white px-4 py-2 flex items-center justify-between text-[11px] h-[44px]">
+
+    <div class="flex items-center space-x-2 overflow-x-auto py-0.5">
+      <button (click)="toggleSidebar()" class="px-2.5 py-1.5 text-white hover:text-gray-200 cursor-pointer border-r border-[#666666] pr-4 mr-2 flex items-center justify-center">
+        <i class="fa-solid fa-bars text-[13px]"></i>
+      </button>
+
+      @for (tab of moduleTabs(); track tab.id) {
+        <button (click)="selectModuleTab(tab.id)"
+                [class]="'px-3.5 py-1.5 text-[11px] font-medium cursor-pointer whitespace-nowrap transition-all rounded-[4px] ' +
+                         (activeModuleTab() === tab.id
+                           ? 'bg-white text-[#222222] border-2 border-[#d93848] shadow-2xs'
+                           : 'bg-[#3f3f3f] border border-[#6b6b6b] text-white hover:bg-[#4a4a4a]')">
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <button (click)="openHelp()" type="button" class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[3px] px-3.5 py-1.5 flex items-center space-x-1.5 shadow-2xs cursor-pointer uppercase tracking-wider ml-3 shrink-0">
+      <span>HELP</span>
+      <i class="fa-solid fa-video text-[10px]"></i>
+    </button>
+
+  </nav>
+
+  <!-- 3. PATIENT BANNER SUB-HEADER -->
+  <div class="bg-white px-5 py-2.5 border-b border-[#cccccc] flex flex-col md:flex-row md:items-center md:justify-between gap-1">
+    <div class="flex items-center space-x-3">
+      <button class="text-[#777777] hover:text-[#d93848] cursor-pointer" title="Back to Queue" routerLink="/doctor-patient-list">
+        <i class="fa-solid fa-arrow-left text-[13px]"></i>
+      </button>
+      <div>
+        <h1 class="text-[15px] font-bold text-[#222222] leading-none">{{ p.name }}</h1>
+        <span class="text-[10.5px] text-[#666666]">{{ p.uhid }} &middot; {{ p.ageGender }} &middot; {{ p.mobile }}</span>
+      </div>
+    </div>
+    <div class="text-right">
+      <div class="text-[10.5px] font-semibold text-[#333333]">{{ p.tokenNo }} &middot; {{ p.appointmentTime }}</div>
+      <div class="text-[10px] text-[#666666]">{{ p.department }} &middot; {{ p.doctorName }}</div>
+    </div>
+  </div>
+
+  <!-- 4. MAIN CONTENT -->
+  <main class="flex-1 p-3 bg-white flex flex-col lg:flex-row gap-3 overflow-y-auto">
+
+    <!-- LEFT: HISTORY + VITALS -->
+    <div class="w-full lg:w-[300px] shrink-0 space-y-3">
+
+      <!-- Vitals Verification Card -->
+      <div class="border border-[#cccccc] rounded-[2px]">
+        <div class="bg-[#777777] text-white px-3 py-1 font-bold text-[11px] rounded-t-[1px] flex items-center justify-between">
+          <span>Recorded Vitals</span>
+          <i class="fa-solid fa-heart-pulse text-[10px]"></i>
+        </div>
+        <div class="p-3 bg-[#fafafa]">
+          @if (p.vitals; as v) {
+            <div class="grid grid-cols-2 gap-2 text-[10.5px]">
+              <div><span class="text-[#777777]">Weight:</span> <span class="font-semibold">{{ v.weight }} kg</span></div>
+              <div><span class="text-[#777777]">Height:</span> <span class="font-semibold">{{ v.height }} cm</span></div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.bmi, 'bmi'))" [title]="labelFor(vitalStatus(v.bmi, 'bmi'))"></span>
+                <span class="text-[#777777]">BMI:</span> <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.bmi, 'bmi'))">{{ v.bmi }}</span>
+              </div>
+
+              <div><span class="text-[#777777]">Waist:</span> <span class="font-semibold">{{ v.waistCircumference }} cm</span></div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.bpSystolic, 'bpSystolic'))" [title]="labelFor(vitalStatus(v.bpSystolic, 'bpSystolic'))"></span>
+                <span class="text-[#777777]">BP:</span>
+                <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.bpSystolic, 'bpSystolic'))">{{ v.bpSystolic }}</span>
+                <span>/</span>
+                <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.bpDiastolic, 'bpDiastolic'))">{{ v.bpDiastolic }}</span>
+              </div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.map, 'map'))" [title]="labelFor(vitalStatus(v.map, 'map'))"></span>
+                <span class="text-[#777777]">MAP:</span> <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.map, 'map'))">{{ v.map }}</span>
+              </div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.pulse, 'pulse'))" [title]="labelFor(vitalStatus(v.pulse, 'pulse'))"></span>
+                <span class="text-[#777777]">Pulse:</span> <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.pulse, 'pulse'))">{{ v.pulse }} bpm</span>
+              </div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.temperature, 'temperature'))" [title]="labelFor(vitalStatus(v.temperature, 'temperature'))"></span>
+                <span class="text-[#777777]">Temp:</span> <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.temperature, 'temperature'))">{{ v.temperature }}&deg;F</span>
+              </div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.spo2, 'spo2'))" [title]="labelFor(vitalStatus(v.spo2, 'spo2'))"></span>
+                <span class="text-[#777777]">SpO2:</span> <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.spo2, 'spo2'))">{{ v.spo2 }}%</span>
+              </div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.respiratoryRate, 'respiratoryRate'))" [title]="labelFor(vitalStatus(v.respiratoryRate, 'respiratoryRate'))"></span>
+                <span class="text-[#777777]">RR:</span> <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.respiratoryRate, 'respiratoryRate'))">{{ v.respiratoryRate }}</span>
+              </div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.bloodGlucose, 'bloodGlucose'))" [title]="labelFor(vitalStatus(v.bloodGlucose, 'bloodGlucose'))"></span>
+                <span class="text-[#777777]">RBS:</span> <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.bloodGlucose, 'bloodGlucose'))">{{ v.bloodGlucose }}</span>
+              </div>
+
+              <div class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full inline-block" [class]="dotClassFor(vitalStatus(v.painScore, 'painScore'))" [title]="labelFor(vitalStatus(v.painScore, 'painScore'))"></span>
+                <span class="text-[#777777]">Pain:</span> <span [class]="'font-semibold ' + textClassFor(vitalStatus(v.painScore, 'painScore'))">{{ v.painScore }}/10</span>
+              </div>
+            </div>
+            <div class="text-[9.5px] text-[#999999] pt-2 border-t border-[#eeeeee] mt-2">
+              Recorded by {{ v.recordedBy }} at {{ v.recordedAt }}
+            </div>
+          } @else {
+            <div class="text-[10.5px] text-[#d93848] font-semibold">Vitals not yet recorded.</div>
+          }
+        </div>
+      </div>
+
+      <!-- Clinical History Card -->
+      <div class="border border-[#cccccc] rounded-[2px]">
+        <div class="bg-[#777777] text-white px-3 py-1 font-bold text-[11px] rounded-t-[1px] flex items-center justify-between">
+          <span>Clinical History</span>
+          <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+        </div>
+        <div class="p-3 bg-[#fafafa] space-y-1.5">
+          @for (h of p.history; track h) {
+            <div class="flex items-start space-x-1.5 text-[10.5px]">
+              <i class="fa-solid fa-circle text-[4px] text-[#d93848] mt-1.5"></i>
+              <span class="text-[#333333]">{{ h }}</span>
+            </div>
+          } @empty {
+            <div class="text-[10.5px] text-[#999999]">No prior visit history available.</div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: CONSULTATION FORM -->
+    <div class="flex-1 space-y-3">
+
+      <!-- Presenting Complaints -->
+      <div>
+        <label class="block text-[11px] font-bold text-[#555555] uppercase tracking-wider mb-1">Presenting Complaints *</label>
+        <textarea [ngModel]="complaints()" (ngModelChange)="complaints.set($event)" rows="2"
+                  placeholder="Describe the patient's presenting complaints..."
+                  class="w-full p-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848] resize-none"></textarea>
+      </div>
+
+      <!-- Clinical Findings -->
+      <div>
+        <label class="block text-[11px] font-bold text-[#555555] uppercase tracking-wider mb-1">Clinical Findings</label>
+        <textarea [ngModel]="clinicalFindings()" (ngModelChange)="clinicalFindings.set($event)" rows="2"
+                  placeholder="Record examination findings..."
+                  class="w-full p-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848] resize-none"></textarea>
+      </div>
+
+      <!-- Diagnosis -->
+      <div>
+        <label class="block text-[11px] font-bold text-[#555555] uppercase tracking-wider mb-1">Diagnosis *</label>
+        <input type="text" [ngModel]="diagnosis()" (ngModelChange)="diagnosis.set($event)"
+               placeholder="Enter provisional / final diagnosis"
+               class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+      </div>
+
+      <!-- Digital Prescription Builder -->
+      <div class="space-y-0">
+        <div class="bg-[#777777] text-white px-3 py-1 font-bold text-[11px] rounded-t-[2px]">
+          Digital Prescription
+        </div>
+        <div class="border border-[#cccccc] border-t-0 p-3 space-y-3">
+
+          @if (prescription().length > 0) {
+            <table class="w-full text-left mhc-table border-collapse">
+              <thead class="bg-white border-b border-[#cccccc]">
+                <tr>
+                  <th>MEDICINE</th>
+                  <th>DOSAGE</th>
+                  <th>FREQUENCY</th>
+                  <th>DURATION</th>
+                  <th>INSTRUCTIONS</th>
+                  <th class="text-right"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#eeeeee]">
+                @for (item of prescription(); track item.id) {
+                  <tr>
+                    <td class="font-semibold text-[#333333]">{{ item.medicine }}</td>
+                    <td class="text-[#555555]">{{ item.dosage }}</td>
+                    <td class="text-[#555555]">{{ item.frequency }}</td>
+                    <td class="text-[#555555]">{{ item.duration }}</td>
+                    <td class="text-[#777777]">{{ item.instructions }}</td>
+                    <td class="text-right">
+                      <button type="button" (click)="removeMedicine(item.id)" class="text-[#d93848] hover:text-[#a51f2e] cursor-pointer p-1">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+
+          <!-- Add Medicine Row -->
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-2 pt-1 border-t border-[#eeeeee]">
+            <input #medicineNameInput type="text" [ngModel]="newMedicine()" (ngModelChange)="newMedicine.set($event)" placeholder="Medicine Name"
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+            <input type="text" [ngModel]="newDosage()" (ngModelChange)="newDosage.set($event)" placeholder="Dosage"
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+            <input type="text" [ngModel]="newFrequency()" (ngModelChange)="newFrequency.set($event)" placeholder="Frequency"
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+            <input type="text" [ngModel]="newDuration()" (ngModelChange)="newDuration.set($event)" placeholder="Duration"
+                   class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+            <div class="flex items-center space-x-1.5">
+              <input type="text" [ngModel]="newInstructions()" (ngModelChange)="newInstructions.set($event)" placeholder="Instructions"
+                     class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+              <button type="button" (click)="addMedicine()" class="shrink-0 w-8 h-8 bg-[#d93848] hover:bg-[#c02a3a] text-white rounded-[2px] flex items-center justify-center cursor-pointer">
+                <i class="fa-solid fa-plus text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- 5. FOOTER ACTION BAR -->
+  <footer class="bg-white border-t border-[#cccccc] px-4 py-2 flex items-center justify-end gap-2">
+    <button type="button" (click)="saveDraft()" class="px-5 py-1.5 bg-white border border-[#cccccc] hover:bg-slate-100 active:scale-[0.98] text-[#333333] font-semibold text-xs tracking-wider uppercase rounded-[2px] transition-all duration-150 cursor-pointer">
+      SAVE DRAFT
+    </button>
+    <button type="button" (click)="completeConsultation()" class="px-6 py-1.5 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] text-white font-semibold text-xs tracking-wider uppercase rounded-[2px] shadow-xs transition-all duration-150 cursor-pointer">
+      COMPLETE CONSULTATION
+    </button>
+  </footer>
+
+</div>
+}

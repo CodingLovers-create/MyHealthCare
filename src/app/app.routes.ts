@@ -4,6 +4,9 @@ import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { PatientRegistrationComponent } from './features/patient-registration/patient-registration.component';
 import { MagicSearchComponent } from './features/magic-search/magic-search.component';
 import { DoctorAppointmentComponent } from './features/doctor-appointment/doctor-appointment.component';
+import { VitalsRecordingComponent } from './features/vitals-recording/vitals-recording.component';
+import { DoctorPatientListComponent } from './features/doctor-patient-list/doctor-patient-list.component';
+import { DoctorConsultationComponent } from './features/doctor-consultation/doctor-consultation.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -21,6 +24,10 @@ export const routes: Routes = [
   { path: 'op-bill', component: PatientRegistrationComponent },
   { path: 'forms', component: PatientRegistrationComponent },
   { path: 'form-master', component: PatientRegistrationComponent },
+  { path: 'vitals-recording', component: VitalsRecordingComponent },
+  { path: 'doctor-patient-list', component: DoctorPatientListComponent },
+  { path: 'doctor-queue', component: DoctorPatientListComponent },
+  { path: 'doctor-consultation/:uhid', component: DoctorConsultationComponent },
   { path: '**', redirectTo: 'dashboard' }
 ];
 

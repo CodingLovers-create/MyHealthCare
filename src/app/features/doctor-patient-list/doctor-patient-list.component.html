@@ -1,0 +1,174 @@
+<div class="min-h-screen bg-[#dedede] flex flex-col font-sans text-[#333333] select-none text-[11px]">
+
+  <!-- 1. TOP HEADER NAVBAR -->
+  <header class="h-[46px] bg-white border-b border-[#cccccc] px-4 py-2 flex items-center justify-between">
+
+    <!-- Left Logo -->
+    <div class="flex items-center space-x-2 cursor-pointer" (click)="logout()" routerLink="/login">
+      <svg class="w-[22px] h-[22px]" viewBox="0 0 100 100" fill="none">
+        <path d="M50 88C50 88 12 60 12 34C12 19 24 10 38 10C46 10 50 14 50 14C50 14 54 10 62 10C76 10 88 19 88 34C88 60 50 88 50 88Z" fill="#d93848"/>
+        <path d="M22 38H34L42 24L50 52L58 30L66 38H78" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[16px] font-bold tracking-tight">
+        <span class="text-[#0277bd]">My</span><span class="text-[#0091ea]">Healthcare</span>
+      </span>
+    </div>
+
+    <!-- Right User Info & Context Header -->
+    <div class="flex items-center">
+      <div class="text-right leading-tight pr-4">
+        <div class="text-[11px] text-[#333333]">
+          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser().name }}</span>
+        </div>
+        <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
+          {{ authService.currentUser().roleTitle }}
+        </div>
+      </div>
+
+      <!-- Vertical Line Divider -->
+      <div class="h-6 w-[1px] bg-[#cccccc] mx-3"></div>
+
+      <!-- Far Right Emblem Badge -->
+      <div class="flex items-center space-x-1.5 pl-3">
+        <svg class="w-5 h-5" viewBox="0 0 100 90" fill="none">
+          <path d="M50 82C50 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" fill="#d93848"/>
+          <path d="M25 35H35L42 22L50 48L58 28L65 35H75" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="flex flex-col">
+          <span class="text-[7.5px] text-[#d93848] font-bold leading-none">MyHealthcare</span>
+          <span class="text-[6.5px] text-[#555555] font-semibold leading-tight">Enterprise Application</span>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- 2. MODULE NAVIGATION TAB BAR -->
+  <nav class="bg-[#4c4c4c] text-white px-4 py-2 flex items-center justify-between text-[11px] h-[44px]">
+
+    <div class="flex items-center space-x-2 overflow-x-auto py-0.5">
+      <button (click)="toggleSidebar()" class="px-2.5 py-1.5 text-white hover:text-gray-200 cursor-pointer border-r border-[#666666] pr-4 mr-2 flex items-center justify-center">
+        <i class="fa-solid fa-bars text-[13px]"></i>
+      </button>
+
+      @for (tab of moduleTabs(); track tab.id) {
+        <button (click)="selectModuleTab(tab.id)"
+                [class]="'px-3.5 py-1.5 text-[11px] font-medium cursor-pointer whitespace-nowrap transition-all rounded-[4px] ' +
+                         (activeModuleTab() === tab.id
+                           ? 'bg-white text-[#222222] border-2 border-[#d93848] shadow-2xs'
+                           : 'bg-[#3f3f3f] border border-[#6b6b6b] text-white hover:bg-[#4a4a4a]')">
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <button (click)="openHelp()" type="button" class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[3px] px-3.5 py-1.5 flex items-center space-x-1.5 shadow-2xs cursor-pointer uppercase tracking-wider ml-3 shrink-0">
+      <span>HELP</span>
+      <i class="fa-solid fa-video text-[10px]"></i>
+    </button>
+
+  </nav>
+
+  <!-- 3. SUB-HEADER TITLE + SEARCH BAR -->
+  <div class="bg-[#dedede] px-4 py-3 border-b border-[#cccccc] flex flex-col md:flex-row items-center justify-between gap-2">
+    <div>
+      <h1 class="text-[15px] font-bold text-[#222222] leading-none">Live OPD Queue</h1>
+      <span class="text-[10px] text-[#666666]">Click a patient to open the consultation &amp; EMR workspace</span>
+    </div>
+
+    <div class="flex items-center space-x-2 w-full md:w-auto">
+      <div class="relative w-full md:w-72">
+        <input type="text"
+               [ngModel]="searchQuery()"
+               (ngModelChange)="searchQuery.set($event)"
+               placeholder="Search by Name / UHID / Token"
+               class="w-full pl-3 pr-8 h-7 bg-white border border-[#bbbbbb] rounded-[2px] text-xs text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+        <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-[#666666]">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </span>
+      </div>
+      <button (click)="refreshQueue()" class="w-7 h-7 bg-white text-[#d93848] border border-[#cccccc] rounded-[2px] flex items-center justify-center text-xs font-bold hover:bg-slate-50 cursor-pointer">
+        <i class="fa-solid fa-arrow-rotate-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. QUEUE DATA TABLE -->
+  <main class="flex-1 p-0.5 overflow-x-auto bg-white">
+    <div class="bg-white border border-[#cccccc]">
+
+      <table class="w-full text-left mhc-table border-collapse">
+        <thead class="bg-white border-b border-[#cccccc]">
+          <tr>
+            <th>TOKEN</th>
+            <th>PATIENT NAME</th>
+            <th>UHID</th>
+            <th>AGE / GENDER</th>
+            <th>APPOINTMENT</th>
+            <th>DOCTOR</th>
+            <th>DEPARTMENT</th>
+            <th>STATUS</th>
+            <th class="text-right">ACTION</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-[#eeeeee]">
+          @for (patient of filteredQueue(); track patient.uhid) {
+            <tr class="hover:bg-[#f9f9f9] transition-colors cursor-pointer" (click)="openConsultation(patient.uhid)">
+              <td class="font-semibold text-[#333333]">{{ patient.tokenNo }}</td>
+              <td class="font-normal text-[#333333]">{{ patient.name }}</td>
+              <td class="font-normal text-[#555555]">{{ patient.uhid }}</td>
+              <td class="font-normal text-[#555555]">{{ patient.ageGender }}</td>
+              <td class="whitespace-nowrap text-[#555555]">{{ patient.appointmentTime }}</td>
+              <td class="text-[#555555]">{{ patient.doctorName }}</td>
+              <td class="text-[#777777]">{{ patient.department }}</td>
+              <td class="whitespace-nowrap">
+                @if (patient.status === 'Waiting') {
+                  <span class="px-1.5 py-0.5 rounded-[2px] text-[9px] font-bold text-white bg-[#f0a500]">WAITING</span>
+                } @else if (patient.status === 'Vitals Recorded') {
+                  <span class="px-1.5 py-0.5 rounded-[2px] text-[9px] font-bold text-white bg-[#3a9d5d]">VITALS DONE</span>
+                } @else if (patient.status === 'In Consultation') {
+                  <span class="px-1.5 py-0.5 rounded-[2px] text-[9px] font-bold text-white bg-[#0088cc]">IN CONSULT</span>
+                } @else {
+                  <span class="px-1.5 py-0.5 rounded-[2px] text-[9px] font-bold text-white bg-[#777777]">COMPLETED</span>
+                }
+              </td>
+              <td class="text-right">
+                <button type="button" (click)="openConsultation(patient.uhid); $event.stopPropagation()"
+                        class="px-3 py-1 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] text-white font-semibold text-[10px] tracking-wide uppercase rounded-[2px] transition-all cursor-pointer">
+                  Consult
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="9" class="text-center py-6 text-[#777777]">No patients found in the OPD queue.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+    </div>
+  </main>
+
+  <!-- 5. FOOTER LEGEND BAR -->
+  <footer class="bg-[#dedede] border-t border-[#cccccc] px-2.5 py-1.5 text-[10.5px] text-[#333333] flex flex-wrap items-center justify-center gap-3">
+    <span class="flex items-center space-x-1">
+      <span class="w-2.5 h-2.5 rounded-[2px] bg-[#f0a500] inline-block"></span>
+      <span>Waiting</span>
+    </span>
+    <span class="flex items-center space-x-1">
+      <span class="w-2.5 h-2.5 rounded-[2px] bg-[#3a9d5d] inline-block"></span>
+      <span>Vitals Recorded</span>
+    </span>
+    <span class="flex items-center space-x-1">
+      <span class="w-2.5 h-2.5 rounded-[2px] bg-[#0088cc] inline-block"></span>
+      <span>In Consultation</span>
+    </span>
+    <span class="flex items-center space-x-1">
+      <span class="w-2.5 h-2.5 rounded-[2px] bg-[#777777] inline-block"></span>
+      <span>Completed</span>
+    </span>
+  </footer>
+
+</div>

@@ -1,0 +1,320 @@
+<div class="min-h-screen bg-[#dedede] flex flex-col font-sans text-[#333333] select-none text-[11px]">
+
+  <!-- 1. TOP HEADER NAVBAR -->
+  <header class="h-[46px] bg-white border-b border-[#cccccc] px-4 py-2 flex items-center justify-between">
+
+    <!-- Left Logo -->
+    <div class="flex items-center space-x-2 cursor-pointer" (click)="logout()" routerLink="/login">
+      <svg class="w-[22px] h-[22px]" viewBox="0 0 100 100" fill="none">
+        <path d="M50 88C50 88 12 60 12 34C12 19 24 10 38 10C46 10 50 14 50 14C50 14 54 10 62 10C76 10 88 19 88 34C88 60 50 88 50 88Z" fill="#d93848"/>
+        <path d="M22 38H34L42 24L50 52L58 30L66 38H78" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[16px] font-bold tracking-tight">
+        <span class="text-[#0277bd]">My</span><span class="text-[#0091ea]">Healthcare</span>
+      </span>
+    </div>
+
+    <!-- Right User Info & Context Header -->
+    <div class="flex items-center">
+      <div class="text-right leading-tight pr-4">
+        <div class="text-[11px] text-[#333333]">
+          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser().name }}</span>
+        </div>
+        <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
+          {{ authService.currentUser().roleTitle }}
+        </div>
+      </div>
+
+      <!-- Vertical Line Divider -->
+      <div class="h-6 w-[1px] bg-[#cccccc] mx-3"></div>
+
+      <!-- Far Right Emblem Badge -->
+      <div class="flex items-center space-x-1.5 pl-3">
+        <svg class="w-5 h-5" viewBox="0 0 100 90" fill="none">
+          <path d="M50 82C50 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" fill="#d93848"/>
+          <path d="M25 35H35L42 22L50 48L58 28L65 35H75" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="flex flex-col">
+          <span class="text-[7.5px] text-[#d93848] font-bold leading-none">MyHealthcare</span>
+          <span class="text-[6.5px] text-[#555555] font-semibold leading-tight">Enterprise Application</span>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- 2. MODULE NAVIGATION TAB BAR -->
+  <nav class="bg-[#4c4c4c] text-white px-4 py-2 flex items-center justify-between text-[11px] h-[44px]">
+
+    <div class="flex items-center space-x-2 overflow-x-auto py-0.5">
+      <button (click)="toggleSidebar()" class="px-2.5 py-1.5 text-white hover:text-gray-200 cursor-pointer border-r border-[#666666] pr-4 mr-2 flex items-center justify-center">
+        <i class="fa-solid fa-bars text-[13px]"></i>
+      </button>
+
+      @for (tab of moduleTabs(); track tab.id) {
+        <button (click)="selectModuleTab(tab.id)"
+                [class]="'px-3.5 py-1.5 text-[11px] font-medium cursor-pointer whitespace-nowrap transition-all rounded-[4px] ' +
+                         (activeModuleTab() === tab.id
+                           ? 'bg-white text-[#222222] border-2 border-[#d93848] shadow-2xs'
+                           : 'bg-[#3f3f3f] border border-[#6b6b6b] text-white hover:bg-[#4a4a4a]')">
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <button (click)="openHelp()" type="button" class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[3px] px-3.5 py-1.5 flex items-center space-x-1.5 shadow-2xs cursor-pointer uppercase tracking-wider ml-3 shrink-0">
+      <span>HELP</span>
+      <i class="fa-solid fa-video text-[10px]"></i>
+    </button>
+
+  </nav>
+
+  <!-- 3. PAGE TITLE SUB-HEADER -->
+  <div class="bg-white px-5 py-3 border-b border-[#cccccc] flex items-center justify-between">
+    <h1 class="text-[17px] font-bold text-[#222222] leading-none">Vitals Recording</h1>
+    <span class="text-[10.5px] text-[#666666]">Record physical metrics &amp; vitals prior to doctor consultation</span>
+  </div>
+
+  <!-- 4. MAIN CONTENT -->
+  <main class="flex-1 p-3 bg-white flex flex-col lg:flex-row gap-3 overflow-y-auto">
+
+    <!-- LEFT: OPD QUEUE PANEL -->
+    <div class="w-full lg:w-[340px] shrink-0 border border-[#cccccc] rounded-[2px] flex flex-col bg-[#fafafa]">
+      <div class="p-2 border-b border-[#cccccc] bg-white">
+        <div class="relative">
+          <input type="text"
+                 [ngModel]="searchQuery()"
+                 (ngModelChange)="searchQuery.set($event)"
+                 placeholder="Search by Name / UHID / Token"
+                 class="w-full pl-3 pr-8 h-8 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+          <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-[#666666]">
+            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          </span>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto divide-y divide-[#eeeeee]">
+        @for (patient of queue(); track patient.uhid) {
+          <button type="button" (click)="selectPatient(patient.uhid)"
+                  [class]="'w-full text-left px-3 py-2.5 flex items-center justify-between transition-colors cursor-pointer ' +
+                           (selectedUhid() === patient.uhid ? 'bg-white border-l-[3px] border-l-[#d93848]' : 'hover:bg-white border-l-[3px] border-l-transparent')">
+            <div class="flex flex-col">
+              <span class="font-semibold text-[#222222]">{{ patient.name }}</span>
+              <span class="text-[10px] text-[#666666]">{{ patient.uhid }} &middot; {{ patient.ageGender }}</span>
+              <span class="text-[10px] text-[#666666]">{{ patient.tokenNo }} &middot; {{ patient.appointmentTime }}</span>
+            </div>
+            <div class="flex flex-col items-end space-y-1">
+              @if (patient.status === 'Waiting') {
+                <span class="px-1.5 py-0.5 rounded-[2px] text-[9px] font-bold text-white bg-[#f0a500]">WAITING</span>
+              } @else if (patient.status === 'Vitals Recorded') {
+                <span class="px-1.5 py-0.5 rounded-[2px] text-[9px] font-bold text-white bg-[#3a9d5d]">VITALS DONE</span>
+              } @else if (patient.status === 'In Consultation') {
+                <span class="px-1.5 py-0.5 rounded-[2px] text-[9px] font-bold text-white bg-[#0088cc]">IN CONSULT</span>
+              } @else {
+                <span class="px-1.5 py-0.5 rounded-[2px] text-[9px] font-bold text-white bg-[#777777]">COMPLETED</span>
+              }
+            </div>
+          </button>
+        } @empty {
+          <div class="p-4 text-center text-[#777777] text-[11px]">No patients found in queue.</div>
+        }
+      </div>
+    </div>
+
+    <!-- RIGHT: VITALS FORM PANEL -->
+    <div class="flex-1 border border-[#cccccc] rounded-[2px] bg-white p-4">
+      @if (!selectedPatient()) {
+        <div class="h-full flex flex-col items-center justify-center text-[#999999] py-16">
+          <i class="fa-solid fa-heart-pulse text-4xl mb-3 text-[#dddddd]"></i>
+          <span>Select a patient from the queue to record vitals.</span>
+        </div>
+      } @else {
+        <div class="space-y-4">
+
+          <!-- Patient Banner -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between bg-[#f9f9f9] border border-[#eeeeee] rounded-[2px] p-3 gap-1">
+            <div>
+              <div class="text-[13px] font-bold text-[#222222]">{{ selectedPatient()!.name }}</div>
+              <div class="text-[10.5px] text-[#666666]">{{ selectedPatient()!.uhid }} &middot; {{ selectedPatient()!.ageGender }} &middot; {{ selectedPatient()!.mobile }}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10.5px] text-[#333333] font-semibold">{{ selectedPatient()!.doctorName }}</div>
+              <div class="text-[10px] text-[#666666]">{{ selectedPatient()!.department }} &middot; {{ selectedPatient()!.appointmentTime }}</div>
+            </div>
+          </div>
+
+          <!-- Vitals Alert Summary Banner -->
+          @if (!alertDismissed() && criticalCount() > 0) {
+            <div class="flex items-center space-x-2 bg-[#fdeced] border border-[#d93848] rounded-[2px] px-3 py-2">
+              <i class="fa-solid fa-triangle-exclamation text-[#d93848]"></i>
+              <span class="text-[#d93848] font-bold">{{ criticalCount() }} vital(s) CRITICAL</span>
+              <span class="text-[#a51f2e] flex-1">&mdash; please alert the physician immediately.</span>
+              <button type="button" (click)="dismissAlert()" title="Dismiss" class="text-[#d93848] hover:text-[#a51f2e] cursor-pointer px-1">
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </button>
+            </div>
+          } @else if (!alertDismissed() && borderlineCount() > 0) {
+            <div class="flex items-center space-x-2 bg-[#fef6e6] border border-[#f0a500] rounded-[2px] px-3 py-2">
+              <i class="fa-solid fa-circle-exclamation text-[#b57b00]"></i>
+              <span class="text-[#b57b00] font-bold">{{ borderlineCount() }} vital(s) Borderline</span>
+              <span class="text-[#8a5f00] flex-1">&mdash; monitor closely.</span>
+              <button type="button" (click)="dismissAlert()" title="Dismiss" class="text-[#b57b00] hover:text-[#8a5f00] cursor-pointer px-1">
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </button>
+            </div>
+          }
+
+          <!-- Vitals Form -->
+          <div class="space-y-3">
+            <div class="text-[11px] font-bold text-[#555555] uppercase tracking-wider">Physical Metrics</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Weight (kg) *</label>
+                <input #weightInput type="number" [ngModel]="weight()" (ngModelChange)="weight.set($event)"
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Height (cm) *</label>
+                <input type="number" [ngModel]="height()" (ngModelChange)="height.set($event)"
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#777777] z-10 leading-none">BMI (auto)</label>
+                <div [class]="'w-full h-8 pl-2 pr-6 bg-[#eeeeee] border rounded-[2px] text-[11px] text-[#333333] flex items-center relative ' + borderClassFor(bmiStatus())">
+                  {{ bmi() || '-' }}
+                  @if (bmiStatus()) {
+                    <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(bmiStatus())" [title]="labelFor(bmiStatus())"></span>
+                  }
+                </div>
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Waist Circumference (cm)</label>
+                <input type="number" [ngModel]="waistCircumference()" (ngModelChange)="waistCircumference.set($event)"
+                       class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] focus:outline-none focus:border-[#d93848]" />
+              </div>
+
+            </div>
+
+            <div class="text-[11px] font-bold text-[#555555] uppercase tracking-wider pt-1">Vitals</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">BP Systolic *</label>
+                <input type="number" [ngModel]="bpSystolic()" (ngModelChange)="bpSystolic.set($event)"
+                       [class]="'w-full h-8 pl-2 pr-6 bg-white border rounded-[2px] text-[11px] text-[#333333] focus:outline-none ' + borderClassFor(bpSystolicStatus())" />
+                @if (bpSystolicStatus()) {
+                  <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(bpSystolicStatus())" [title]="labelFor(bpSystolicStatus())"></span>
+                }
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">BP Diastolic *</label>
+                <input type="number" [ngModel]="bpDiastolic()" (ngModelChange)="bpDiastolic.set($event)"
+                       [class]="'w-full h-8 pl-2 pr-6 bg-white border rounded-[2px] text-[11px] text-[#333333] focus:outline-none ' + borderClassFor(bpDiastolicStatus())" />
+                @if (bpDiastolicStatus()) {
+                  <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(bpDiastolicStatus())" [title]="labelFor(bpDiastolicStatus())"></span>
+                }
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#777777] z-10 leading-none">MAP (auto)</label>
+                <div [class]="'w-full h-8 pl-2 pr-6 bg-[#eeeeee] border rounded-[2px] text-[11px] text-[#333333] flex items-center relative ' + borderClassFor(mapStatus())">
+                  {{ map() || '-' }}
+                  @if (mapStatus()) {
+                    <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(mapStatus())" [title]="labelFor(mapStatus())"></span>
+                  }
+                </div>
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Pulse (bpm) *</label>
+                <input type="number" [ngModel]="pulse()" (ngModelChange)="pulse.set($event)"
+                       [class]="'w-full h-8 pl-2 pr-6 bg-white border rounded-[2px] text-[11px] text-[#333333] focus:outline-none ' + borderClassFor(pulseStatus())" />
+                @if (pulseStatus()) {
+                  <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(pulseStatus())" [title]="labelFor(pulseStatus())"></span>
+                }
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Temperature (&deg;F)</label>
+                <input type="number" [ngModel]="temperature()" (ngModelChange)="temperature.set($event)"
+                       [class]="'w-full h-8 pl-2 pr-6 bg-white border rounded-[2px] text-[11px] text-[#333333] focus:outline-none ' + borderClassFor(temperatureStatus())" />
+                @if (temperatureStatus()) {
+                  <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(temperatureStatus())" [title]="labelFor(temperatureStatus())"></span>
+                }
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">SpO2 (%)</label>
+                <input type="number" [ngModel]="spo2()" (ngModelChange)="spo2.set($event)"
+                       [class]="'w-full h-8 pl-2 pr-6 bg-white border rounded-[2px] text-[11px] text-[#333333] focus:outline-none ' + borderClassFor(spo2Status())" />
+                @if (spo2Status()) {
+                  <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(spo2Status())" [title]="labelFor(spo2Status())"></span>
+                }
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Respiratory Rate</label>
+                <input type="number" [ngModel]="respiratoryRate()" (ngModelChange)="respiratoryRate.set($event)"
+                       [class]="'w-full h-8 pl-2 pr-6 bg-white border rounded-[2px] text-[11px] text-[#333333] focus:outline-none ' + borderClassFor(respiratoryRateStatus())" />
+                @if (respiratoryRateStatus()) {
+                  <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(respiratoryRateStatus())" [title]="labelFor(respiratoryRateStatus())"></span>
+                }
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Random Blood Glucose (mg/dL)</label>
+                <input type="number" [ngModel]="bloodGlucose()" (ngModelChange)="bloodGlucose.set($event)"
+                       [class]="'w-full h-8 pl-2 pr-6 bg-white border rounded-[2px] text-[11px] text-[#333333] focus:outline-none ' + borderClassFor(bloodGlucoseStatus())" />
+                @if (bloodGlucoseStatus()) {
+                  <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(bloodGlucoseStatus())" [title]="labelFor(bloodGlucoseStatus())"></span>
+                }
+              </div>
+
+              <div class="relative">
+                <label class="absolute -top-2 left-2 px-1 bg-white text-[9.5px] font-semibold text-[#d93848] z-10 leading-none">Pain Score (0-10)</label>
+                <input type="number" min="0" max="10" [ngModel]="painScore()" (ngModelChange)="painScore.set($event)"
+                       [class]="'w-full h-8 pl-2 pr-6 bg-white border rounded-[2px] text-[11px] text-[#333333] focus:outline-none ' + borderClassFor(painScoreStatus())" />
+                @if (painScoreStatus()) {
+                  <span [class]="'absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ' + dotClassFor(painScoreStatus())" [title]="labelFor(painScoreStatus())"></span>
+                }
+              </div>
+
+            </div>
+
+            <!-- Colour Legend -->
+            <div class="flex items-center flex-wrap gap-3 pt-1 text-[10px] text-[#666666]">
+              <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-[#3a9d5d] inline-block"></span><span>Normal</span></span>
+              <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-[#f0a500] inline-block"></span><span>Borderline</span></span>
+              <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-[#d93848] inline-block"></span><span>Critical</span></span>
+            </div>
+
+            @if (selectedPatient()!.vitals) {
+              <div class="text-[10px] text-[#777777] pt-1">
+                Last recorded by {{ selectedPatient()!.vitals!.recordedBy }} at {{ selectedPatient()!.vitals!.recordedAt }}
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+    </div>
+
+  </main>
+
+  <!-- 5. FOOTER ACTION BAR -->
+  <footer class="bg-white border-t border-[#cccccc] px-4 py-2 flex items-center justify-end gap-2">
+    <button type="button" (click)="clearForm()" class="px-5 py-1.5 bg-white border border-[#cccccc] hover:bg-slate-100 active:scale-[0.98] text-[#333333] font-semibold text-xs tracking-wider uppercase rounded-[2px] transition-all duration-150 cursor-pointer">
+      CLEAR
+    </button>
+    <button type="button" (click)="saveVitals()" [disabled]="!selectedPatient()"
+            class="px-6 py-1.5 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-xs tracking-wider uppercase rounded-[2px] shadow-xs transition-all duration-150 cursor-pointer">
+      SAVE VITALS
+    </button>
+  </footer>
+
+</div>
