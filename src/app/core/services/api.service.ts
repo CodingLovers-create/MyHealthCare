@@ -40,6 +40,16 @@ export class ApiService {
     );
   }
 
+  patch<T>(endpoint: string, body: any): Observable<T> {
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}/${endpoint.replace(/^\//, '')}`;
+    return this.http.patch<T>(url, body).pipe(
+      catchError((error) => {
+        console.warn(`[JSON-Server] API PATCH ${url} failed:`, error.message);
+        return of(body as T);
+      })
+    );
+  }
+
   delete<T>(endpoint: string): Observable<T> {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}/${endpoint.replace(/^\//, '')}`;
     return this.http.delete<T>(url).pipe(

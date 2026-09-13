@@ -27,6 +27,7 @@ export class SidebarComponent {
     { label: 'MagicSearch', icon: 'fa-wand-magic-sparkles', route: '/magic-search', badge: 'HOT', badgeColor: 'bg-[#0088cc]', moduleId: 'MagicSearch' },
     { label: 'Patient Registration', icon: 'fa-user-plus', route: '/registration', moduleId: 'Registration' },
     { label: 'Doctor Appointment', icon: 'fa-calendar-check', route: '/doctor-appointment', moduleId: 'DoctorAppointment' },
+    { label: 'OP Billing & Cashier', icon: 'fa-file-invoice-dollar', route: '/op-billing', moduleId: 'OpBilling' },
     { label: 'Vitals Recording', icon: 'fa-heart-pulse', route: '/vitals-recording', moduleId: 'VitalsRecording' },
     { label: 'OPD Queue / Consultation', icon: 'fa-stethoscope', route: '/doctor-patient-list', moduleId: 'DoctorPatientList' }
   ];

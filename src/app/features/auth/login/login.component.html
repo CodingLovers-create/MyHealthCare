@@ -42,18 +42,19 @@
         </div>
       }
 
-      <!-- Form Box -->
-      <form (submit)="onLogin($event)" class="space-y-5">
+      <!-- Template-Driven Form Box with #loginForm="ngForm" -->
+      <form #loginForm="ngForm" (ngSubmit)="onLogin(loginForm)" class="space-y-4">
         
         <!-- Side-by-side Inputs Row -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 max-w-xl mx-auto">
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-xl mx-auto">
           
           <!-- Username / Phone / Email Input -->
           <div class="w-full sm:w-1/2">
             <input type="text" 
                    [(ngModel)]="credentials.identifier" 
                    name="identifier"
-                   placeholder="Enter Username or Email"
+                   #identifierCtrl="ngModel"
+                   placeholder="Enter Username or Email (e.g. prathamesh)"
                    class="w-full px-3.5 py-2 bg-white/95 border border-slate-300 rounded text-slate-800 text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#d93848] transition-colors shadow-xs" />
           </div>
 
@@ -62,6 +63,7 @@
             <input type="password" 
                    [(ngModel)]="credentials.password" 
                    name="password"
+                   #passwordCtrl="ngModel"
                    placeholder="Enter Password"
                    class="w-full px-3.5 py-2 bg-white/95 border border-slate-300 rounded text-slate-800 text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#d93848] transition-colors shadow-xs" />
           </div>
@@ -71,8 +73,15 @@
         <!-- LOGIN BUTTON -->
         <div class="pt-2">
           <button type="submit" 
-                  class="inline-block px-10 py-2 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] text-white font-semibold text-xs tracking-wider uppercase rounded shadow-xs transition-all duration-150 cursor-pointer">
-            <span>LOGIN</span>
+                  [disabled]="isLoading"
+                  class="inline-flex items-center justify-center space-x-2 px-12 py-2.5 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] disabled:opacity-60 text-white font-bold text-xs tracking-wider uppercase rounded shadow-md transition-all duration-150 cursor-pointer">
+            @if (isLoading) {
+              <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+              <span>LOGGING IN...</span>
+            } @else {
+              <i class="fa-solid fa-right-to-bracket text-xs mr-1"></i>
+              <span>LOGIN</span>
+            }
           </button>
         </div>
 

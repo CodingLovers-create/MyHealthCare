@@ -1,0 +1,368 @@
+<div class="min-h-screen bg-[#f4f6f8] flex flex-col font-sans text-[#333333] select-none text-[11px]">
+  
+  <!-- Shared Top Header & Module Navigation Bar -->
+  <app-navbar activeModule="OpBilling"></app-navbar>
+
+  <!-- Sub-Header Title Bar -->
+  <div class="bg-white px-5 py-3 border-b border-[#cccccc] flex items-center justify-between shadow-2xs">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-full bg-[#d93848]/10 text-[#d93848] flex items-center justify-center font-bold text-sm">
+        <i class="fa-solid fa-receipt"></i>
+      </div>
+      <div>
+        <h1 class="text-[16px] font-bold text-[#222222] leading-none">OP Billing & Cashier Desk</h1>
+        <p class="text-[10px] text-[#666666] mt-0.5">Process Outpatient Consultation Charges, Dynamic Tariff Discounts, & Official Receipts</p>
+      </div>
+    </div>
+
+    <!-- Active Visit Badge -->
+    <div class="flex items-center space-x-2">
+      <span class="px-2.5 py-1 bg-[#10b981]/15 text-[#059669] font-bold border border-[#10b981]/30 rounded text-[10px] uppercase flex items-center space-x-1">
+        <span class="w-2 h-2 rounded-full bg-[#059669] animate-pulse"></span>
+        <span>Active Visit: {{ visitId() }}</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <main class="flex-1 p-4 max-w-7xl mx-auto w-full space-y-4">
+    
+    <!-- 1. PATIENT SEARCH BAR (UHID / Mobile / Name) -->
+    <div class="bg-white border border-[#cccccc] rounded-[4px] p-3 shadow-2xs">
+      <div class="flex items-center space-x-2 w-full">
+        <div class="relative flex-1 max-w-xl">
+          <input type="text" 
+                 [ngModel]="searchUhidQuery()" 
+                 (ngModelChange)="searchUhidQuery.set($event)"
+                 (keyup.enter)="searchPatientByUhid()"
+                 placeholder="Search Patient by UHID (e.g. RFH2026001), Mobile No, or Patient Name..." 
+                 class="w-full h-8 pl-8 pr-3 bg-white border border-[#bbbbbb] rounded-[2px] text-[12px] text-[#333333] placeholder:text-[#888888] focus:outline-none focus:border-[#d93848]" />
+          <i class="fa-solid fa-magnifying-glass text-[#888888] text-xs absolute left-2.5 top-1/2 -translate-y-1/2"></i>
+        </div>
+        <button (click)="searchPatientByUhid()" type="button" class="px-5 py-1.5 bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[2px] cursor-pointer tracking-wider uppercase shadow-2xs flex items-center space-x-1.5">
+          <i class="fa-solid fa-search text-[10px]"></i>
+          <span>Search Patient</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Patient & Visit Context Header Card -->
+    <div class="bg-white border border-[#cccccc] rounded-[4px] p-4 shadow-2xs">
+      <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-[11px]">
+        <div>
+          <span class="text-[10px] font-medium text-[#777777] block uppercase">Patient Name</span>
+          <span class="font-bold text-[#222222] text-[12px] block truncate">{{ patientName() }}</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-medium text-[#777777] block uppercase">UHID No.</span>
+          <span class="font-bold text-[#0088cc] text-[12px] block">{{ uhid() }}</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-medium text-[#777777] block uppercase">Mobile Number</span>
+          <span class="font-semibold text-[#333333] block">+91 {{ mobile() }}</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-medium text-[#777777] block uppercase">Age / Gender</span>
+          <span class="font-semibold text-[#333333] block">{{ genderAge() }}</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-medium text-[#777777] block uppercase">Consulting Doctor</span>
+          <span class="font-bold text-[#d93848] block truncate">{{ practitioner() }}</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-medium text-[#777777] block uppercase">Department</span>
+          <span class="font-semibold text-[#333333] block">{{ speciality() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Billing & Tariff Breakdown Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      
+      <!-- Left Column: Line Items Table & Dropdown Service Selection (7 Cols) -->
+      <div class="lg:col-span-7 space-y-4">
+        
+        <div class="bg-white border border-[#cccccc] rounded-[4px] shadow-2xs overflow-hidden">
+          
+          <div class="bg-[#f8fafc] px-4 py-2.5 border-b border-[#cccccc] flex items-center justify-between">
+            <h2 class="font-bold text-[#333333] text-[12px] uppercase tracking-wider">
+              <i class="fa-solid fa-list-check text-[#d93848] mr-1.5"></i>Consultation & Service Line Items
+            </h2>
+            <span class="text-[10px] text-[#666666] font-medium">{{ billItems().length }} Item(s) Loaded</span>
+          </div>
+
+          <!-- SERVICE SELECTION DROPDOWN SECTION -->
+          <div class="bg-[#f8fafc] p-3 border-b border-[#cccccc] space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-[#333333] uppercase flex items-center">
+                <i class="fa-solid fa-square-plus text-[#0284c7] mr-1.5"></i>Select Service / Diagnostic Dropdown:
+              </span>
+              <span class="text-[10px] font-medium text-[#64748b]">({{ filteredServicesList().length }} items)</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+              <!-- Department Category Filter Dropdown -->
+              <div class="md:col-span-4">
+                <select [ngModel]="selectedServiceCategory()" (ngModelChange)="selectedServiceCategory.set($event)"
+                        class="w-full h-8 px-2 bg-white border border-[#cbd5e1] rounded-[2px] text-[11px] text-[#333333] font-medium focus:outline-none focus:border-[#0284c7] cursor-pointer">
+                  @for (cat of serviceCategories; track cat) {
+                    <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+              </div>
+
+              <!-- Service Items Dropdown -->
+              <div class="md:col-span-6">
+                <select [ngModel]="selectedServiceId()" (ngModelChange)="selectedServiceId.set($event)"
+                        class="w-full h-8 px-2 bg-white border border-[#0284c7] rounded-[2px] text-[11px] text-[#0369a1] font-bold focus:outline-none focus:ring-1 focus:ring-[#0284c7] cursor-pointer">
+                  <option value="">-- Choose Service / Procedure Dropdown --</option>
+                  @for (srv of filteredServicesList(); track srv.id) {
+                    <option [value]="srv.id">{{ srv.name }} - INR {{ srv.rate }} ({{ srv.department }})</option>
+                  }
+                </select>
+              </div>
+
+              <!-- Add Button -->
+              <div class="md:col-span-2">
+                <button (click)="addSelectedServiceFromDropdown()" type="button"
+                        class="w-full h-8 bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-[11px] uppercase tracking-wider rounded-[2px] cursor-pointer shadow-2xs flex items-center justify-center space-x-1">
+                  <i class="fa-solid fa-plus text-[10px]"></i>
+                  <span>Add Service</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Billing Table -->
+          <div class="p-3 overflow-x-auto">
+            <table class="w-full text-left text-[11px]">
+              <thead>
+                <tr class="bg-[#f1f5f9] text-[#475569] font-bold border-b border-[#cbd5e1]">
+                  <th class="p-2">#</th>
+                  <th class="p-2">Service / Procedure Name</th>
+                  <th class="p-2">Department</th>
+                  <th class="p-2 text-center">Qty</th>
+                  <th class="p-2 text-right">Rate (INR)</th>
+                  <th class="p-2 text-right">Total (INR)</th>
+                  <th class="p-2 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#e2e8f0]">
+                @for (item of billItems(); track item.id; let idx = $index) {
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-2 font-semibold text-[#64748b]">{{ idx + 1 }}</td>
+                    <td class="p-2 font-bold text-[#1e293b]">{{ item.name }}</td>
+                    <td class="p-2 text-[#64748b]">{{ item.department }}</td>
+                    <td class="p-2 text-center font-medium">{{ item.qty }}</td>
+                    <td class="p-2 text-right text-[#334155] font-mono">{{ item.rate | number:'1.2-2' }}</td>
+                    <td class="p-2 text-right font-bold text-[#09090b] font-mono">{{ (item.qty * item.rate) | number:'1.2-2' }}</td>
+                    <td class="p-2 text-center">
+                      <button (click)="removeItem(item.id)" title="Remove Item" class="text-rose-500 hover:text-rose-700 cursor-pointer p-1">
+                        <i class="fa-solid fa-trash-can text-[12px]"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Add Quick Service Diagnostic Items -->
+          <div class="bg-[#f8fafc] p-3 border-t border-[#e2e8f0]">
+            <span class="text-[10px] font-bold text-[#64748b] uppercase block mb-2">Quick Diagnostic & Service Shortcuts:</span>
+            <div class="flex flex-wrap gap-2">
+              <button (click)="addItem('Complete Blood Count (CBC)', 350, 'Pathology Lab')" type="button" class="px-2.5 py-1 bg-white border border-[#cbd5e1] rounded text-[10px] font-semibold text-[#0284c7] hover:bg-[#f0f9ff] cursor-pointer">
+                + CBC Test (₹350)
+              </button>
+              <button (click)="addItem('Chest X-Ray PA View', 500, 'Radiology')" type="button" class="px-2.5 py-1 bg-white border border-[#cbd5e1] rounded text-[10px] font-semibold text-[#0284c7] hover:bg-[#f0f9ff] cursor-pointer">
+                + Chest X-Ray (₹500)
+              </button>
+              <button (click)="addItem('ECG 12-Lead Diagnostic', 300, 'Cardiology')" type="button" class="px-2.5 py-1 bg-white border border-[#cbd5e1] rounded text-[10px] font-semibold text-[#0284c7] hover:bg-[#f0f9ff] cursor-pointer">
+                + ECG 12-Lead (₹300)
+              </button>
+              <button (click)="addItem('USG Abdomen & Pelvis', 1200, 'Radiology')" type="button" class="px-2.5 py-1 bg-white border border-[#cbd5e1] rounded text-[10px] font-semibold text-[#0284c7] hover:bg-[#f0f9ff] cursor-pointer">
+                + USG Abdomen (₹1200)
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Column: Tariff, Payee Settings & Payment Calculation (5 Cols) -->
+      <div class="lg:col-span-5 space-y-4">
+        
+        <!-- Tariff & Payee Plan Card -->
+        <div class="bg-white border border-[#cccccc] rounded-[4px] p-4 shadow-2xs space-y-3">
+          <div class="border-b border-[#e2e8f0] pb-2 flex items-center justify-between">
+            <h2 class="font-bold text-[#333333] text-[12px] uppercase tracking-wider">
+              <i class="fa-solid fa-percent text-[#d93848] mr-1.5"></i>Tariff & Payee Discount Settings
+            </h2>
+            <span class="px-2 py-0.5 bg-[#d93848]/10 text-[#d93848] text-[9.5px] font-bold rounded uppercase">Dynamic Tariff</span>
+          </div>
+
+          <!-- Select Tariff Dropdown -->
+          <div>
+            <label class="block text-[10px] font-semibold text-[#64748b] mb-1 uppercase">Select Tariff / Payee Plan</label>
+            <select [ngModel]="selectedTariffId()" (ngModelChange)="onTariffChange($event)" 
+                    class="w-full h-8 px-2.5 bg-white border border-[#0284c7] rounded text-[11px] font-bold text-[#0369a1] focus:outline-none focus:ring-1 focus:ring-[#0284c7] cursor-pointer">
+              @for (plan of tariffPlans; track plan.id) {
+                <option [value]="plan.id">{{ plan.name }}</option>
+              }
+            </select>
+            <p class="text-[10px] text-[#64748b] mt-1 italic">{{ selectedTariff().description }}</p>
+          </div>
+
+          <!-- Payment Mode Selection -->
+          <div>
+            <label class="block text-[10px] font-semibold text-[#64748b] mb-1 uppercase">Payment Mode</label>
+            <div class="grid grid-cols-4 gap-1.5">
+              <button (click)="paymentMode.set('Cash')" type="button" 
+                      [class]="'py-1.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ' + 
+                               (paymentMode() === 'Cash' ? 'bg-[#d93848] text-white border-[#d93848]' : 'bg-white text-[#334155] border-[#cbd5e1]')">
+                CASH
+              </button>
+              <button (click)="paymentMode.set('UPI / QR')" type="button" 
+                      [class]="'py-1.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ' + 
+                               (paymentMode() === 'UPI / QR' ? 'bg-[#d93848] text-white border-[#d93848]' : 'bg-white text-[#334155] border-[#cbd5e1]')">
+                UPI / QR
+              </button>
+              <button (click)="paymentMode.set('Card')" type="button" 
+                      [class]="'py-1.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ' + 
+                               (paymentMode() === 'Card' ? 'bg-[#d93848] text-white border-[#d93848]' : 'bg-white text-[#334155] border-[#cbd5e1]')">
+                CARD
+              </button>
+              <button (click)="paymentMode.set('Corporate Credit')" type="button" 
+                      [class]="'py-1.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ' + 
+                               (paymentMode() === 'Corporate Credit' ? 'bg-[#d93848] text-white border-[#d93848]' : 'bg-white text-[#334155] border-[#cbd5e1]')">
+                CREDIT
+              </button>
+            </div>
+          </div>
+
+          <!-- Calculation Summary Box -->
+          <div class="bg-[#f8fafc] border border-[#cbd5e1] rounded p-3 space-y-2 text-[11px]">
+            <div class="flex justify-between text-[#64748b]">
+              <span>Gross Amount:</span>
+              <span class="font-mono font-semibold">INR {{ grossAmount() | number:'1.2-2' }}</span>
+            </div>
+            
+            <div class="flex justify-between text-[#059669]">
+              <span>Tariff Discount ({{ selectedTariff().discountPercentage }}%):</span>
+              <span class="font-mono font-bold">- INR {{ discountAmount() | number:'1.2-2' }}</span>
+            </div>
+            
+            <div class="border-t border-[#cbd5e1] pt-2 flex justify-between items-center text-[13px]">
+              <span class="font-bold text-[#1e293b]">Net Amount Payable:</span>
+              <span class="font-mono font-bold text-[#d93848] text-[15px]">INR {{ netAmountPayable() | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <!-- Process Payment Button -->
+          <button (click)="processPayment()" type="button" 
+                  class="w-full py-2.5 bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[12px] uppercase tracking-wider rounded shadow-md cursor-pointer transition-all active:scale-[0.99] flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-credit-card text-[13px]"></i>
+            <span>PROCESS PAYMENT & GENERATE RECEIPT</span>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- Official Printable OP Receipt Modal -->
+  @if (showReceiptModal()) {
+    <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-[6px] shadow-2xl max-w-lg w-full overflow-hidden border border-[#cccccc] animate-fade-in">
+        
+        <!-- Header -->
+        <div class="bg-[#d93848] text-white px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-[#d93848] fa-file-invoice text-lg"></i>
+            <span class="font-bold text-[13px] tracking-wide uppercase">Outpatient Official Receipt</span>
+          </div>
+          <button (click)="closeReceipt()" class="text-white hover:text-gray-200 cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Receipt Body -->
+        <div id="printableReceipt" class="p-5 text-[11px] text-[#333333] space-y-4 bg-white">
+          
+          <!-- Hospital Header -->
+          <div class="text-center border-b border-[#e2e8f0] pb-3">
+            <h2 class="text-[16px] font-bold text-[#0277bd]">Reliance Foundation Hospital Trust</h2>
+            <p class="text-[10px] text-[#64748b]">Enterprise Outpatient Billing & Cashier Desk</p>
+            <p class="text-[9.5px] text-[#94a3b8] mt-0.5">Receipt No: <strong class="text-[#d93848] font-mono">{{ receiptNumber() }}</strong> | Date: {{ receiptDate() }}</p>
+          </div>
+
+          <!-- Patient Meta -->
+          <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded border border-slate-200 text-[10.5px]">
+            <div><strong>Patient Name:</strong> {{ patientName() }}</div>
+            <div><strong>UHID:</strong> {{ uhid() }}</div>
+            <div><strong>OP Visit ID:</strong> {{ visitId() }}</div>
+            <div><strong>Mobile:</strong> +91 {{ mobile() }}</div>
+            <div><strong>Doctor / Service:</strong> {{ practitioner() }}</div>
+            <div><strong>Tariff Plan:</strong> {{ selectedTariff().name }}</div>
+          </div>
+
+          <!-- Itemized Table -->
+          <table class="w-full text-left text-[10.5px] border-collapse">
+            <thead>
+              <tr class="border-b border-[#cbd5e1] text-[#475569] font-bold">
+                <th class="py-1">Description</th>
+                <th class="py-1 text-right">Qty</th>
+                <th class="py-1 text-right">Amount (INR)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#e2e8f0]">
+              @for (item of billItems(); track item.id) {
+                <tr>
+                  <td class="py-1">{{ item.name }}</td>
+                  <td class="py-1 text-right">{{ item.qty }}</td>
+                  <td class="py-1 text-right font-mono">{{ (item.qty * item.rate) | number:'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <!-- Financial Summary -->
+          <div class="border-t border-[#cbd5e1] pt-2 space-y-1 text-right">
+            <div>Gross Amount: <span class="font-mono">INR {{ grossAmount() | number:'1.2-2' }}</span></div>
+            <div class="text-emerald-600 font-semibold">Tariff Discount ({{ selectedTariff().discountPercentage }}%): <span class="font-mono">- INR {{ discountAmount() | number:'1.2-2' }}</span></div>
+            <div class="text-[13px] font-bold text-[#d93848]">Total Paid ({{ paymentMode() }}): <span class="font-mono">INR {{ netAmountPayable() | number:'1.2-2' }}</span></div>
+          </div>
+
+          <!-- Footer Stamp -->
+          <div class="pt-4 flex items-center justify-between border-t border-dashed border-[#cbd5e1]">
+            <div class="text-[9px] text-[#64748b]">
+              <p>Generated by: {{ authService.currentUser().name }}</p>
+              <p>System Visit Status: ACTIVE OP VISIT</p>
+            </div>
+            <div class="border-2 border-emerald-600 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase rotate-[-3deg]">
+              PAID & VERIFIED
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-[#f8fafc] px-4 py-3 border-t border-[#cccccc] flex justify-end space-x-2">
+          <button (click)="closeReceipt()" class="px-3 py-1.5 bg-white border border-[#cbd5e1] rounded text-[11px] font-bold text-[#475569] hover:bg-slate-100 cursor-pointer">
+            Close
+          </button>
+          <button (click)="printReceipt()" class="px-4 py-1.5 bg-[#0088cc] hover:bg-[#0077bb] text-white rounded text-[11px] font-bold cursor-pointer flex items-center space-x-1.5">
+            <i class="fa-solid fa-print"></i>
+            <span>Print Official Receipt</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

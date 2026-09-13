@@ -7,6 +7,7 @@ import { DoctorAppointmentComponent } from './features/doctor-appointment/doctor
 import { VitalsRecordingComponent } from './features/vitals-recording/vitals-recording.component';
 import { DoctorPatientListComponent } from './features/doctor-patient-list/doctor-patient-list.component';
 import { DoctorConsultationComponent } from './features/doctor-consultation/doctor-consultation.component';
+import { OpBillingComponent } from './features/op-billing/op-billing.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -21,7 +22,8 @@ export const routes: Routes = [
   { path: 'manage-appointment', component: DoctorAppointmentComponent },
   { path: 'registration', component: PatientRegistrationComponent },
   { path: 'patient-registration', component: PatientRegistrationComponent },
-  { path: 'op-bill', component: PatientRegistrationComponent },
+  { path: 'op-billing', component: OpBillingComponent },
+  { path: 'op-bill', component: OpBillingComponent },
   { path: 'forms', component: PatientRegistrationComponent },
   { path: 'form-master', component: PatientRegistrationComponent },
   { path: 'vitals-recording', component: VitalsRecordingComponent },

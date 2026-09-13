@@ -6,11 +6,12 @@ import { SidebarService } from '../../core/services/sidebar.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-patient-registration',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
   templateUrl: './patient-registration.component.html'
 })
 export class PatientRegistrationComponent {
@@ -317,7 +318,10 @@ export class PatientRegistrationComponent {
     window.print();
   }
 
-  onRegister(): void {
+  activeVisitId = signal<string>('');
+  isArrivalMarked = signal<boolean>(false);
+
+  onRegister(markArrival: boolean = false): void {
     if (!this.firstName().trim()) {
       this.toastService.warning('Please enter First Name.');
       return;
@@ -332,12 +336,13 @@ export class PatientRegistrationComponent {
     }
 
     const generatedUhid = 'RFH' + Math.floor(10000000 + Math.random() * 90000000);
+    const fullName = `${this.title()} ${this.firstName()} ${this.middleName()} ${this.lastName()}`.replace(/\s+/g, ' ').trim();
 
     const newPatient = {
       uhid: generatedUhid,
       registrationType: this.registrationType(),
       title: this.title(),
-      name: `${this.title()} ${this.firstName()} ${this.middleName()} ${this.lastName()}`.replace(/\s+/g, ' ').trim(),
+      name: fullName,
       firstName: this.firstName(),
       middleName: this.middleName(),
       lastName: this.lastName(),
@@ -368,8 +373,46 @@ export class PatientRegistrationComponent {
     });
 
     this.registeredUhid.set(generatedUhid);
+    this.isArrivalMarked.set(markArrival);
+
+    if (markArrival) {
+      const generatedVisitId = 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000);
+      this.activeVisitId.set(generatedVisitId);
+
+      const newAppointmentVisit = {
+        dateStr: 'SAT 12 SEP',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        patientName: fullName,
+        uhid: generatedUhid,
+        mobile: this.mobileNo(),
+        practitioner: 'General OPD Clinic',
+        fee: 1500,
+        status: 'CONFIRMED',
+        type: 'OP',
+        description: `Active Front Desk OP Visit (${generatedVisitId})`,
+        bookedOn: new Date().toISOString()
+      };
+
+      this.apiService.post('appointments', newAppointmentVisit).subscribe();
+      this.toastService.success(`Patient registered & Desk Arrival recorded! Visit ID: ${generatedVisitId}`);
+    } else {
+      this.activeVisitId.set('');
+      this.toastService.success(`Patient registered successfully! Assigned UHID: ${generatedUhid}`);
+    }
+
     this.showSuccessModal.set(true);
-    this.toastService.success(`Patient registered successfully! Assigned UHID: ${generatedUhid}`);
+  }
+
+  goToOpBilling(): void {
+    this.showSuccessModal.set(false);
+    this.router.navigate(['/op-billing'], {
+      queryParams: {
+        name: `${this.title()} ${this.firstName()} ${this.lastName()}`.trim(),
+        uhid: this.registeredUhid(),
+        visitId: this.activeVisitId() || 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000),
+        mobile: this.mobileNo()
+      }
+    });
   }
 
 

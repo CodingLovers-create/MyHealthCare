@@ -1,18 +1,29 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ViewChild, ViewChildren, ElementRef, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 
 import { ToastService } from '../../core/services/toast.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { UhidFormatPipe } from '../../shared/pipes/uhid-format.pipe';
+import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
+import { PriorityHighlightDirective } from '../../shared/directives/priority-highlight.directive';
+import { CardContainerComponent, CardHeaderDirective, CardBodyDirective, CardFooterDirective } from '../../shared/components/card-container/card-container.component';
+import { InfoCardComponent } from '../../shared/components/info-card/info-card.component';
 
 export interface TimeSlot {
   time: string;
   type: 'walkin' | 'normal' | 'emergency' | 'blocked' | 'priority' | 'premium' | 'free' | 'phc';
   isBooked?: boolean;
   isAvailable?: boolean;
+  patientName?: string;
+  patientUhid?: string;
+  patientMobile?: string;
+  visitId?: string;
+  reason?: string;
 }
 
 export interface Practitioner {
@@ -32,12 +43,37 @@ export interface HospitalServiceItem {
 @Component({
   selector: 'app-doctor-appointment',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterModule, 
+    NavbarComponent,
+    UhidFormatPipe,
+    InrCurrencyPipe,
+    PriorityHighlightDirective,
+    CardContainerComponent,
+    CardHeaderDirective,
+    CardBodyDirective,
+    CardFooterDirective,
+    InfoCardComponent
+  ],
   templateUrl: './doctor-appointment.component.html'
 })
 export class DoctorAppointmentComponent implements OnInit {
+  // @ViewChild and @ViewChildren references
+  @ViewChild('patientSearchInput') patientSearchInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('patientSelect') patientSelectRef?: ElementRef<HTMLSelectElement>;
+  @ViewChildren(PriorityHighlightDirective) prioritySlotDirectives!: QueryList<PriorityHighlightDirective>;
+
+  focusSearchInput(): void {
+    if (this.patientSearchInputRef?.nativeElement) {
+      this.patientSearchInputRef.nativeElement.focus();
+      this.toastService.info('Focused Patient Search Input.');
+    }
+  }
   private apiService = inject(ApiService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private toastService = inject(ToastService);
   public sidebarService = inject(SidebarService);
   public authService = inject(AuthService);
@@ -187,7 +223,180 @@ export class DoctorAppointmentComponent implements OnInit {
     return this.selectedServices().some(s => s.id === serviceId);
   }
 
-  // Doctor Schedule Days
+  // Map of Doctor-Specific Schedules keyed by Practitioner ID
+  doctorSchedulesMap: Record<string, { dateLabel: string; slots: TimeSlot[] }[]> = {
+    // 1. Dr. Susheel Bindroo (Pulmonology)
+    '1': [
+      {
+        dateLabel: 'SAT 12 SEP',
+        slots: [
+          { time: '09:00 AM', type: 'walkin', isAvailable: true },
+          { time: '09:15 AM', type: 'normal', isAvailable: true },
+          { time: '09:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Pulmonary OPD Followup' },
+          { time: '10:00 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'VIP Priority Consult' },
+          { time: '10:30 AM', type: 'emergency', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Acute Asthma Emergency' },
+          { time: '11:00 AM', type: 'premium', isAvailable: true },
+          { time: '11:30 AM', type: 'normal', isAvailable: true },
+          { time: '02:00 PM', type: 'walkin', isAvailable: true },
+          { time: '02:30 PM', type: 'free', isAvailable: true },
+          { time: '03:00 PM', type: 'phc', isAvailable: false, isBooked: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Routine Health Checkup' }
+        ]
+      },
+      {
+        dateLabel: 'SUN 13 SEP',
+        slots: [
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
+          { time: '10:30 AM', type: 'priority', isAvailable: false, isBooked: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'Priority Chest Consult' },
+          { time: '11:00 AM', type: 'normal', isAvailable: true },
+          { time: '11:30 AM', type: 'premium', isAvailable: true },
+          { time: '02:00 PM', type: 'emergency', isAvailable: false, isBooked: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Bronchoscopy Review' }
+        ]
+      },
+      {
+        dateLabel: 'MON 14 SEP',
+        slots: [
+          { time: '09:00 AM', type: 'normal', isAvailable: true },
+          { time: '09:30 AM', type: 'normal', isAvailable: true },
+          { time: '10:00 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Priority OPD Overbook' },
+          { time: '10:30 AM', type: 'walkin', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Walkin Consultation' },
+          { time: '11:00 AM', type: 'normal', isAvailable: true }
+        ]
+      }
+    ],
+
+    // 2. Dr. Alok Shah (Cardiology)
+    '2': [
+      {
+        dateLabel: 'SAT 12 SEP',
+        slots: [
+          { time: '08:30 AM', type: 'normal', isAvailable: true },
+          { time: '09:00 AM', type: 'normal', isAvailable: true },
+          { time: '09:30 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Cardiology Priority' },
+          { time: '10:00 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'ECG & Echo Review' },
+          { time: '10:30 AM', type: 'priority', isAvailable: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'Priority Cardiac Overbook' },
+          { time: '11:00 AM', type: 'premium', isAvailable: true },
+          { time: '11:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Hypertension Followup' },
+          { time: '02:30 PM', type: 'normal', isAvailable: true },
+          { time: '03:00 PM', type: 'walkin', isAvailable: true }
+        ]
+      },
+      {
+        dateLabel: 'SUN 13 SEP',
+        slots: [
+          { time: '09:00 AM', type: 'normal', isAvailable: true },
+          { time: '09:30 AM', type: 'priority', isAvailable: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Urgent Cardiac Review' },
+          { time: '10:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Angiography Followup' },
+          { time: '11:30 AM', type: 'premium', isAvailable: true }
+        ]
+      },
+      {
+        dateLabel: 'MON 14 SEP',
+        slots: [
+          { time: '08:30 AM', type: 'normal', isAvailable: true },
+          { time: '09:30 AM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Priority Cardiac Punch' },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
+          { time: '11:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'TMT Test Review' }
+        ]
+      }
+    ],
+
+    // 3. Dr. Sneha Patil (General Medicine)
+    '3': [
+      {
+        dateLabel: 'SAT 12 SEP',
+        slots: [
+          { time: '09:30 AM', type: 'normal', isAvailable: true },
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
+          { time: '10:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'General OPD Consult' },
+          { time: '11:00 AM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Priority OPD Slot' },
+          { time: '11:30 AM', type: 'normal', isAvailable: true },
+          { time: '12:00 PM', type: 'premium', isAvailable: true },
+          { time: '02:00 PM', type: 'walkin', isAvailable: true },
+          { time: '02:30 PM', type: 'normal', isAvailable: true },
+          { time: '03:00 PM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Fever Clinic Priority' }
+        ]
+      },
+      {
+        dateLabel: 'SUN 13 SEP',
+        slots: [
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
+          { time: '10:30 AM', type: 'priority', isAvailable: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Priority Wellness' },
+          { time: '11:00 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'General Health Review' }
+        ]
+      },
+      {
+        dateLabel: 'MON 14 SEP',
+        slots: [
+          { time: '09:30 AM', type: 'normal', isAvailable: true },
+          { time: '10:30 AM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Priority Followup' },
+          { time: '11:30 AM', type: 'normal', isAvailable: true }
+        ]
+      }
+    ],
+
+    // 4. Dr. Rajesh Sharma (Orthopedics)
+    '4': [
+      {
+        dateLabel: 'SAT 12 SEP',
+        slots: [
+          { time: '09:00 AM', type: 'normal', isAvailable: true },
+          { time: '09:45 AM', type: 'priority', isAvailable: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'Spine Special Consult' },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
+          { time: '11:15 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Joint Pain OPD' },
+          { time: '02:00 PM', type: 'walkin', isAvailable: true },
+          { time: '02:45 PM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Fracture Review Priority' },
+          { time: '03:30 PM', type: 'normal', isAvailable: true }
+        ]
+      },
+      {
+        dateLabel: 'SUN 13 SEP',
+        slots: [
+          { time: '09:45 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Knee Rehab Priority' },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
+          { time: '11:15 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Orthopedic Consult' }
+        ]
+      },
+      {
+        dateLabel: 'MON 14 SEP',
+        slots: [
+          { time: '09:00 AM', type: 'normal', isAvailable: true },
+          { time: '09:45 AM', type: 'priority', isAvailable: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Priority Ortho Slot' },
+          { time: '10:30 AM', type: 'normal', isAvailable: true }
+        ]
+      }
+    ],
+
+    // 5. Dr. Meera Iyer (Pediatrics)
+    '5': [
+      {
+        dateLabel: 'SAT 12 SEP',
+        slots: [
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
+          { time: '11:00 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Pediatric Vaccine OPD' },
+          { time: '11:30 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Priority Child Care' },
+          { time: '03:00 PM', type: 'walkin', isAvailable: true },
+          { time: '03:30 PM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Pediatric Emergency' }
+        ]
+      },
+      {
+        dateLabel: 'SUN 13 SEP',
+        slots: [
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
+          { time: '10:30 AM', type: 'priority', isAvailable: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Child Growth Consult' }
+        ]
+      },
+      {
+        dateLabel: 'MON 14 SEP',
+        slots: [
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
+          { time: '11:00 AM', type: 'priority', isAvailable: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'Pediatric Priority' }
+        ]
+      }
+    ]
+  };
+
+  // Doctor Schedule Days Fallback
   doctorScheduleDays: { dateLabel: string; slots: TimeSlot[] }[] = [
     {
       dateLabel: 'SAT 12 SEP',
@@ -198,11 +407,7 @@ export class DoctorAppointmentComponent implements OnInit {
         { time: '10:00 AM', type: 'priority', isAvailable: true },
         { time: '10:30 AM', type: 'emergency', isAvailable: false, isBooked: true },
         { time: '11:00 AM', type: 'premium', isAvailable: true },
-        { time: '11:30 AM', type: 'normal', isAvailable: true },
-        { time: '02:00 PM', type: 'walkin', isAvailable: true },
-        { time: '02:30 PM', type: 'free', isAvailable: true },
-        { time: '03:00 PM', type: 'phc', isAvailable: false, isBooked: true },
-        { time: '04:00 PM', type: 'blocked', isAvailable: false }
+        { time: '11:30 AM', type: 'normal', isAvailable: true }
       ]
     },
     {
@@ -210,24 +415,14 @@ export class DoctorAppointmentComponent implements OnInit {
       slots: [
         { time: '10:00 AM', type: 'normal', isAvailable: true },
         { time: '10:30 AM', type: 'priority', isAvailable: false, isBooked: true },
-        { time: '11:00 AM', type: 'normal', isAvailable: true },
-        { time: '11:30 AM', type: 'premium', isAvailable: true },
-        { time: '02:00 PM', type: 'emergency', isAvailable: false, isBooked: true },
-        { time: '03:00 PM', type: 'walkin', isAvailable: true }
+        { time: '11:00 AM', type: 'normal', isAvailable: true }
       ]
     },
     {
       dateLabel: 'MON 14 SEP',
       slots: [
         { time: '09:00 AM', type: 'normal', isAvailable: true },
-        { time: '09:30 AM', type: 'normal', isAvailable: true },
-        { time: '10:00 AM', type: 'priority', isAvailable: true },
-        { time: '10:30 AM', type: 'walkin', isAvailable: false, isBooked: true },
-        { time: '11:00 AM', type: 'normal', isAvailable: true },
-        { time: '11:30 AM', type: 'normal', isAvailable: true },
-        { time: '02:00 PM', type: 'premium', isAvailable: true },
-        { time: '02:30 PM', type: 'phc', isAvailable: true },
-        { time: '03:30 PM', type: 'free', isAvailable: false, isBooked: true }
+        { time: '10:00 AM', type: 'priority', isAvailable: true }
       ]
     }
   ];
@@ -272,12 +467,149 @@ export class DoctorAppointmentComponent implements OnInit {
   ];
 
   scheduleDays = computed(() => {
-    return this.appointmentType() === 'doctor' ? this.doctorScheduleDays : this.serviceScheduleDays;
+    if (this.appointmentType() === 'service') {
+      return this.serviceScheduleDays;
+    }
+
+    const docId = this.selectedPractitioner();
+    if (docId && docId !== 'all' && this.doctorSchedulesMap[docId]) {
+      return this.doctorSchedulesMap[docId];
+    }
+
+    // Default doctor schedule (Dr. Susheel Bindroo or fallback)
+    return this.doctorSchedulesMap['1'] || this.doctorScheduleDays;
+  });
+
+  activePractitionerHeader = computed(() => {
+    if (this.appointmentType() === 'service') {
+      const dept = this.selectedServiceDepartment();
+      return {
+        name: dept === 'All Departments' ? 'Central Diagnostics & Services' : dept,
+        speciality: 'Hospital Diagnostic Services',
+        fee: this.consultationFee()
+      };
+    }
+
+    const docId = this.selectedPractitioner();
+    if (docId && docId !== 'all') {
+      const doc = this.practitioners.find(p => p.id === docId);
+      if (doc) {
+        return {
+          name: doc.name,
+          speciality: doc.speciality,
+          fee: doc.fee
+        };
+      }
+    }
+
+    const first = this.practitioners[0];
+    return {
+      name: first ? first.name : 'Dr. Susheel Bindroo',
+      speciality: first ? first.speciality : 'Pulmonology',
+      fee: first ? first.fee : 1500
+    };
   });
 
   moduleTabs = computed(() => this.authService.allowedModules());
 
+  // Registered Patients List for Dropdown
+  patientsList = signal<any[]>([
+    { uhid: 'RFH2026001', name: 'Jagdish Ramji Thakkar', mobile: '9820198201', ageGender: '58 Y / Male' },
+    { uhid: 'RFH2026002', name: 'Mohd. Zubair Qureshi', mobile: '9819283746', ageGender: '42 Y / Male' },
+    { uhid: 'RFH23241854', name: 'Mr. PRATHAMESH SHASHANK KHOCHADE', mobile: '9892011223', ageGender: '30 Y / Male' },
+    { uhid: 'RFH2026003', name: 'Anuradha Jadhav', mobile: '9765432109', ageGender: '35 Y / Female' },
+    { uhid: 'RFH2026005', name: 'Pooja Dhanecha', mobile: '9123456789', ageGender: '31 Y / Female' }
+  ]);
+
+  activeSelectedPatientInfo = computed(() => {
+    const sel = this.selectedPatient();
+    if (!sel) return null;
+
+    const match = this.patientsList().find(p => 
+      sel.toLowerCase().includes(p.uhid.toLowerCase()) || 
+      sel.toLowerCase().includes(p.name.toLowerCase())
+    );
+
+    if (match) {
+      return {
+        name: match.name,
+        uhid: match.uhid,
+        mobile: match.mobile,
+        ageGender: match.ageGender || 'N/A'
+      };
+    }
+
+    const matchGroup = sel.match(/^(.*?)\s*\((.*?)\)$/);
+    if (matchGroup) {
+      return {
+        name: matchGroup[1].trim(),
+        uhid: matchGroup[2].trim(),
+        mobile: this.mobileNo() || '9820198201',
+        ageGender: 'Registered Patient'
+      };
+    }
+
+    return {
+      name: sel,
+      uhid: 'RFH2026' + Math.floor(1000 + Math.random() * 9000),
+      mobile: this.mobileNo() || '9820198201',
+      ageGender: 'Registered Patient'
+    };
+  });
+
+  getSlotPatientName(slot: TimeSlot): string {
+    if (slot.patientName) return slot.patientName;
+    if (this.activeSelectedPatientInfo()) return this.activeSelectedPatientInfo()!.name;
+    if (slot.type === 'priority') return 'Mohd. Zubair Qureshi';
+    return 'Jagdish Ramji Thakkar';
+  }
+
+  getSlotPatientUhid(slot: TimeSlot): string {
+    if (slot.patientUhid) return slot.patientUhid;
+    if (this.activeSelectedPatientInfo()) return this.activeSelectedPatientInfo()!.uhid;
+    if (slot.type === 'priority') return 'RFH2026002';
+    return 'RFH2026001';
+  }
+
+  getSlotPatientMobile(slot: TimeSlot): string {
+    if (slot.patientMobile) return slot.patientMobile;
+    if (this.activeSelectedPatientInfo()) return this.activeSelectedPatientInfo()!.mobile;
+    if (slot.type === 'priority') return '9819283746';
+    return '9820198201';
+  }
+
   ngOnInit(): void {
+    // Fetch registered patients from JSON Server API
+    this.apiService.get<any[]>('patients').subscribe({
+      next: (apiData) => {
+        if (Array.isArray(apiData) && apiData.length > 0) {
+          const loaded = apiData.map(p => ({
+            uhid: p.uhid || 'RFH2026' + Math.floor(1000 + Math.random() * 9000),
+            name: p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
+            mobile: p.mobile ? p.mobile.replace(/\+91\s?/, '') : '9820198201',
+            ageGender: `${p.age || '32'} Y / ${p.gender || 'Male'}`
+          }));
+          const existingUhids = new Set(loaded.map(p => p.uhid));
+          const combined = [
+            ...loaded,
+            ...this.patientsList().filter(dp => !existingUhids.has(dp.uhid))
+          ];
+          this.patientsList.set(combined);
+        }
+      }
+    });
+
+    // Check for query parameters passed from Magic Search
+    this.route.queryParams.subscribe(params => {
+      if (params['mobile']) {
+        this.mobileNo.set(params['mobile']);
+      }
+      if (params['name']) {
+        this.onSelectPatientChange(params['name']);
+        this.toastService.info(`Loaded patient "${params['name']}" for appointment booking.`);
+      }
+    });
+
     // Fetch data from JSON Server
     this.apiService.get<Practitioner[]>('practitioners').subscribe(data => {
       if (Array.isArray(data) && data.length > 0) {
@@ -290,6 +622,32 @@ export class DoctorAppointmentComponent implements OnInit {
         this.servicesList = data;
       }
     });
+  }
+
+  onSelectPatientChange(val: string): void {
+    this.selectedPatient.set(val);
+    if (!val) return;
+
+    const match = this.patientsList().find(p => 
+      val.toLowerCase().includes(p.uhid.toLowerCase()) || 
+      val.toLowerCase().includes(p.name.toLowerCase())
+    );
+
+    if (match) {
+      this.mobileNo.set(match.mobile);
+      this.patientName.set(match.name);
+      this.patientMobile.set(match.mobile);
+      this.toastService.success(`Selected Patient Loaded: ${match.name} (UHID: ${match.uhid})`);
+    } else {
+      this.toastService.info(`Selected Patient: ${val}`);
+    }
+  }
+
+  clearPatientSelection(): void {
+    this.selectedPatient.set('');
+    this.mobileNo.set('');
+    this.patientName.set('');
+    this.patientMobile.set('');
   }
 
   constructor() {}
@@ -319,6 +677,16 @@ export class DoctorAppointmentComponent implements OnInit {
     }
   }
 
+  showQuickRegisterModal = signal<boolean>(false);
+  quickTitle = signal<string>('Mr.');
+  quickFirstName = signal<string>('');
+  quickLastName = signal<string>('');
+  quickMobile = signal<string>('');
+  quickGender = signal<string>('Male');
+  quickAge = signal<string>('30');
+  quickCity = signal<string>('Mumbai');
+  quickPayor = signal<string>('Self');
+
   selectDate(day: number): void {
     this.selectedDate.set(day);
     this.toastService.info(`Selected date: ${day} ${this.monthNames[this.currentMonth()]} ${this.currentYear()}`);
@@ -326,12 +694,106 @@ export class DoctorAppointmentComponent implements OnInit {
 
   searchPatientByPhone(): void {
     const val = this.mobileNo().trim();
-    const type = this.phoneType();
     if (!val) {
-      this.toastService.warning(`Please enter a ${type} number to search patient records.`);
+      this.toastService.warning('Please enter a mobile or UHID number to search.');
       return;
     }
-    this.toastService.info(`Searching patient database by ${type}: +91 ${val}...`);
+
+    this.apiService.get<any[]>('patients').subscribe({
+      next: (patients) => {
+        if (Array.isArray(patients)) {
+          const match = patients.find(p => 
+            (p.mobile && p.mobile.includes(val)) || 
+            (p.uhid && p.uhid.toLowerCase().includes(val.toLowerCase())) ||
+            (p.name && p.name.toLowerCase().includes(val.toLowerCase()))
+          );
+
+          if (match) {
+            const name = match.name || `${match.firstName || ''} ${match.lastName || ''}`.trim();
+            this.selectedPatient.set(`${name} (${match.uhid})`);
+            this.mobileNo.set(match.mobile ? match.mobile.replace(/\+91\s?/, '') : val);
+            this.toastService.success(`Patient profile retrieved! ${name} (UHID: ${match.uhid})`);
+            return;
+          }
+        }
+
+        // Fallback default patient matches
+        if (val.includes('9820198201') || val.toLowerCase().includes('jagdish')) {
+          this.selectedPatient.set('Jagdish Ramji Thakkar (RFH2026001)');
+          this.toastService.success('Patient profile retrieved! Jagdish Ramji Thakkar (UHID: RFH2026001)');
+        } else if (val.includes('9819283746') || val.toLowerCase().includes('qureshi')) {
+          this.selectedPatient.set('Mohd. Zubair Qureshi (RFH2026002)');
+          this.toastService.success('Patient profile retrieved! Mohd. Zubair Qureshi (UHID: RFH2026002)');
+        } else {
+          this.quickMobile.set(val);
+          this.toastService.warning(`No registered patient found for "${val}". Opening Quick Registration...`);
+          this.showQuickRegisterModal.set(true);
+        }
+      }
+    });
+  }
+
+  saveQuickRegistration(markArrival: boolean = false): void {
+    if (!this.quickFirstName().trim() || !this.quickLastName().trim() || !this.quickMobile().trim()) {
+      this.toastService.warning('Please enter First Name, Last Name, and Mobile Number.');
+      return;
+    }
+
+    const generatedUhid = 'RFH2026' + Math.floor(1000 + Math.random() * 9000);
+    const fullName = `${this.quickTitle()} ${this.quickFirstName()} ${this.quickLastName()}`.trim();
+
+    const newPatient = {
+      uhid: generatedUhid,
+      name: fullName,
+      firstName: this.quickFirstName(),
+      lastName: this.quickLastName(),
+      mobile: this.quickMobile(),
+      gender: this.quickGender(),
+      age: this.quickAge(),
+      city: this.quickCity(),
+      payorType: this.quickPayor(),
+      registeredOn: new Date().toISOString()
+    };
+
+    this.apiService.post('patients', newPatient).subscribe({
+      next: (res) => {
+        console.log('[JSON-Server] Quick patient registered:', res);
+      }
+    });
+
+    this.selectedPatient.set(`${fullName} (${generatedUhid})`);
+    this.mobileNo.set(this.quickMobile());
+    this.showQuickRegisterModal.set(false);
+
+    if (markArrival) {
+      const generatedVisitId = 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000);
+      const newAppointmentVisit = {
+        dateStr: 'SAT 12 SEP',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        patientName: fullName,
+        uhid: generatedUhid,
+        mobile: this.quickMobile(),
+        practitioner: 'General OPD Clinic',
+        fee: 1500,
+        status: 'ARRIVED AT DESK',
+        visitId: generatedVisitId,
+        type: 'OP',
+        description: `Active Desk Arrival Visit (${generatedVisitId})`,
+        bookedOn: new Date().toISOString()
+      };
+      this.apiService.post('appointments', newAppointmentVisit).subscribe();
+      this.toastService.success(`Quick Registered & Desk Arrival Marked! Active Visit ID: ${generatedVisitId}`);
+      this.router.navigate(['/op-billing'], {
+        queryParams: {
+          name: fullName,
+          uhid: generatedUhid,
+          visitId: generatedVisitId,
+          mobile: this.quickMobile()
+        }
+      });
+    } else {
+      this.toastService.success(`Quick Patient Registered! Assigned UHID: ${generatedUhid}`);
+    }
   }
 
   clearSelection(): void {
@@ -345,13 +807,38 @@ export class DoctorAppointmentComponent implements OnInit {
     this.toastService.info('Appointment filters cleared.');
   }
 
+  // Cancel / Release Slot Modal State
+  showCancelSlotModal = signal<boolean>(false);
+  cancelSlotData = signal<{ dateLabel: string; slot: TimeSlot; docName: string; patientName: string; uhid: string; mobile: string; fee: number } | null>(null);
+  cancelSlotReason = signal<string>('Patient Request / Unwell');
+
   openSlotModal(dateLabel: string, slot: TimeSlot): void {
-    if (!slot.isAvailable || slot.type === 'blocked' || slot.isBooked) {
-      this.toastService.warning('This slot is unavailable or already booked.');
+    const doc = this.practitioners.find(p => p.id === this.selectedPractitioner()) || this.practitioners[0];
+
+    // If slot is booked, open Cancel & Release Slot modal!
+    if (slot.isBooked || (!slot.isAvailable && slot.type !== 'blocked')) {
+      const patientNameVal = this.getSlotPatientName(slot);
+      const patientUhidVal = this.getSlotPatientUhid(slot);
+      const patientMobileVal = this.getSlotPatientMobile(slot);
+
+      this.cancelSlotData.set({
+        dateLabel,
+        slot,
+        docName: doc.name,
+        patientName: patientNameVal,
+        uhid: patientUhidVal,
+        mobile: patientMobileVal,
+        fee: doc.fee
+      });
+      this.showCancelSlotModal.set(true);
       return;
     }
 
-    const doc = this.practitioners.find(p => p.id === this.selectedPractitioner()) || this.practitioners[0];
+    if (slot.type === 'blocked') {
+      this.toastService.warning('This slot is blocked by doctor and unavailable for booking.');
+      return;
+    }
+
     const isService = this.appointmentType() === 'service';
     const selectedSrvs = this.selectedServices();
 
@@ -377,7 +864,31 @@ export class DoctorAppointmentComponent implements OnInit {
     this.showBookingModal.set(true);
   }
 
-  confirmBooking(): void {
+  confirmCancelSlot(): void {
+    const data = this.cancelSlotData();
+    if (!data) return;
+
+    const { dateLabel, slot, patientName, docName } = data;
+    const activeDays = this.scheduleDays();
+    for (const day of activeDays) {
+      if (day.dateLabel === dateLabel) {
+        const target = day.slots.find(s => s.time === slot.time);
+        if (target) {
+          target.isAvailable = true;
+          target.isBooked = false;
+          target.patientName = undefined;
+          target.patientUhid = undefined;
+          target.patientMobile = undefined;
+          target.reason = undefined;
+        }
+      }
+    }
+
+    this.showCancelSlotModal.set(false);
+    this.toastService.success(`Appointment for "${patientName}" on ${dateLabel} at ${slot.time} with ${docName} has been CANCELLED and slot is now FREE!`);
+  }
+
+  confirmBooking(markArrival: boolean = false): void {
     const slot = this.selectedSlot();
     if (!slot) return;
 
@@ -393,12 +904,135 @@ export class DoctorAppointmentComponent implements OnInit {
       }
     }
 
+    const visitId = markArrival ? ('OPV-2026-' + Math.floor(10000 + Math.random() * 90000)) : undefined;
+
+    const newAppointment = {
+      dateStr: slot.dateStr,
+      time: slot.time,
+      patientName: this.selectedPatient() || this.patientName() || 'Walk-in Patient',
+      mobile: this.mobileNo() || this.patientMobile() || '9820198201',
+      practitioner: slot.practitioner,
+      fee: slot.fee,
+      status: markArrival ? 'ARRIVED AT DESK' : 'CONFIRMED',
+      visitId: visitId,
+      type: this.appointmentType() === 'doctor' ? 'OP' : 'Service',
+      description: markArrival 
+        ? `Active Desk Arrival Visit (${visitId}) - ${slot.practitioner}`
+        : `${this.appointmentType() === 'doctor' ? 'Doctor Consultation' : 'Service Booking'} - ${slot.practitioner}`,
+      bookedOn: new Date().toISOString()
+    };
+
+    // Save to JSON Server /appointments endpoint
+    this.apiService.post('appointments', newAppointment).subscribe({
+      next: (res) => {
+        console.log('[JSON-Server] Appointment stored in API:', res);
+      }
+    });
+
     this.showBookingModal.set(false);
-    this.toastService.success(`Appointment confirmed for ${slot.dateStr} at ${slot.time}! Slot marked as Booked.`);
+
+    if (markArrival) {
+      this.toastService.success(`Arrival Marked for ${newAppointment.patientName}! Active Visit ID: ${visitId}`);
+      this.router.navigate(['/op-billing'], {
+        queryParams: {
+          name: newAppointment.patientName,
+          uhid: 'RFH2026' + Math.floor(1000 + Math.random() * 9000),
+          visitId: visitId,
+          practitioner: slot.practitioner,
+          fee: slot.fee
+        }
+      });
+    } else {
+      this.toastService.success(`Appointment confirmed for ${slot.dateStr} at ${slot.time}! Stored in Worklist.`);
+    }
   }
 
+  // Priority Slot Punching State
+  showPrioritySlotModal = signal<boolean>(false);
+  priorityDateLabel = signal<string>('SAT 12 SEP');
+  priorityTime = signal<string>('10:15 AM');
+  priorityReason = signal<string>('VIP Overbook / Emergency');
+  priorityPatientName = signal<string>('');
+  priorityPatientMobile = signal<string>('');
+  priorityPractitioner = signal<string>('Dr. Susheel Bindroo');
+
   createPrioritySlot(): void {
-    this.toastService.info('Priority slot creation request submitted to Hospital Admin.');
+    const docId = this.selectedPractitioner();
+    const doc = this.practitioners.find(p => p.id === docId);
+    if (doc) {
+      this.priorityPractitioner.set(doc.name);
+    } else {
+      this.priorityPractitioner.set('Dr. Susheel Bindroo');
+    }
+
+    if (this.selectedPatient()) {
+      const info = this.activeSelectedPatientInfo();
+      if (info) {
+        this.priorityPatientName.set(info.name);
+        this.priorityPatientMobile.set(info.mobile);
+      }
+    } else {
+      this.priorityPatientName.set('');
+      this.priorityPatientMobile.set('');
+    }
+
+    this.showPrioritySlotModal.set(true);
+  }
+
+  savePrioritySlot(autoBook: boolean = false): void {
+    const timeVal = this.priorityTime().trim();
+    const dateLabel = this.priorityDateLabel();
+    const practitionerName = this.priorityPractitioner();
+
+    if (!timeVal) {
+      this.toastService.warning('Please specify time for the priority slot.');
+      return;
+    }
+
+    const activeDays = this.appointmentType() === 'doctor' ? this.doctorScheduleDays : this.serviceScheduleDays;
+    const targetDay = activeDays.find(d => d.dateLabel === dateLabel);
+
+    if (targetDay) {
+      const newSlot: TimeSlot = {
+        time: timeVal,
+        type: 'priority',
+        isAvailable: !autoBook,
+        isBooked: autoBook
+      };
+
+      // Add priority slot to target day
+      targetDay.slots.unshift(newSlot);
+    }
+
+    if (autoBook) {
+      const patient = this.priorityPatientName().trim() || this.selectedPatient() || 'VIP Priority Patient';
+      const mob = this.priorityPatientMobile().trim() || this.mobileNo() || '9820198201';
+
+      const newAppointment = {
+        dateStr: dateLabel,
+        time: timeVal,
+        patientName: patient,
+        mobile: mob,
+        practitioner: practitionerName,
+        fee: 1500,
+        status: 'CONFIRMED',
+        type: 'OP',
+        description: `Priority Slot (${this.priorityReason()}) - ${practitionerName}`,
+        bookedOn: new Date().toISOString()
+      };
+
+      this.apiService.post('appointments', newAppointment).subscribe({
+        next: (res) => {
+          console.log('[JSON-Server] Priority appointment booked:', res);
+        }
+      });
+
+      this.toastService.success(`⭐ Priority Slot (${timeVal} - ${dateLabel}) Punched & Booked for ${patient}!`);
+    } else {
+      this.toastService.success(`⭐ Additional Priority Slot (${timeVal} - ${dateLabel}) Punched into schedule for ${practitionerName}!`);
+    }
+
+    this.showPrioritySlotModal.set(false);
   }
 
   logout(): void {

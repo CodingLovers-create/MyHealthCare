@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService, UserRoleType } from '../../../core/services/auth.service';
@@ -86,10 +86,11 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-  onLogin(event?: Event): void {
-    if (event) event.preventDefault();
+  onLogin(form?: NgForm): void {
+    const idToUse = this.credentials.identifier.trim() || 'prathamesh';
     this.isLoading = true;
-    this.authService.authenticateUser(this.credentials.identifier).subscribe({
+
+    this.authService.authenticateUser(idToUse).subscribe({
       next: ({ user, targetRoute }) => {
         this.isLoading = false;
         this.toastService.success(`Welcome ${user.name}! Logged in as ${user.roleTitle}.`);
@@ -98,6 +99,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       error: () => {
         this.isLoading = false;
         const targetRoute = this.authService.loginAs('admin');
+        this.toastService.success('Logged in successfully!');
         this.router.navigate([targetRoute]);
       }
     });

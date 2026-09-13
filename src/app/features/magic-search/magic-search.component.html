@@ -1,87 +1,7 @@
 <div class="min-h-screen bg-white flex flex-col font-sans text-[#333333] select-none text-[11px] relative">
   
-  <!-- 1. TOP HEADER NAVBAR -->
-  <header class="h-[46px] bg-white border-b border-[#cccccc] px-4 py-2 flex items-center justify-between shrink-0">
-    
-    <!-- Left Logo -->
-    <div class="flex items-center space-x-2 cursor-pointer" (click)="logout()" routerLink="/login">
-      <svg class="w-[22px] h-[22px]" viewBox="0 0 100 100" fill="none">
-        <path d="M50 88C50 88 12 60 12 34C12 19 24 10 38 10C46 10 50 14 50 14C50 14 54 10 62 10C76 10 88 19 88 34C88 60 50 88 50 88Z" fill="#d93848"/>
-        <path d="M22 38H34L42 24L50 52L58 30L66 38H78" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span class="text-[16px] font-bold tracking-tight">
-        <span class="text-[#0277bd]">My</span><span class="text-[#0091ea]">Healthcare</span>
-      </span>
-    </div>
-
-    <!-- Right User Info & Context Header -->
-    <div class="flex items-center">
-      <div class="text-right leading-tight pr-4">
-        <div class="text-[11px] text-[#555555]">
-          Reliance Foundation Hospital Trust
-        </div>
-        <div (click)="logout()" title="Click to Logout" class="text-[11px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline flex items-center justify-end space-x-1">
-          <i class="fa-solid fa-circle-user text-[13px] mr-0.5"></i>
-          <span>{{ authService.currentUser().name }}</span>
-          <span class="text-[9.5px] font-semibold text-slate-500">({{ authService.currentUser().roleTitle }})</span>
-        </div>
-      </div>
-
-      <!-- Vertical Line Divider -->
-      <div class="h-6 w-[1px] bg-[#cccccc] mx-3"></div>
-
-      <!-- Far Right Emblem Badge -->
-      <div class="flex items-center space-x-1.5 pl-3">
-        <svg class="w-5 h-5" viewBox="0 0 100 90" fill="none">
-          <path d="M50 82C50 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" fill="#d93848"/>
-          <path d="M25 35H35L42 22L50 48L58 28L65 35H75" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div class="flex flex-col">
-          <span class="text-[7.5px] text-[#d93848] font-bold leading-none">MyHealthcare</span>
-          <span class="text-[6.5px] text-[#555555] font-semibold leading-tight">Enterprise Application</span>
-        </div>
-      </div>
-    </div>
-
-  </header>
-
-
-  <!-- 2. MODULE NAVIGATION TAB BAR (Dark Gray #4c4c4c) -->
-  <nav class="bg-[#4c4c4c] text-white px-4 py-2 flex items-center justify-between text-[11px] h-[44px] shrink-0">
-    
-    <div class="flex items-center space-x-2 overflow-x-auto py-0.5">
-      <!-- Sidebar Toggle Hamburger -->
-      <button (click)="toggleSidebar()" class="px-2.5 py-1.5 text-white hover:text-gray-200 cursor-pointer border-r border-[#666666] pr-4 mr-2 flex items-center justify-center">
-        <i class="fa-solid fa-bars text-[13px]"></i>
-      </button>
-
-      <!-- Dynamic Module Tabs -->
-      @for (tab of moduleTabs(); track tab.id) {
-        <button (click)="selectModuleTab(tab.id)" 
-                [class]="'px-3.5 py-1.5 text-[11px] font-medium cursor-pointer whitespace-nowrap transition-all rounded-[4px] ' + 
-                         (tab.id === 'MagicSearch'
-                           ? 'bg-[#d93848] text-white font-bold border border-[#d93848] shadow-2xs' 
-                           : tab.id === 'MyDesk'
-                             ? 'bg-white text-[#222222] border border-[#cccccc] hover:border-[#d93848]'
-                             : 'bg-[#3f3f3f] border border-[#6b6b6b] text-white hover:bg-[#4a4a4a]')">
-          @if (tab.id === 'MyDesk') {
-            <span class="text-[#222222]">My</span><span class="text-[#d93848] font-bold">Desk</span>
-          } @else if (tab.id === 'MagicSearch') {
-            <span>MagicSearch</span>
-          } @else {
-            {{ tab.label }}
-          }
-        </button>
-      }
-    </div>
-
-    <!-- Far Right HELP Button -->
-    <button (click)="openHelp()" type="button" class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[3px] px-3.5 py-1.5 flex items-center space-x-1.5 shadow-2xs cursor-pointer uppercase tracking-wider ml-3 shrink-0">
-      <span>HELP</span>
-      <i class="fa-solid fa-video text-[10px]"></i>
-    </button>
-
-  </nav>
+  <!-- Shared Top Header & Module Navigation Bar -->
+  <app-navbar activeModule="MagicSearch"></app-navbar>
 
 
   <!-- 3. CENTER MAGIC SEARCH CONTENT AREA -->
@@ -93,38 +13,69 @@
     </h1>
 
     <!-- Floating Legend Search Input Fieldset -->
-    <div class="w-full max-w-[760px] relative mb-5">
-      <fieldset class="border border-[#333333] rounded-[3px] px-3 pb-2 pt-1 focus-within:border-[#d93848] focus-within:ring-1 focus-within:ring-[#d93848]/40 transition-all bg-white">
+    <div class="w-full max-w-[760px] relative mb-3">
+      <fieldset class="border border-[#333333] rounded-[3px] px-3 pb-2 pt-1 focus-within:border-[#d93848] focus-within:ring-1 focus-within:ring-[#d93848]/40 transition-all bg-white shadow-2xs">
         <legend class="mx-auto px-2 text-[10px] font-semibold text-[#d93848] leading-none whitespace-nowrap select-none">
           Search for Patient by UHID / Old UHID / Mobile No. / Aadhaar Card No. / PAN Card No. / Email ID / Employee ID
         </legend>
         
         <div class="flex items-center space-x-2 pt-1">
           <!-- Left Search Icon -->
-          <i class="fa-solid fa-magnifying-glass text-[#888888] text-[15px] pl-1.5"></i>
+          <i class="fa-solid fa-magnifying-glass text-[#888888] text-[15px] pl-1.5 cursor-pointer" (click)="executeSearch()"></i>
           
           <!-- Input Box -->
           <input type="text" 
                  [ngModel]="searchQuery()" 
                  (ngModelChange)="searchQuery.set($event)"
                  (keyup.enter)="executeSearch()"
-                 placeholder="" 
+                 placeholder="Type Patient Name, Mobile Number, UHID, or City..." 
                  class="w-full h-8 bg-transparent text-[13px] text-[#222222] focus:outline-none placeholder-[#888888]" />
           
+          <!-- Clear Input Button -->
+          @if (searchQuery()) {
+            <button (click)="searchWithQuery('')" type="button" class="text-[#888888] hover:text-[#333333] pr-1">
+              <i class="fa-solid fa-circle-xmark text-[13px]"></i>
+            </button>
+          }
+
           <!-- Right Microphone Icon -->
-          <button (click)="toggleVoiceSearch()" type="button" title="Voice Search" class="text-[#666666] hover:text-[#d93848] transition-colors pr-1.5 cursor-pointer">
+          <button (click)="toggleVoiceSearch()" type="button" title="Voice Search" class="text-[#666666] hover:text-[#d93848] transition-colors pr-1.5 cursor-pointer flex items-center space-x-1">
             <i class="fa-solid fa-microphone text-[15px]"></i>
           </button>
         </div>
       </fieldset>
     </div>
 
-    <!-- Centered Advance Search Button -->
-    <button (click)="toggleAdvanceSearch()" 
-            type="button" 
-            class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] tracking-wider uppercase px-4 py-2 rounded-[3px] shadow-2xs cursor-pointer transition-all active:scale-[0.98]">
-      ADVANCE SEARCH
-    </button>
+    <!-- Quick Search Pill Chips -->
+    <div class="flex items-center justify-center flex-wrap gap-2 text-[10px] text-[#666666] mb-5">
+      <span class="font-medium text-[#777777]">Quick Search:</span>
+      <button (click)="searchWithQuery('Prathamesh')" type="button" class="px-2.5 py-0.5 bg-[#f0f4f8] border border-[#cbd5e1] rounded-full text-[#0284c7] font-semibold hover:bg-[#e0f2fe] transition-colors cursor-pointer">
+        <i class="fa-solid fa-magnifying-glass text-[9px] mr-1"></i>Prathamesh
+      </button>
+      <button (click)="searchWithQuery('Thakkar')" type="button" class="px-2.5 py-0.5 bg-[#f0f4f8] border border-[#cbd5e1] rounded-full text-[#0284c7] font-semibold hover:bg-[#e0f2fe] transition-colors cursor-pointer">
+        <i class="fa-solid fa-magnifying-glass text-[9px] mr-1"></i>Jagdish Thakkar
+      </button>
+      <button (click)="searchWithQuery('9820198201')" type="button" class="px-2.5 py-0.5 bg-[#f0f4f8] border border-[#cbd5e1] rounded-full text-[#0284c7] font-semibold hover:bg-[#e0f2fe] transition-colors cursor-pointer">
+        <i class="fa-solid fa-phone text-[9px] mr-1"></i>9820198201
+      </button>
+      <button (click)="searchWithQuery('Mumbai')" type="button" class="px-2.5 py-0.5 bg-[#f0f4f8] border border-[#cbd5e1] rounded-full text-[#0284c7] font-semibold hover:bg-[#e0f2fe] transition-colors cursor-pointer">
+        <i class="fa-solid fa-location-dot text-[9px] mr-1"></i>Mumbai
+      </button>
+    </div>
+
+    <!-- Action Buttons Row -->
+    <div class="flex items-center space-x-3">
+      <button (click)="executeSearch()" 
+              type="button" 
+              class="bg-[#0088cc] hover:bg-[#0077bb] text-white font-bold text-[11px] tracking-wider uppercase px-4 py-2 rounded-[3px] shadow-2xs cursor-pointer transition-all active:scale-[0.98]">
+        <i class="fa-solid fa-search mr-1.5"></i>SEARCH PATIENT
+      </button>
+      <button (click)="toggleAdvanceSearch()" 
+              type="button" 
+              class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] tracking-wider uppercase px-4 py-2 rounded-[3px] shadow-2xs cursor-pointer transition-all active:scale-[0.98]">
+        <i class="fa-solid fa-sliders mr-1.5"></i>ADVANCE SEARCH
+      </button>
+    </div>
 
 
     <!-- Advance Search Expandable Panel -->
@@ -148,11 +99,23 @@
             <label class="block text-[10px] font-medium text-[#666666] mb-1">Mobile Number</label>
             <input type="text" [ngModel]="advMobile()" (ngModelChange)="advMobile.set($event)" class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px]" placeholder="e.g. 9820198201" />
           </div>
+          <div>
+            <label class="block text-[10px] font-medium text-[#666666] mb-1">Aadhaar Card No.</label>
+            <input type="text" [ngModel]="advAadhar()" (ngModelChange)="advAadhar.set($event)" class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px]" placeholder="e.g. 4532 8901" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-medium text-[#666666] mb-1">Gender</label>
+            <select [ngModel]="advGender()" (ngModelChange)="advGender.set($event)" class="w-full h-8 px-2 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px]">
+              <option value="All">All Genders</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
         </div>
 
         <div class="flex justify-end space-x-2 pt-2">
-          <button (click)="showAdvanceSearch.set(false)" class="px-3 py-1 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] hover:bg-gray-100">Cancel</button>
-          <button (click)="executeAdvanceSearch()" class="px-4 py-1 bg-[#d93848] text-white rounded-[2px] text-[11px] font-bold hover:bg-[#c22d3d]">Search Patients</button>
+          <button (click)="showAdvanceSearch.set(false)" class="px-3 py-1 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] hover:bg-gray-100 cursor-pointer">Cancel</button>
+          <button (click)="executeAdvanceSearch()" class="px-4 py-1 bg-[#d93848] text-white rounded-[2px] text-[11px] font-bold hover:bg-[#c22d3d] cursor-pointer">Search Patients</button>
         </div>
       </div>
     }
@@ -165,9 +128,12 @@
     
     <!-- Drawer Toggle Header Bar -->
     <div (click)="toggleDrawer()" class="px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-[#d0d0d0] transition-colors">
-      <span class="font-bold text-[#333333] text-[11px]">
-        Registered Patient ({{ searchResults().length }})
-      </span>
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-users text-[#d93848] text-[13px]"></i>
+        <span class="font-bold text-[#333333] text-[11px]">
+          Registered Patient Records ({{ searchResults().length }})
+        </span>
+      </div>
       <div class="flex items-center space-x-1.5">
         <span class="text-[10px] text-[#666666]">{{ isDrawerOpen() ? 'Click to collapse' : 'Click to expand' }}</span>
         <i [class]="'fa-solid ' + (isDrawerOpen() ? 'fa-chevron-down' : 'fa-chevron-up') + ' text-[#666666] text-[12px]'"></i>
@@ -176,11 +142,12 @@
 
     <!-- Drawer Results Panel (if open) -->
     @if (isDrawerOpen()) {
-      <div class="bg-white border-t border-[#cccccc] p-3 max-h-[250px] overflow-y-auto">
+      <div class="bg-white border-t border-[#cccccc] p-3 max-h-[300px] overflow-y-auto">
         @if (searchResults().length === 0) {
           <div class="text-center py-6 text-[#777777]">
-            <p>No patient records found for the search query.</p>
-            <button (click)="executeSearch()" class="mt-2 text-[#0088cc] hover:underline font-semibold">Load sample patient records</button>
+            <i class="fa-solid fa-folder-open text-[24px] text-gray-300 mb-2"></i>
+            <p class="font-medium">No patient records found matching your search criteria.</p>
+            <button (click)="searchWithQuery('')" class="mt-2 text-[#0088cc] hover:underline font-semibold text-[11px]">View All Patients</button>
           </div>
         } @else {
           <table class="w-full text-left text-[11px]">
@@ -190,25 +157,40 @@
                 <th class="p-2">Patient Name</th>
                 <th class="p-2">Age / Gender</th>
                 <th class="p-2">Mobile No.</th>
+                <th class="p-2">Email</th>
                 <th class="p-2">Aadhaar No.</th>
                 <th class="p-2">City</th>
-                <th class="p-2">Last Visit</th>
+                <th class="p-2">Registered / Last Visit</th>
                 <th class="p-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#eeeeee]">
               @for (patient of searchResults(); track patient.uhid) {
-                <tr class="hover:bg-[#f9f9f9]">
-                  <td class="p-2 font-bold text-[#0088cc]">{{ patient.uhid }}</td>
-                  <td class="p-2 font-medium text-[#222222]">{{ patient.name }}</td>
-                  <td class="p-2 text-[#555555]">{{ patient.ageGender }}</td>
-                  <td class="p-2 text-[#555555]">{{ patient.mobile }}</td>
-                  <td class="p-2 text-[#555555]">{{ patient.aadhar }}</td>
+                <tr class="hover:bg-[#f9f9f9] transition-colors">
+                  <td class="p-2 font-bold text-[#0088cc] whitespace-nowrap">{{ patient.uhid | uhidFormat }}</td>
+                  <td class="p-2 font-bold text-[#222222]">{{ patient.name }}</td>
+                  <td class="p-2 text-[#555555] whitespace-nowrap">{{ patient.ageGender }}</td>
+                  <td class="p-2 font-medium text-[#333333] whitespace-nowrap">{{ patient.mobile }}</td>
+                  <td class="p-2 text-[#555555]">{{ patient.email || 'N/A' }}</td>
+                  <td class="p-2 text-[#555555] whitespace-nowrap">{{ patient.aadhar }}</td>
                   <td class="p-2 text-[#555555]">{{ patient.city }}</td>
-                  <td class="p-2 text-[#555555]">{{ patient.lastVisit }}</td>
-                  <td class="p-2 text-right space-x-1">
-                    <button routerLink="/registration" class="px-2 py-0.5 bg-[#0088cc] text-white rounded-[2px] text-[10px] hover:bg-[#0077bb]">Register OP</button>
-                    <button routerLink="/dashboard" class="px-2 py-0.5 bg-[#d93848] text-white rounded-[2px] text-[10px] hover:bg-[#c22d3d]">Worklist</button>
+                  <td class="p-2 text-[#555555] whitespace-nowrap">{{ patient.lastVisit }}</td>
+                  <td class="p-2 text-right whitespace-nowrap space-x-1">
+                    <button (click)="markArrival(patient)" title="Record Patient Desk Arrival & Create Visit" class="px-2 py-0.5 bg-[#059669] text-white rounded-[2px] text-[10px] font-semibold hover:bg-[#047857] cursor-pointer">
+                      <i class="fa-solid fa-location-dot mr-1"></i>Mark Arrival
+                    </button>
+                    <button (click)="bookAppointment(patient)" title="Book Doctor/Service Appointment" class="px-2 py-0.5 bg-[#d93848] text-white rounded-[2px] text-[10px] font-semibold hover:bg-[#c22d3d] cursor-pointer">
+                      <i class="fa-solid fa-calendar-plus mr-1"></i>Book Appointment
+                    </button>
+                    <button (click)="openCancelModal(patient)" title="Cancel Patient Appointment" class="px-2 py-0.5 bg-rose-700 text-white rounded-[2px] text-[10px] font-semibold hover:bg-rose-800 cursor-pointer">
+                      <i class="fa-solid fa-calendar-xmark mr-1"></i>Cancel Appt
+                    </button>
+                    <button (click)="registerOp(patient)" title="New OP Registration" class="px-2 py-0.5 bg-[#0088cc] text-white rounded-[2px] text-[10px] font-semibold hover:bg-[#0077bb] cursor-pointer">
+                      Register OP
+                    </button>
+                    <button (click)="openWorklist(patient)" title="View Patient Worklist" class="px-2 py-0.5 bg-[#555555] text-white rounded-[2px] text-[10px] font-semibold hover:bg-[#444444] cursor-pointer">
+                      Worklist
+                    </button>
                   </td>
                 </tr>
               }
@@ -220,4 +202,113 @@
 
   </div>
 
+
+  <!-- CANCEL APPOINTMENT MODAL FROM MAGIC SEARCH -->
+  @if (showCancelModal()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-[4px] shadow-2xl w-full max-w-[560px] overflow-hidden border border-[#cccccc]">
+        
+        <!-- Header -->
+        <div class="bg-[#d93848] text-white px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-calendar-xmark text-[14px]"></i>
+            <h3 class="font-bold text-[13px]">Cancel Patient Appointment</h3>
+          </div>
+          <button (click)="showCancelModal.set(false)" class="text-white hover:text-gray-200 cursor-pointer">
+            <i class="fa-solid fa-xmark text-[14px]"></i>
+          </button>
+        </div>
+
+        <div class="p-4 space-y-3 text-[11px]">
+          @if (selectedPatientForCancel(); as pat) {
+            <!-- Patient Banner Card -->
+            <div class="p-2.5 bg-slate-100/90 rounded border border-slate-200 flex items-center justify-between">
+              <div>
+                <span class="font-bold text-[#222222] text-[12px] block">{{ pat.name }}</span>
+                <span class="text-[10px] text-slate-500 font-mono">UHID: {{ pat.uhid }} | {{ pat.ageGender }} | {{ pat.mobile }}</span>
+              </div>
+              <span class="px-2 py-0.5 bg-rose-100 text-[#d93848] font-bold text-[9.5px] rounded uppercase border border-rose-300">
+                Cancel Worklist
+              </span>
+            </div>
+
+            <!-- Cancellation Reason Selection -->
+            <div>
+              <label class="block font-bold text-[#555555] mb-1">Cancellation Reason *</label>
+              <select [ngModel]="cancelReason()" (ngModelChange)="cancelReason.set($event)" class="w-full h-8 px-2 border border-[#cccccc] rounded-[2px] text-[11px] bg-white">
+                <option value="Patient Request / Unwell">Patient Request / Unwell</option>
+                <option value="Doctor Unavailable / Emergency">Doctor Unavailable / Emergency</option>
+                <option value="Schedule Conflict / Rescheduled">Schedule Conflict / Rescheduled</option>
+                <option value="Duplicate Booking">Duplicate Booking</option>
+                <option value="Other">Other Reason</option>
+              </select>
+            </div>
+
+            <!-- Active Appointments List -->
+            <div>
+              <label class="block font-bold text-[#333333] mb-1.5">Active Appointments for Patient:</label>
+              
+              @if (isLoadingAppts()) {
+                <div class="py-6 text-center text-slate-500">
+                  <i class="fa-solid fa-spinner fa-spin text-[16px] mb-1 text-[#d93848]"></i>
+                  <p>Fetching active appointments...</p>
+                </div>
+              } @else if (patientAppointments().length === 0) {
+                <div class="py-4 text-center text-slate-500 bg-gray-50 border border-dashed rounded">
+                  <p>No active appointments found to cancel for this patient.</p>
+                </div>
+              } @else {
+                <div class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                  @for (appt of patientAppointments(); track appt.id) {
+                    <div [class]="'p-3 rounded border flex items-center justify-between transition-colors ' + (appt.status === 'CANCELLED' ? 'bg-rose-50/40 border-rose-200' : 'bg-white border-slate-200 hover:border-slate-300')">
+                      
+                      <div class="space-y-0.5">
+                        <div class="flex items-center space-x-2">
+                          <span class="font-bold text-[#222222] text-[11.5px]">{{ appt.practitioner }}</span>
+                          <span [class]="'font-bold text-[9px] px-1.5 py-0.2 rounded uppercase ' + (appt.status === 'CANCELLED' ? 'bg-red-100 text-red-700 border border-red-300' : 'bg-emerald-100 text-emerald-700 border border-emerald-300')">
+                            {{ appt.status }}
+                          </span>
+                        </div>
+                        <div class="text-[10.5px] text-slate-600 font-medium">
+                          📅 <span class="font-bold text-[#d93848]">{{ appt.dateStr }} at {{ appt.time }}</span> | Fee: <span class="font-bold text-slate-800">INR {{ appt.fee || 1500 }}</span>
+                        </div>
+                        @if (appt.cancellationReason) {
+                          <div class="text-[9.5px] text-red-600 italic">
+                            Reason: {{ appt.cancellationReason }}
+                          </div>
+                        }
+                      </div>
+
+                      <div>
+                        @if (appt.status !== 'CANCELLED') {
+                          <button (click)="cancelAppointmentItem(appt)" type="button" class="px-3 py-1 bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[10px] rounded-[3px] cursor-pointer transition-colors shadow-2xs uppercase">
+                            Cancel
+                          </button>
+                        } @else {
+                          <span class="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded">
+                            Cancelled
+                          </span>
+                        }
+                      </div>
+
+                    </div>
+                  }
+                </div>
+              }
+
+            </div>
+          }
+        </div>
+
+        <div class="bg-gray-100 px-4 py-2.5 border-t border-[#cccccc] flex justify-end">
+          <button (click)="showCancelModal.set(false)" class="px-4 py-1 bg-white border border-[#cccccc] hover:bg-gray-50 text-[#333333] font-bold text-[11px] rounded-[2px] cursor-pointer">
+            Close
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>
+
