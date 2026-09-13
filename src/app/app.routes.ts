@@ -8,29 +8,29 @@ import { VitalsRecordingComponent } from './features/vitals-recording/vitals-rec
 import { DoctorPatientListComponent } from './features/doctor-patient-list/doctor-patient-list.component';
 import { DoctorConsultationComponent } from './features/doctor-consultation/doctor-consultation.component';
 import { OpBillingComponent } from './features/op-billing/op-billing.component';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'magic-search', component: MagicSearchComponent },
-  { path: 'appointment', component: DoctorAppointmentComponent },
-  { path: 'appointments', component: DoctorAppointmentComponent },
-  { path: 'doctor-appointment', component: DoctorAppointmentComponent },
-  { path: 'doctor-appointments', component: DoctorAppointmentComponent },
-  { path: 'manage-doctors', component: DoctorAppointmentComponent },
-  { path: 'manage-appointment', component: DoctorAppointmentComponent },
-  { path: 'registration', component: PatientRegistrationComponent },
-  { path: 'patient-registration', component: PatientRegistrationComponent },
-  { path: 'op-billing', component: OpBillingComponent },
-  { path: 'op-bill', component: OpBillingComponent },
-  { path: 'forms', component: PatientRegistrationComponent },
-  { path: 'form-master', component: PatientRegistrationComponent },
-  { path: 'vitals-recording', component: VitalsRecordingComponent },
-  { path: 'doctor-patient-list', component: DoctorPatientListComponent },
-  { path: 'doctor-queue', component: DoctorPatientListComponent },
-  { path: 'doctor-consultation/:uhid', component: DoctorConsultationComponent },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin'] } },
+  { path: 'magic-search', component: MagicSearchComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin'] } },
+  { path: 'doctor-appointment', component: DoctorAppointmentComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin', 'patient_executive'] } },
+  { path: 'appointment', redirectTo: 'doctor-appointment', pathMatch: 'full' },
+  { path: 'appointments', redirectTo: 'doctor-appointment', pathMatch: 'full' },
+  { path: 'doctor-appointments', redirectTo: 'doctor-appointment', pathMatch: 'full' },
+  { path: 'manage-doctors', redirectTo: 'doctor-appointment', pathMatch: 'full' },
+  { path: 'manage-appointment', redirectTo: 'doctor-appointment', pathMatch: 'full' },
+  { path: 'registration', component: PatientRegistrationComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin'] } },
+  { path: 'patient-registration', redirectTo: 'registration', pathMatch: 'full' },
+  { path: 'forms', redirectTo: 'registration', pathMatch: 'full' },
+  { path: 'form-master', redirectTo: 'registration', pathMatch: 'full' },
+  { path: 'op-billing', component: OpBillingComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin'] } },
+  { path: 'op-bill', redirectTo: 'op-billing', pathMatch: 'full' },
+  { path: 'vitals-recording', component: VitalsRecordingComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin', 'nurse'] } },
+  { path: 'doctor-patient-list', component: DoctorPatientListComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin', 'doctor'] } },
+  { path: 'doctor-queue', redirectTo: 'doctor-patient-list', pathMatch: 'full' },
+  { path: 'doctor-consultation/:uhid', component: DoctorConsultationComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin', 'doctor'] } },
   { path: '**', redirectTo: 'dashboard' }
 ];
-
-
