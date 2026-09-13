@@ -28,6 +28,8 @@ export interface PrescriptionItem {
 export type OpdQueueStatus = 'Waiting' | 'Vitals Recorded' | 'In Consultation' | 'Completed';
 
 export interface OpdQueuePatient {
+  /** json-server record id - always set equal to uhid so records can be addressed by uhid. */
+  id?: string;
   uhid: string;
   tokenNo: string;
   name: string;

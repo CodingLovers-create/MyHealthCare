@@ -7,6 +7,8 @@ import { ToastService } from '../../core/services/toast.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { OpdQueueService } from '../../core/services/opd-queue.service';
+import { OpdQueuePatient } from '../../core/models/opd-queue.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { SubheaderComponent } from '../../shared/components/subheader/subheader.component';
 import { UhidFormatPipe } from '../../shared/pipes/uhid-format.pipe';
@@ -68,6 +70,7 @@ export class DoctorAppointmentComponent implements OnInit {
     }
   }
   private apiService = inject(ApiService);
+  private queueService = inject(OpdQueueService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private toastService = inject(ToastService);
@@ -994,6 +997,23 @@ export class DoctorAppointmentComponent implements OnInit {
         bookedOn: new Date().toISOString()
       };
       this.apiService.post('appointments', newAppointmentVisit).subscribe();
+      this.queueService.addPatientToQueue({
+        uhid: generatedUhid,
+        tokenNo: 'T-' + Math.floor(100 + Math.random() * 900),
+        name: fullName,
+        ageGender: `${this.quickAge() || 'N/A'} Y / ${this.quickGender() || 'N/A'}`,
+        mobile: this.quickMobile(),
+        appointmentTime: newAppointmentVisit.time,
+        doctorName: 'General OPD Clinic',
+        department: 'General Medicine',
+        status: 'Waiting',
+        vitals: null,
+        complaints: '',
+        clinicalFindings: '',
+        diagnosis: '',
+        prescription: [],
+        history: []
+      });
       this.toastService.success(`Quick Registered & Desk Arrival Marked! Active Visit ID: ${generatedVisitId}`);
       this.router.navigate(['/op-billing'], {
         queryParams: {
@@ -1170,6 +1190,23 @@ export class DoctorAppointmentComponent implements OnInit {
     this.selectedSlot.set(null);
 
     if (markArrival) {
+      this.queueService.addPatientToQueue({
+        uhid: finalPatientUhid,
+        tokenNo: 'T-' + Math.floor(100 + Math.random() * 900),
+        name: finalPatientName,
+        ageGender: selInfo?.ageGender || 'N/A',
+        mobile: finalPatientMobile,
+        appointmentTime: slot.time,
+        doctorName: slot.practitioner,
+        department: this.practitioners.find(p => p.name === slot.practitioner)?.speciality || 'General Medicine',
+        status: 'Waiting',
+        vitals: null,
+        complaints: '',
+        clinicalFindings: '',
+        diagnosis: '',
+        prescription: [],
+        history: []
+      });
       this.toastService.success(`Arrival Marked for ${newAppointment.patientName}! Active Visit ID: ${visitId}`);
       this.router.navigate(['/op-billing'], {
         queryParams: {

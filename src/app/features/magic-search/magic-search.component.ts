@@ -7,6 +7,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { OpdQueueService } from '../../core/services/opd-queue.service';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { UhidFormatPipe } from '../../shared/pipes/uhid-format.pipe';
 
@@ -31,6 +32,7 @@ export interface PatientSearchResult {
 export class MagicSearchComponent implements OnInit {
   @ViewChild('searchInput') searchInputRef?: ElementRef<HTMLInputElement>;
   private apiService = inject(ApiService);
+  private queueService = inject(OpdQueueService);
   private router = inject(Router);
   private toastService = inject(ToastService);
   public sidebarService = inject(SidebarService);
@@ -330,6 +332,24 @@ export class MagicSearchComponent implements OnInit {
       next: (res) => {
         console.log('[JSON-Server] Desk Arrival visit generated from MagicSearch:', res);
       }
+    });
+
+    this.queueService.addPatientToQueue({
+      uhid: patient.uhid,
+      tokenNo: 'T-' + Math.floor(100 + Math.random() * 900),
+      name: patient.name,
+      ageGender: patient.ageGender || 'N/A',
+      mobile: patient.mobile,
+      appointmentTime: newAppointmentVisit.time,
+      doctorName: 'General OPD Clinic',
+      department: 'General Medicine',
+      status: 'Waiting',
+      vitals: null,
+      complaints: '',
+      clinicalFindings: '',
+      diagnosis: '',
+      prescription: [],
+      history: []
     });
 
     this.toastService.success(`Patient "${patient.name}" marked as Arrived at Front Desk! Active Visit ID: ${generatedVisitId}`);
