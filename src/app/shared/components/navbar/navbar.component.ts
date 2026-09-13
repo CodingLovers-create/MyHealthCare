@@ -21,7 +21,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   // Observable stream from AuthService BehaviorSubject
-  public currentUser$: Observable<UserProfile> = this.authService.currentUser$;
+  public currentUser$: Observable<UserProfile | null> = this.authService.currentUser$;
   public userProfile: UserProfile | null = null;
   private userSub?: Subscription;
 
@@ -62,7 +62,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.toastService.info('Logged out successfully.');
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   openHelp(): void {

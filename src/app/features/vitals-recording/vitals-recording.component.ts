@@ -7,7 +7,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { OpdQueueService } from '../../core/services/opd-queue.service';
-import { Vitals } from '../../core/models/opd-queue.model';
+import { Vitals, OpdQueuePatient } from '../../core/models/opd-queue.model';
 import {
   classifyVital,
   statusBorderClass,
@@ -32,7 +32,7 @@ export class VitalsRecordingComponent {
 
   weightInput = viewChild<ElementRef<HTMLInputElement>>('weightInput');
 
-  // Expose the pure util functions as instance members so the template can call them.
+  // Expose pure util functions to template
   borderClassFor = statusBorderClass;
   dotClassFor = statusDotClass;
   textClassFor = statusTextClass;
@@ -119,7 +119,8 @@ export class VitalsRecordingComponent {
   ) {
     if (this.authService.isPatientExecutive() || this.authService.isDoctor()) {
       this.toastService.warning('This screen is restricted to nursing staff.');
-      this.router.navigate([this.authService.loginAs(this.authService.currentRole())]);
+      const role = this.authService.currentRole() || 'admin';
+      this.router.navigate([this.authService.loginAs(role)]);
     }
 
     // Auto-focus the Weight field as soon as a patient is selected and the form renders.
@@ -145,7 +146,8 @@ export class VitalsRecordingComponent {
     } else if (tabId === 'Registration') {
       this.router.navigate(['/registration']);
     } else if (tabId === 'DoctorAppointment') {
-      this.router.navigate(['/doctor-appointment']);
+      const role = this.authService.currentRole() || 'admin';
+      this.router.navigate([this.authService.loginAs(role)]);
     } else if (tabId === 'VitalsRecording') {
       this.router.navigate(['/vitals-recording']);
     } else if (tabId === 'DoctorPatientList') {
@@ -213,7 +215,7 @@ export class VitalsRecordingComponent {
       respiratoryRate: this.respiratoryRate(),
       bloodGlucose: this.bloodGlucose(),
       painScore: this.painScore(),
-      recordedBy: this.authService.currentUser().name,
+      recordedBy: this.authService.currentUser()?.name || 'Staff Nurse',
       recordedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -241,7 +243,7 @@ export class VitalsRecordingComponent {
 
   logout(): void {
     this.toastService.info('Logged out successfully.');
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   openHelp(): void {

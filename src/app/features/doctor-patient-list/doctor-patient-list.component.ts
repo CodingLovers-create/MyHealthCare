@@ -41,7 +41,8 @@ export class DoctorPatientListComponent {
   ) {
     if (this.authService.isPatientExecutive() || this.authService.isNurse()) {
       this.toastService.warning('This screen is restricted to doctors.');
-      this.router.navigate([this.authService.loginAs(this.authService.currentRole())]);
+      const role = this.authService.currentRole() || 'admin';
+      this.router.navigate([this.authService.loginAs(role)]);
     }
   }
 

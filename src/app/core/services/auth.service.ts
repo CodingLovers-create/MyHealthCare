@@ -75,15 +75,16 @@ export class AuthService {
     permissions: ['consultation', 'queue']
   };
 
-  // BehaviorSubject holding the login user state
-  private currentUserSubject = new BehaviorSubject<UserProfile>(this.getStoredUser());
+  // BehaviorSubject holding the login user state (null if unauthenticated)
+  private currentUserSubject = new BehaviorSubject<UserProfile | null>(this.getStoredUser());
   // Observable exposed to all components (Navbar, Worklist, Billing, Search, etc.)
-  public currentUser$: Observable<UserProfile> = this.currentUserSubject.asObservable();
+  public currentUser$: Observable<UserProfile | null> = this.currentUserSubject.asObservable();
 
-  currentRole = signal<UserRoleType>(this.currentUserSubject.value.role);
-  activeUser = signal<UserProfile>(this.currentUserSubject.value);
+  currentRole = signal<UserRoleType | null>(this.currentUserSubject.value ? this.currentUserSubject.value.role : null);
+  activeUser = signal<UserProfile | null>(this.currentUserSubject.value);
 
-  currentUser = computed<UserProfile>(() => this.activeUser());
+  currentUser = computed<UserProfile | null>(() => this.activeUser());
+  isLoggedIn = computed<boolean>(() => !!this.activeUser() && !!this.activeUser()?.username);
 
   isAdmin = computed(() => this.currentRole() === 'admin');
   isPatientExecutive = computed(() => this.currentRole() === 'patient_executive');
@@ -93,6 +94,7 @@ export class AuthService {
   // Dynamic API-driven allowed modules with fallback based on user role
   allowedModules = computed<ModuleAccess[]>(() => {
     const user = this.activeUser();
+    if (!user) return [];
     if (user.allowedModules && user.allowedModules.length > 0) {
       return user.allowedModules;
     }
@@ -127,7 +129,7 @@ export class AuthService {
    */
   hasPermission(permission: string): boolean {
     const user = this.activeUser();
-    if (!user || !user.permissions) return true;
+    if (!user || !user.permissions) return false;
     return user.permissions.includes('all') || user.permissions.includes(permission);
   }
 
@@ -207,7 +209,7 @@ export class AuthService {
     localStorage.setItem('mhc_user', JSON.stringify(user));
   }
 
-  getCurrentUserValue(): UserProfile {
+  getCurrentUserValue(): UserProfile | null {
     return this.currentUserSubject.getValue();
   }
 
@@ -219,24 +221,21 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem('mhc_user');
+    localStorage.removeItem('mhc_role');
+    this.currentRole.set(null);
+    this.activeUser.set(null);
+    this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
-  private getStoredUser(): UserProfile {
+  private getStoredUser(): UserProfile | null {
     const stored = localStorage.getItem('mhc_user');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        if (parsed && parsed.name) return parsed;
+        if (parsed && parsed.name && parsed.username) return parsed;
       } catch (e) {}
     }
-    const role = this.getStoredRole();
-    return AuthService.defaultProfileForRole(role);
-  }
-
-  private getStoredRole(): UserRoleType {
-    const role = localStorage.getItem('mhc_role');
-    if (role === 'patient_executive' || role === 'nurse' || role === 'doctor') return role;
-    return 'admin';
+    return null; // Null when unauthenticated!
   }
 }
