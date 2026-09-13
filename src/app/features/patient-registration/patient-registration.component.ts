@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -14,7 +14,7 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
   imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
   templateUrl: './patient-registration.component.html'
 })
-export class PatientRegistrationComponent {
+export class PatientRegistrationComponent implements OnInit {
   private apiService = inject(ApiService);
   // ...
   constructor(
@@ -43,6 +43,94 @@ export class PatientRegistrationComponent {
   whatsappCountryCode = signal<string>('+91');
   whatsappNo = signal<string>('');
   uhid = signal<string>('');
+
+  // Existing Patient Matching Popup Signals
+  patientsList = signal<any[]>([
+    { uhid: 'RFH2026001', name: 'Jagdish Ramji Thakkar', title: 'Mr.', firstName: 'Jagdish', lastName: 'Thakkar', mobile: '9820198201', age: '58', gender: 'Male', city: 'Mumbai', state: 'Maharashtra' },
+    { uhid: 'RFH2026002', name: 'Mohd. Zubair Qureshi', title: 'Mr.', firstName: 'Mohd.', lastName: 'Qureshi', mobile: '9819283746', age: '42', gender: 'Male', city: 'Mumbai', state: 'Maharashtra' },
+    { uhid: 'RFH23241854', name: 'Mr. PRATHAMESH SHASHANK KHOCHADE', title: 'Mr.', firstName: 'Prathamesh', lastName: 'Khochade', mobile: '9892011223', age: '30', gender: 'Male', city: 'Mumbai', state: 'Maharashtra' },
+    { uhid: 'RFH2026003', name: 'Anuradha Jadhav', title: 'Mrs.', firstName: 'Anuradha', lastName: 'Jadhav', mobile: '9765432109', age: '35', gender: 'Female', city: 'Mumbai', state: 'Maharashtra' },
+    { uhid: 'RFH2026005', name: 'Pooja Dhanecha', title: 'Ms.', firstName: 'Pooja', lastName: 'Dhanecha', mobile: '9123456789', age: '31', gender: 'Female', city: 'Mumbai', state: 'Maharashtra' }
+  ]);
+
+  matchingPatientsList = signal<any[]>([]);
+  showMatchingPatientsDropdown = signal<boolean>(false);
+
+  isExistingPatient = computed(() => {
+    const currentUhid = this.uhid().trim();
+    if (!currentUhid) return false;
+    return this.patientsList().some(p => p.uhid && p.uhid.toLowerCase() === currentUhid.toLowerCase());
+  });
+
+  ngOnInit(): void {
+    this.apiService.get<any[]>('patients').subscribe({
+      next: (apiData) => {
+        if (Array.isArray(apiData) && apiData.length > 0) {
+          const loaded = apiData.map(p => ({
+            uhid: p.uhid || 'RFH2026' + Math.floor(1000 + Math.random() * 9000),
+            name: p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
+            title: p.title || 'Mr.',
+            firstName: p.firstName || p.name?.split(' ')[0] || '',
+            middleName: p.middleName || '',
+            lastName: p.lastName || p.name?.split(' ').slice(-1)[0] || '',
+            mobile: p.mobile ? p.mobile.replace(/\+91\s?/, '') : '9820198201',
+            age: p.age || '32',
+            gender: p.gender || 'Male',
+            dob: p.dob || '',
+            email: p.email || '',
+            city: p.address?.city || p.city || 'Mumbai',
+            state: p.address?.state || p.state || 'Maharashtra',
+            houseNo: p.address?.houseNo || p.houseNo || '',
+            streetLocality: p.address?.street || p.streetLocality || '',
+            pinCode: p.address?.pinCode || p.pinCode || ''
+          }));
+          const existingUhids = new Set(loaded.map(p => p.uhid));
+          const combined = [
+            ...loaded,
+            ...this.patientsList().filter(dp => !existingUhids.has(dp.uhid))
+          ];
+          this.patientsList.set(combined);
+        }
+      }
+    });
+  }
+
+  onMobileInputChange(val: string): void {
+    this.mobileNo.set(val);
+    const cleanVal = val.trim().replace(/\+91\s?/, '');
+    if (cleanVal.length >= 3) {
+      const matches = this.patientsList().filter(p => 
+        (p.mobile && p.mobile.includes(cleanVal)) || 
+        (p.name && p.name.toLowerCase().includes(cleanVal.toLowerCase()))
+      );
+      this.matchingPatientsList.set(matches);
+      this.showMatchingPatientsDropdown.set(matches.length > 0);
+    } else {
+      this.matchingPatientsList.set([]);
+      this.showMatchingPatientsDropdown.set(false);
+    }
+  }
+
+  selectExistingPatient(p: any): void {
+    if (p.title) this.title.set(p.title);
+    if (p.firstName) this.firstName.set(p.firstName);
+    if (p.middleName) this.middleName.set(p.middleName);
+    if (p.lastName) this.lastName.set(p.lastName);
+    if (p.mobile) this.mobileNo.set(p.mobile);
+    if (p.uhid) this.uhid.set(p.uhid);
+    if (p.dob) this.dob.set(p.dob);
+    if (p.age) this.age.set(p.age);
+    if (p.gender) this.gender.set(p.gender);
+    if (p.email) this.email.set(p.email);
+    if (p.city) this.city.set(p.city);
+    if (p.state) this.state.set(p.state);
+    if (p.houseNo) this.houseNo.set(p.houseNo);
+    if (p.streetLocality) this.streetLocality.set(p.streetLocality);
+    if (p.pinCode) this.pinCode.set(p.pinCode);
+
+    this.showMatchingPatientsDropdown.set(false);
+    this.toastService.success(`Loaded profile for "${p.name || p.firstName}" (UHID: ${p.uhid})`);
+  }
   
   aadharId = signal<string>('');
   abhaId = signal<string>('');
@@ -335,11 +423,15 @@ export class PatientRegistrationComponent {
       return;
     }
 
-    const generatedUhid = 'RFH' + Math.floor(10000000 + Math.random() * 90000000);
+    const currentUhid = this.uhid().trim();
+    const existing = currentUhid ? this.patientsList().find(p => p.uhid && p.uhid.toLowerCase() === currentUhid.toLowerCase()) : null;
+    const isUpdate = !!existing;
+
+    const targetUhid = isUpdate ? currentUhid : ('RFH' + Math.floor(10000000 + Math.random() * 90000000));
     const fullName = `${this.title()} ${this.firstName()} ${this.middleName()} ${this.lastName()}`.replace(/\s+/g, ' ').trim();
 
-    const newPatient = {
-      uhid: generatedUhid,
+    const patientData = {
+      uhid: targetUhid,
       registrationType: this.registrationType(),
       title: this.title(),
       name: fullName,
@@ -362,17 +454,27 @@ export class PatientRegistrationComponent {
         pinCode: this.pinCode()
       },
       bloodGroup: this.bloodGroup(),
-      registeredOn: new Date().toISOString()
+      updatedOn: new Date().toISOString()
     };
 
-    // Save to JSON Server /patients endpoint
-    this.apiService.post('patients', newPatient).subscribe({
-      next: (res) => {
-        console.log('[JSON-Server] Patient registered & stored:', res);
-      }
-    });
+    if (isUpdate) {
+      // Update existing patient in patientsList signal
+      const updatedList = this.patientsList().map(p => p.uhid?.toLowerCase() === targetUhid.toLowerCase() ? { ...p, ...patientData, id: p.id } : p);
+      this.patientsList.set(updatedList);
 
-    this.registeredUhid.set(generatedUhid);
+      // Save update to JSON Server
+      if (existing.id) {
+        this.apiService.put(`patients/${existing.id}`, { ...existing, ...patientData }).subscribe();
+      } else {
+        this.apiService.post('patients', patientData).subscribe();
+      }
+    } else {
+      // Create new patient
+      this.patientsList.update(list => [patientData, ...list]);
+      this.apiService.post('patients', patientData).subscribe();
+    }
+
+    this.registeredUhid.set(targetUhid);
     this.isArrivalMarked.set(markArrival);
 
     if (markArrival) {
@@ -383,7 +485,7 @@ export class PatientRegistrationComponent {
         dateStr: 'SAT 12 SEP',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         patientName: fullName,
-        uhid: generatedUhid,
+        uhid: targetUhid,
         mobile: this.mobileNo(),
         practitioner: 'General OPD Clinic',
         fee: 1500,
@@ -394,10 +496,10 @@ export class PatientRegistrationComponent {
       };
 
       this.apiService.post('appointments', newAppointmentVisit).subscribe();
-      this.toastService.success(`Patient registered & Desk Arrival recorded! Visit ID: ${generatedVisitId}`);
+      this.toastService.success(`Patient details ${isUpdate ? 'updated' : 'registered'} & Desk Arrival recorded! Visit ID: ${generatedVisitId}`);
     } else {
       this.activeVisitId.set('');
-      this.toastService.success(`Patient registered successfully! Assigned UHID: ${generatedUhid}`);
+      this.toastService.success(`Patient profile for "${fullName}" (UHID: ${targetUhid}) ${isUpdate ? 'UPDATED' : 'REGISTERED'} successfully!`);
     }
 
     this.showSuccessModal.set(true);

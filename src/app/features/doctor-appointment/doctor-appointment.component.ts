@@ -12,7 +12,6 @@ import { UhidFormatPipe } from '../../shared/pipes/uhid-format.pipe';
 import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
 import { PriorityHighlightDirective } from '../../shared/directives/priority-highlight.directive';
 import { CardContainerComponent, CardHeaderDirective, CardBodyDirective, CardFooterDirective } from '../../shared/components/card-container/card-container.component';
-import { InfoCardComponent } from '../../shared/components/info-card/info-card.component';
 
 export interface TimeSlot {
   time: string;
@@ -53,8 +52,7 @@ export interface HospitalServiceItem {
     PriorityHighlightDirective,
     CardContainerComponent,
     CardHeaderDirective,
-    CardBodyDirective,
-    InfoCardComponent
+    CardBodyDirective
   ],
   templateUrl: './doctor-appointment.component.html'
 })
@@ -102,6 +100,43 @@ export class DoctorAppointmentComponent implements OnInit {
   selectedDate = signal<number>(12);
 
   monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  shortDayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  shortMonthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+  get daysInCurrentMonth(): number[] {
+    const totalDays = new Date(this.currentYear(), this.currentMonth() + 1, 0).getDate();
+    return Array.from({ length: totalDays }, (_, i) => i + 1);
+  }
+
+  get startPaddingDays(): number[] {
+    const firstDayOfWeek = new Date(this.currentYear(), this.currentMonth(), 1).getDay();
+    const prevMonthDays = new Date(this.currentYear(), this.currentMonth(), 0).getDate();
+    const padding: number[] = [];
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      padding.push(prevMonthDays - i);
+    }
+    return padding;
+  }
+
+  prevMonth(): void {
+    if (this.currentMonth() === 0) {
+      this.currentMonth.set(11);
+      this.currentYear.update(y => y - 1);
+    } else {
+      this.currentMonth.update(m => m - 1);
+    }
+    this.selectedDate.set(1);
+  }
+
+  nextMonth(): void {
+    if (this.currentMonth() === 11) {
+      this.currentMonth.set(0);
+      this.currentYear.update(m => m + 1);
+    } else {
+      this.currentMonth.update(m => m + 1);
+    }
+    this.selectedDate.set(1);
+  }
 
   // Slot Booking Modal State
   selectedSlot = signal<{ dateStr: string; time: string; practitioner: string; fee: number; servicesSummary?: string } | null>(null);
@@ -466,17 +501,56 @@ export class DoctorAppointmentComponent implements OnInit {
   ];
 
   scheduleDays = computed(() => {
-    if (this.appointmentType() === 'service') {
-      return this.serviceScheduleDays;
-    }
-
+    const selDay = this.selectedDate();
+    const month = this.currentMonth();
+    const year = this.currentYear();
+    const isService = this.appointmentType() === 'service';
     const docId = this.selectedPractitioner();
-    if (docId && docId !== 'all' && this.doctorSchedulesMap[docId]) {
-      return this.doctorSchedulesMap[docId];
+
+    // Base date selected on calendar
+    const baseDate = new Date(year, month, selDay);
+    const resultDays: { dateLabel: string; slots: TimeSlot[] }[] = [];
+
+    // Get existing schedule map for active practitioner or service
+    const existingDays = isService
+      ? this.serviceScheduleDays
+      : (docId && docId !== 'all' && this.doctorSchedulesMap[docId] ? this.doctorSchedulesMap[docId] : (this.doctorSchedulesMap['1'] || this.doctorScheduleDays));
+
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(baseDate);
+      d.setDate(baseDate.getDate() + i);
+
+      const dayName = this.shortDayNames[d.getDay()];
+      const monthName = this.shortMonthNames[d.getMonth()];
+      const dayNum = d.getDate();
+      const dateLabel = `${dayName} ${dayNum} ${monthName}`;
+
+      // Check if existingDays already has schedule for this dateLabel
+      const existing = existingDays.find(ed => ed.dateLabel === dateLabel);
+      if (existing) {
+        resultDays.push(existing);
+      } else {
+        // Create new dynamic schedule day for future date
+        const newSlots: TimeSlot[] = [
+          { time: '09:00 AM', type: 'walkin', isAvailable: true },
+          { time: '09:30 AM', type: 'normal', isAvailable: true },
+          { time: '10:00 AM', type: 'priority', isAvailable: true },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
+          { time: '11:00 AM', type: 'premium', isAvailable: true },
+          { time: '11:30 AM', type: 'normal', isAvailable: true },
+          { time: '02:00 PM', type: 'normal', isAvailable: true },
+          { time: '02:30 PM', type: 'walkin', isAvailable: true },
+          { time: '03:00 PM', type: 'normal', isAvailable: true },
+          { time: '03:30 PM', type: 'free', isAvailable: true }
+        ];
+
+        const newDay = { dateLabel, slots: newSlots };
+        existingDays.push(newDay);
+        resultDays.push(newDay);
+      }
     }
 
-    // Default doctor schedule (Dr. Susheel Bindroo or fallback)
-    return this.doctorSchedulesMap['1'] || this.doctorScheduleDays;
+    return resultDays;
   });
 
   activePractitionerHeader = computed(() => {
@@ -620,6 +694,62 @@ export class DoctorAppointmentComponent implements OnInit {
       if (Array.isArray(data) && data.length > 0) {
         this.servicesList = data;
       }
+    });
+
+    // Fetch existing booked appointments from JSON Server API
+    this.apiService.get<any[]>('appointments').subscribe({
+      next: (appointments) => {
+        if (Array.isArray(appointments) && appointments.length > 0) {
+          this.syncBookedAppointments(appointments);
+        }
+      }
+    });
+  }
+
+  syncBookedAppointments(appointments: any[]): void {
+    appointments.forEach(appt => {
+      if (!appt.dateStr || !appt.time) return;
+
+      const patientName = appt.patientName || 'Booked Patient';
+      const patientUhid = appt.uhid || appt.patientUhid || 'RFH2026001';
+      const patientMobile = appt.mobile || appt.patientMobile || '9820198201';
+      const reason = appt.description || appt.reason || 'OPD Consultation';
+
+      // Sync across all doctor schedules in doctorSchedulesMap
+      Object.keys(this.doctorSchedulesMap).forEach(docId => {
+        const docDays = this.doctorSchedulesMap[docId];
+        docDays.forEach(day => {
+          if (day.dateLabel === appt.dateStr) {
+            const slot = day.slots.find(s => s.time === appt.time);
+            if (slot) {
+              const doc = this.practitioners.find(p => p.id === docId);
+              if (doc && appt.practitioner && appt.practitioner.toLowerCase().includes(doc.name.toLowerCase())) {
+                slot.isAvailable = false;
+                slot.isBooked = true;
+                slot.patientName = patientName;
+                slot.patientUhid = patientUhid;
+                slot.patientMobile = patientMobile;
+                slot.reason = reason;
+              }
+            }
+          }
+        });
+      });
+
+      // Sync across service schedule days
+      this.serviceScheduleDays.forEach(day => {
+        if (day.dateLabel === appt.dateStr && appt.type === 'Service') {
+          const slot = day.slots.find(s => s.time === appt.time);
+          if (slot) {
+            slot.isAvailable = false;
+            slot.isBooked = true;
+            slot.patientName = patientName;
+            slot.patientUhid = patientUhid;
+            slot.patientMobile = patientMobile;
+            slot.reason = reason;
+          }
+        }
+      });
     });
   }
 
@@ -891,14 +1021,22 @@ export class DoctorAppointmentComponent implements OnInit {
     const slot = this.selectedSlot();
     if (!slot) return;
 
-    // Find slot in activeScheduleDays and mark as booked & unavailable
-    const activeDays = this.appointmentType() === 'doctor' ? this.doctorScheduleDays : this.serviceScheduleDays;
+    const patientNameVal = this.selectedPatient() || this.patientName() || 'Walk-in Patient';
+    const patientUhidVal = this.activeSelectedPatientInfo()?.uhid || ('RFH2026' + Math.floor(1000 + Math.random() * 9000));
+    const patientMobileVal = this.mobileNo() || this.patientMobile() || '9820198201';
+
+    // Find slot in active scheduleDays and mark as booked & unavailable with full patient details
+    const activeDays = this.scheduleDays();
     for (const day of activeDays) {
       if (day.dateLabel === slot.dateStr) {
         const target = day.slots.find(s => s.time === slot.time);
         if (target) {
           target.isAvailable = false;
           target.isBooked = true;
+          target.patientName = patientNameVal;
+          target.patientUhid = patientUhidVal;
+          target.patientMobile = patientMobileVal;
+          target.reason = slot.servicesSummary || 'OPD Consultation';
         }
       }
     }
@@ -929,6 +1067,8 @@ export class DoctorAppointmentComponent implements OnInit {
     });
 
     this.showBookingModal.set(false);
+    this.clearPatientSelection();
+    this.selectedSlot.set(null);
 
     if (markArrival) {
       this.toastService.success(`Arrival Marked for ${newAppointment.patientName}! Active Visit ID: ${visitId}`);
@@ -988,15 +1128,23 @@ export class DoctorAppointmentComponent implements OnInit {
       return;
     }
 
-    const activeDays = this.appointmentType() === 'doctor' ? this.doctorScheduleDays : this.serviceScheduleDays;
+    const activeDays = this.scheduleDays();
     const targetDay = activeDays.find(d => d.dateLabel === dateLabel);
+
+    const patientNameVal = this.priorityPatientName().trim() || this.selectedPatient() || 'VIP Priority Patient';
+    const mobVal = this.priorityPatientMobile().trim() || this.mobileNo() || '9820198201';
+    const uhidVal = this.activeSelectedPatientInfo()?.uhid || 'RFH2026002';
 
     if (targetDay) {
       const newSlot: TimeSlot = {
         time: timeVal,
         type: 'priority',
         isAvailable: !autoBook,
-        isBooked: autoBook
+        isBooked: autoBook,
+        patientName: autoBook ? patientNameVal : undefined,
+        patientUhid: autoBook ? uhidVal : undefined,
+        patientMobile: autoBook ? mobVal : undefined,
+        reason: this.priorityReason() || 'Priority Consult'
       };
 
       // Add priority slot to target day
@@ -1032,6 +1180,9 @@ export class DoctorAppointmentComponent implements OnInit {
     }
 
     this.showPrioritySlotModal.set(false);
+    if (autoBook) {
+      this.clearPatientSelection();
+    }
   }
 
   logout(): void {

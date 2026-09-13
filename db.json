@@ -567,6 +567,33 @@
       "bloodGroup": "O+",
       "registeredOn": "2026-09-12T19:04:47.999Z",
       "id": "IgyoeJMWCmo"
+    },
+    {
+      "uhid": "RFH29970327",
+      "registrationType": "General",
+      "title": "Mr.",
+      "name": "Mr. PRATHAMESH SHASHANK KHOCHADE",
+      "firstName": "PRATHAMESH",
+      "middleName": "SHASHANK",
+      "lastName": "KHOCHADE",
+      "mobile": "9326538837",
+      "whatsapp": "",
+      "dob": "",
+      "age": "32",
+      "gender": "Male",
+      "maritalStatus": "Single",
+      "email": "khochadeprathamesh670@gmail.com",
+      "nationality": "Indian",
+      "address": {
+        "houseNo": "",
+        "street": "",
+        "city": "Mumbai",
+        "state": "Maharashtra",
+        "pinCode": ""
+      },
+      "bloodGroup": "O+",
+      "registeredOn": "2026-09-13T14:42:14.673Z",
+      "id": "i9i0KXpkmxg"
     }
   ],
   "appointments": [
@@ -642,6 +669,71 @@
       "description": "Priority Slot (Emergency Consultation) - Dr. Susheel Bindroo",
       "bookedOn": "2026-09-13T04:43:33.848Z",
       "id": "_3-yjMJNcvo"
+    },
+    {
+      "dateStr": "SUN 13 SEP",
+      "time": "10:00 AM",
+      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
+      "mobile": "9820198201",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T14:33:13.658Z",
+      "id": "8BM9BkV3tz0"
+    },
+    {
+      "dateStr": "SUN 13 SEP",
+      "time": "10:00 AM",
+      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
+      "mobile": "9820198201",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T14:33:19.274Z",
+      "id": "J1R-AbT4N-I"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "10:00 AM",
+      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
+      "mobile": "9820198201",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T14:33:49.939Z",
+      "id": "TuDKAaJHrXM"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "09:15 AM",
+      "patientName": "Mohd. Zubair Qureshi (RFH2026002)",
+      "mobile": "9819298192",
+      "practitioner": "Dr. Pankaj Gupta",
+      "fee": 1900,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Pankaj Gupta",
+      "bookedOn": "2026-09-13T14:37:46.814Z",
+      "id": "NsPC9fjDpKc"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "09:00 AM",
+      "patientName": "Mohd. Zubair Qureshi (RFH2026002)",
+      "mobile": "9819298192",
+      "practitioner": "Dr. Pankaj Gupta",
+      "fee": 1900,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Pankaj Gupta",
+      "bookedOn": "2026-09-13T14:37:52.728Z",
+      "id": "Moy_ZzKC614"
     }
   ],
   "tasks": [
@@ -692,11 +784,31 @@
         "cancel_appointment"
       ],
       "allowedModules": [
-        { "id": "MyDesk", "label": "MyDesk", "route": "/dashboard" },
-        { "id": "MagicSearch", "label": "MagicSearch", "route": "/magic-search" },
-        { "id": "Registration", "label": "Patient Registration", "route": "/registration" },
-        { "id": "DoctorAppointment", "label": "Doctor Appointment", "route": "/doctor-appointment" },
-        { "id": "OpBilling", "label": "OP Billing & Cashier", "route": "/op-billing" }
+        {
+          "id": "MyDesk",
+          "label": "MyDesk",
+          "route": "/dashboard"
+        },
+        {
+          "id": "MagicSearch",
+          "label": "MagicSearch",
+          "route": "/magic-search"
+        },
+        {
+          "id": "Registration",
+          "label": "Patient Registration",
+          "route": "/registration"
+        },
+        {
+          "id": "DoctorAppointment",
+          "label": "Doctor Appointment",
+          "route": "/doctor-appointment"
+        },
+        {
+          "id": "OpBilling",
+          "label": "OP Billing & Cashier",
+          "route": "/op-billing"
+        }
       ]
     },
     {
@@ -718,11 +830,31 @@
         "cancel_appointment"
       ],
       "allowedModules": [
-        { "id": "MyDesk", "label": "MyDesk", "route": "/dashboard" },
-        { "id": "MagicSearch", "label": "MagicSearch", "route": "/magic-search" },
-        { "id": "Registration", "label": "Patient Registration", "route": "/registration" },
-        { "id": "DoctorAppointment", "label": "Doctor Appointment", "route": "/doctor-appointment" },
-        { "id": "OpBilling", "label": "OP Billing & Cashier", "route": "/op-billing" }
+        {
+          "id": "MyDesk",
+          "label": "MyDesk",
+          "route": "/dashboard"
+        },
+        {
+          "id": "MagicSearch",
+          "label": "MagicSearch",
+          "route": "/magic-search"
+        },
+        {
+          "id": "Registration",
+          "label": "Patient Registration",
+          "route": "/registration"
+        },
+        {
+          "id": "DoctorAppointment",
+          "label": "Doctor Appointment",
+          "route": "/doctor-appointment"
+        },
+        {
+          "id": "OpBilling",
+          "label": "OP Billing & Cashier",
+          "route": "/op-billing"
+        }
       ]
     },
     {
@@ -739,7 +871,11 @@
         "book_appointment"
       ],
       "allowedModules": [
-        { "id": "DoctorAppointment", "label": "Doctor Appointment", "route": "/doctor-appointment" }
+        {
+          "id": "DoctorAppointment",
+          "label": "Doctor Appointment",
+          "route": "/doctor-appointment"
+        }
       ]
     },
     {
@@ -755,7 +891,11 @@
         "vitals"
       ],
       "allowedModules": [
-        { "id": "VitalsRecording", "label": "Vitals Recording", "route": "/vitals-recording" }
+        {
+          "id": "VitalsRecording",
+          "label": "Vitals Recording",
+          "route": "/vitals-recording"
+        }
       ]
     },
     {
@@ -772,7 +912,11 @@
         "queue"
       ],
       "allowedModules": [
-        { "id": "DoctorPatientList", "label": "OPD Queue", "route": "/doctor-patient-list" }
+        {
+          "id": "DoctorPatientList",
+          "label": "OPD Queue",
+          "route": "/doctor-patient-list"
+        }
       ]
     }
   ],

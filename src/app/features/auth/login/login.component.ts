@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService, UserRoleType } from '../../../core/services/auth.service';
 
@@ -25,6 +25,7 @@ export interface CertificationBadge {
 })
 export class LoginComponent implements OnInit, OnDestroy {
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private toastService = inject(ToastService);
   public authService = inject(AuthService);
 
@@ -87,20 +88,38 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onLogin(form?: NgForm): void {
-    const idToUse = this.credentials.identifier.trim() || 'prathamesh';
-    this.isLoading = true;
+    const identifier = this.credentials.identifier.trim();
+    const password = this.credentials.password.trim();
 
-    this.authService.authenticateUser(idToUse).subscribe({
+    if (!identifier) {
+      this.errorMessage = 'Please enter your username.';
+      this.toastService.warning(this.errorMessage);
+      return;
+    }
+
+    if (!password) {
+      this.errorMessage = 'Please enter your password.';
+      this.toastService.warning(this.errorMessage);
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.authenticateUser(identifier, password).subscribe({
       next: ({ user, targetRoute }) => {
         this.isLoading = false;
         this.toastService.success(`Welcome ${user.name}! Logged in as ${user.roleTitle}.`);
-        this.router.navigate([targetRoute]);
+        
+        // If returnUrl query param is present, navigate back to original destination page
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+        const destination = returnUrl || targetRoute;
+        this.router.navigateByUrl(destination);
       },
-      error: () => {
+      error: (err) => {
         this.isLoading = false;
-        const targetRoute = this.authService.loginAs('admin');
-        this.toastService.success('Logged in successfully!');
-        this.router.navigate([targetRoute]);
+        this.errorMessage = err?.message || 'Access Denied: Invalid username or password.';
+        this.toastService.error(this.errorMessage);
       }
     });
   }
@@ -114,4 +133,3 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.toastService.success('Password reset link sent to your registered contact.');
   }
 }
-

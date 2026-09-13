@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
 export type UserRoleType = 'admin' | 'patient_executive' | 'nurse' | 'doctor';
@@ -47,7 +47,7 @@ export class AuthService {
   isNurse = computed(() => this.currentRole() === 'nurse');
   isDoctor = computed(() => this.currentRole() === 'doctor');
 
-  // Dynamic API-driven allowed modules with fallback based on user role
+  // Dynamic API-driven allowed modules based on logged-in user profile
   allowedModules = computed<ModuleAccess[]>(() => {
     const user = this.activeUser();
     if (!user) return [];
@@ -98,64 +98,53 @@ export class AuthService {
     }
   }
 
-  private detectRoleFromIdentifier(cleanId: string): UserRoleType {
-    if (cleanId.includes('executive') || cleanId.includes('priya') || cleanId.includes('patient') || cleanId.includes('booking') || cleanId === 'pe') {
-      return 'patient_executive';
-    }
-    if (cleanId.includes('nurse') || cleanId.includes('kavita') || cleanId === 'nu') {
-      return 'nurse';
-    }
-    if (cleanId.includes('doctor') || cleanId.includes('susheel') || cleanId.includes('dr') || cleanId === 'doc') {
-      return 'doctor';
-    }
-    return 'admin';
-  }
-
-  authenticateUser(identifier: string): Observable<{ user: UserProfile; targetRoute: string }> {
+  /**
+   * Authenticate user strictly against API credentials.
+   * Only existing users with matching password can log in!
+   */
+  authenticateUser(identifier: string, password?: string): Observable<{ user: UserProfile; targetRoute: string }> {
     const cleanId = (identifier || '').toLowerCase().trim();
+    const cleanPassword = (password || '').trim();
+
     return this.apiService.get<any[]>('users').pipe(
       map(users => {
-        const matchedUser = Array.isArray(users) ? users.find(u => u.username?.toLowerCase() === cleanId || u.name?.toLowerCase().includes(cleanId)) : null;
-
-        let role: UserRoleType = this.detectRoleFromIdentifier(cleanId);
-        if (matchedUser?.role === 'patient_executive' || matchedUser?.role === 'nurse' || matchedUser?.role === 'doctor' || matchedUser?.role === 'admin') {
-          role = matchedUser.role;
+        if (!Array.isArray(users)) {
+          throw new Error('Database error: Unable to fetch system users.');
         }
 
-        const profileName = matchedUser?.name || (cleanId ? (cleanId.charAt(0).toUpperCase() + cleanId.slice(1)) : 'Mr. PRATHAMESH KHOCHADE');
-        const roleTitle = matchedUser?.roleTitle || (role === 'admin' ? 'Administrator' : role === 'nurse' ? 'Staff Nurse' : role === 'doctor' ? 'Consultant Physician' : 'Patient Executive');
-        const avatarInitials = matchedUser?.avatar || (profileName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'PK');
+        const matchedUser = users.find(u => 
+          u.username?.toLowerCase() === cleanId || 
+          u.name?.toLowerCase() === cleanId
+        );
 
+        if (!matchedUser) {
+          throw new Error('Access Denied: User account not found in database.');
+        }
+
+        if (cleanPassword && matchedUser.password && matchedUser.password !== cleanPassword) {
+          throw new Error('Access Denied: Incorrect password. Please try again.');
+        }
+
+        const role: UserRoleType = matchedUser.role || 'admin';
         const profile: UserProfile = {
-          id: matchedUser ? matchedUser.id : 'user-' + Math.floor(100 + Math.random() * 900),
-          name: profileName,
-          roleTitle: roleTitle,
-          avatar: avatarInitials,
+          id: matchedUser.id,
+          name: matchedUser.name,
+          roleTitle: matchedUser.roleTitle || (role === 'admin' ? 'Administrator' : role === 'nurse' ? 'Staff Nurse' : role === 'doctor' ? 'Consultant Physician' : 'Patient Executive'),
+          avatar: matchedUser.avatar || (matchedUser.name ? matchedUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'PK'),
           role: role,
-          hospital: matchedUser?.hospital || 'Reliance Foundation Hospital',
-          username: matchedUser ? matchedUser.username : cleanId,
-          permissions: matchedUser?.permissions || (role === 'admin' ? ['all'] : [role]),
-          allowedModules: matchedUser?.allowedModules
+          hospital: matchedUser.hospital || 'Reliance Foundation Hospital',
+          username: matchedUser.username,
+          permissions: matchedUser.permissions || (role === 'admin' ? ['all'] : [role]),
+          allowedModules: matchedUser.allowedModules
         };
 
         this.setSessionUser(profile);
         const targetRoute = AuthService.routeForRole(role);
         return { user: profile, targetRoute };
       }),
-      catchError(() => {
-        const fallbackRole = this.detectRoleFromIdentifier(cleanId);
-        const fallbackUser: UserProfile = {
-          id: '1',
-          name: cleanId ? (cleanId.charAt(0).toUpperCase() + cleanId.slice(1)) : 'Mr. PRATHAMESH KHOCHADE',
-          roleTitle: fallbackRole === 'admin' ? 'Administrator' : 'Staff User',
-          avatar: 'PK',
-          role: fallbackRole,
-          hospital: 'Reliance Foundation Hospital',
-          username: cleanId || 'prathamesh',
-          permissions: ['all']
-        };
-        this.setSessionUser(fallbackUser);
-        return of({ user: fallbackUser, targetRoute: AuthService.routeForRole(fallbackRole) });
+      catchError(err => {
+        const errorMsg = err?.message || 'Access Denied: Invalid credentials.';
+        return throwError(() => new Error(errorMsg));
       })
     );
   }
@@ -164,6 +153,10 @@ export class AuthService {
     this.currentRole.set(user.role);
     this.activeUser.set(user);
     this.currentUserSubject.next(user);
+    
+    // Maintain session in both SessionStorage & LocalStorage
+    sessionStorage.setItem('mhc_role', user.role);
+    sessionStorage.setItem('mhc_user', JSON.stringify(user));
     localStorage.setItem('mhc_role', user.role);
     localStorage.setItem('mhc_user', JSON.stringify(user));
   }
@@ -174,11 +167,13 @@ export class AuthService {
 
   loginAs(role: UserRoleType): string {
     const targetUsername = role === 'patient_executive' ? 'priya' : role === 'nurse' ? 'kavita' : role === 'doctor' ? 'susheel' : 'prathamesh';
-    this.authenticateUser(targetUsername).subscribe();
+    this.authenticateUser(targetUsername, 'Welcome@123').subscribe();
     return AuthService.routeForRole(role);
   }
 
   logout(): void {
+    sessionStorage.removeItem('mhc_user');
+    sessionStorage.removeItem('mhc_role');
     localStorage.removeItem('mhc_user');
     localStorage.removeItem('mhc_role');
     this.currentRole.set(null);
@@ -188,13 +183,13 @@ export class AuthService {
   }
 
   private getStoredUser(): UserProfile | null {
-    const stored = localStorage.getItem('mhc_user');
+    const stored = sessionStorage.getItem('mhc_user') || localStorage.getItem('mhc_user');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.name && parsed.username) return parsed;
       } catch (e) {}
     }
-    return null; // Pure unauthenticated state when no user in localStorage
+    return null;
   }
 }

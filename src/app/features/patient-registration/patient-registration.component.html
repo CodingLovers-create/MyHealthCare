@@ -38,7 +38,7 @@
               <span class="text-xs mr-1 select-none">🇮🇳</span>
               <i class="fa-solid fa-caret-down text-[9px] text-[#777777] mr-1.5"></i>
               <div class="relative w-full">
-                <input type="text" [ngModel]="mobileNo()" (ngModelChange)="mobileNo.set($event)" 
+                <input type="text" [ngModel]="mobileNo()" (ngModelChange)="onMobileInputChange($event)" 
                        class="w-full text-[11px] text-[#333333] focus:outline-none bg-transparent" />
                 @if (!mobileNo()) {
                   <span class="absolute left-0 top-0 pointer-events-none text-[11px] text-[#777777]">
@@ -47,6 +47,47 @@
                 }
               </div>
             </div>
+
+            <!-- Matching Patients Dropdown Panel -->
+            @if (showMatchingPatientsDropdown() && matchingPatientsList().length > 0) {
+              <div class="absolute left-0 top-full mt-1 w-[380px] md:w-[460px] bg-white border border-[#d93848] rounded-[4px] shadow-2xl z-50 p-2.5 text-left font-sans">
+                <div class="flex items-center justify-between border-b border-rose-200 pb-1.5 mb-1.5">
+                  <span class="text-[11px] font-bold text-[#d93848] flex items-center">
+                    <i class="fa-solid fa-users text-[11px] mr-1.5"></i>
+                    <span>Existing Patients for Mobile ({{ matchingPatientsList().length }})</span>
+                  </span>
+                  <button (click)="showMatchingPatientsDropdown.set(false)" type="button" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-[12px]"></i>
+                  </button>
+                </div>
+
+                <div class="space-y-1 max-h-[190px] overflow-y-auto divide-y divide-slate-100 text-[10.5px]">
+                  @for (p of matchingPatientsList(); track p.uhid) {
+                    <div (click)="selectExistingPatient(p)" 
+                         class="pt-1.5 first:pt-0 pb-1 px-2 hover:bg-rose-50/80 rounded cursor-pointer transition-colors flex items-center justify-between group">
+                      <div>
+                        <div class="font-bold text-slate-900 group-hover:text-[#d93848] flex items-center space-x-1.5">
+                          <span>{{ p.name || (p.firstName + ' ' + p.lastName) }}</span>
+                          <span class="text-[9px] px-1 py-0.2 bg-slate-100 text-slate-700 font-mono font-semibold rounded border border-slate-300">
+                            {{ p.uhid }}
+                          </span>
+                        </div>
+                        <div class="text-[9.5px] text-slate-500 font-medium">
+                          <span>{{ p.gender || 'Male' }} • {{ p.age || '30' }} Y</span>
+                          @if (p.address?.city || p.city) {
+                            <span class="ml-1.5">• {{ p.address?.city || p.city }}</span>
+                          }
+                        </div>
+                      </div>
+
+                      <button type="button" class="px-2 py-0.5 bg-[#d93848] group-hover:bg-[#c22d3d] text-white text-[9px] font-bold rounded uppercase tracking-wider shrink-0 shadow-2xs">
+                        Auto-fill
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
           </div>
 
           <!-- Whatsapp No -->
@@ -686,8 +727,9 @@
         PRINT
       </button>
 
-      <button type="button" (click)="onRegister(false)" class="px-5 py-1.5 bg-[#0088cc] hover:bg-[#0077bb] active:scale-[0.98] text-white font-semibold text-xs tracking-wider uppercase rounded-[2px] shadow-xs transition-all duration-150 cursor-pointer">
-        REGISTER
+      <button type="button" (click)="onRegister(false)" 
+              [class]="'px-5 py-1.5 active:scale-[0.98] text-white font-semibold text-xs tracking-wider uppercase rounded-[2px] shadow-xs transition-all duration-150 cursor-pointer ' + (isExistingPatient() ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#0088cc] hover:bg-[#0077bb]')">
+        {{ isExistingPatient() ? 'UPDATE PATIENT DETAILS' : 'REGISTER' }}
       </button>
 
       <button type="button" (click)="onRegister(true)" class="px-5 py-1.5 bg-[#d93848] hover:bg-[#c02a3a] active:scale-[0.98] text-white font-bold text-xs tracking-wider uppercase rounded-[2px] shadow-xs transition-all duration-150 cursor-pointer flex items-center space-x-1">
@@ -705,7 +747,9 @@
         <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-1 text-xl font-bold">
           ✓
         </div>
-        <h3 class="text-base font-bold text-slate-800">Patient Registration Completed!</h3>
+        <h3 class="text-base font-bold text-slate-800">
+          {{ isExistingPatient() ? 'Patient Details Updated Successfully!' : 'Patient Registration Completed!' }}
+        </h3>
         
         <div class="bg-slate-50 border border-slate-200 rounded p-3 text-xs space-y-1 text-left">
           <div>Assigned UHID: <strong class="font-mono text-[#d93848] text-sm float-right">{{ registeredUhid() }}</strong></div>
