@@ -90,6 +90,7 @@ export class AuthService {
   isNurse = computed(() => this.currentRole() === 'nurse');
   isDoctor = computed(() => this.currentRole() === 'doctor');
 
+  // Dynamic API-driven allowed modules with fallback based on user role
   allowedModules = computed<ModuleAccess[]>(() => {
     const user = this.activeUser();
     if (user.allowedModules && user.allowedModules.length > 0) {
@@ -121,6 +122,9 @@ export class AuthService {
     ];
   });
 
+  /**
+   * Helper method to check if current logged in user has specific API permission
+   */
   hasPermission(permission: string): boolean {
     const user = this.activeUser();
     if (!user || !user.permissions) return true;

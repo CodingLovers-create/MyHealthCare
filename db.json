@@ -679,7 +679,25 @@
       "role": "admin",
       "name": "Mr. PRATHAMESH KHOCHADE",
       "roleTitle": "Administrator",
-      "password": "Welcome@123"
+      "password": "Welcome@123",
+      "avatar": "PK",
+      "hospital": "Reliance Foundation Hospital",
+      "permissions": [
+        "all",
+        "dashboard",
+        "magic_search",
+        "registration",
+        "doctor_appointment",
+        "billing",
+        "cancel_appointment"
+      ],
+      "allowedModules": [
+        { "id": "MyDesk", "label": "MyDesk", "route": "/dashboard" },
+        { "id": "MagicSearch", "label": "MagicSearch", "route": "/magic-search" },
+        { "id": "Registration", "label": "Patient Registration", "route": "/registration" },
+        { "id": "DoctorAppointment", "label": "Doctor Appointment", "route": "/doctor-appointment" },
+        { "id": "OpBilling", "label": "OP Billing & Cashier", "route": "/op-billing" }
+      ]
     },
     {
       "id": "2",
@@ -687,7 +705,25 @@
       "role": "admin",
       "name": "Rahul Yadav",
       "roleTitle": "Administrator",
-      "password": "Welcome@123"
+      "password": "Welcome@123",
+      "avatar": "RY",
+      "hospital": "Reliance Foundation Hospital",
+      "permissions": [
+        "all",
+        "dashboard",
+        "magic_search",
+        "registration",
+        "doctor_appointment",
+        "billing",
+        "cancel_appointment"
+      ],
+      "allowedModules": [
+        { "id": "MyDesk", "label": "MyDesk", "route": "/dashboard" },
+        { "id": "MagicSearch", "label": "MagicSearch", "route": "/magic-search" },
+        { "id": "Registration", "label": "Patient Registration", "route": "/registration" },
+        { "id": "DoctorAppointment", "label": "Doctor Appointment", "route": "/doctor-appointment" },
+        { "id": "OpBilling", "label": "OP Billing & Cashier", "route": "/op-billing" }
+      ]
     },
     {
       "id": "3",
@@ -695,7 +731,16 @@
       "role": "patient_executive",
       "name": "Priya Sharma",
       "roleTitle": "Patient Executive",
-      "password": "Welcome@123"
+      "password": "Welcome@123",
+      "avatar": "PS",
+      "hospital": "Reliance Foundation Hospital",
+      "permissions": [
+        "doctor_appointment",
+        "book_appointment"
+      ],
+      "allowedModules": [
+        { "id": "DoctorAppointment", "label": "Doctor Appointment", "route": "/doctor-appointment" }
+      ]
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
