@@ -11,10 +11,17 @@
 
     <!-- Active Visit Badge -->
     <div class="flex items-center space-x-2">
-      <span class="px-2.5 py-1 bg-[#10b981]/15 text-[#059669] font-bold border border-[#10b981]/30 rounded text-[10px] uppercase flex items-center space-x-1">
-        <span class="w-2 h-2 rounded-full bg-[#059669] animate-pulse"></span>
-        <span>Active Visit: {{ visitId() }}</span>
-      </span>
+      @if (visitId()) {
+        <span class="px-2.5 py-1 bg-[#10b981]/15 text-[#059669] font-bold border border-[#10b981]/30 rounded text-[10px] uppercase flex items-center space-x-1">
+          <span class="w-2 h-2 rounded-full bg-[#059669] animate-pulse"></span>
+          <span>Active Visit: {{ visitId() }}</span>
+        </span>
+      } @else {
+        <span class="px-2.5 py-1 bg-amber-50 text-amber-700 font-bold border border-amber-300 rounded text-[10px] uppercase flex items-center space-x-1">
+          <i class="fa-solid fa-user-clock text-amber-600"></i>
+          <span>No Patient Selected</span>
+        </span>
+      }
     </div>
   </app-subheader>
 
@@ -37,6 +44,10 @@
           <i class="fa-solid fa-search text-[10px]"></i>
           <span>Search Patient</span>
         </button>
+        <button (click)="openPastBillsModal()" type="button" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] rounded-[2px] cursor-pointer tracking-wider uppercase shadow-2xs flex items-center space-x-1.5">
+          <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+          <span>Past Bills & Receipts History</span>
+        </button>
       </div>
     </div>
 
@@ -45,27 +56,27 @@
       <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-[11px]">
         <div>
           <span class="text-[10px] font-medium text-[#777777] block uppercase">Patient Name</span>
-          <span class="font-bold text-[#222222] text-[12px] block truncate">{{ patientName() }}</span>
+          <span class="font-bold text-[#222222] text-[12px] block truncate">{{ patientName() || '—' }}</span>
         </div>
         <div>
           <span class="text-[10px] font-medium text-[#777777] block uppercase">UHID No.</span>
-          <span class="font-bold text-[#0088cc] text-[12px] block">{{ uhid() }}</span>
+          <span class="font-bold text-[#0088cc] text-[12px] block">{{ uhid() || '—' }}</span>
         </div>
         <div>
           <span class="text-[10px] font-medium text-[#777777] block uppercase">Mobile Number</span>
-          <span class="font-semibold text-[#333333] block">+91 {{ mobile() }}</span>
+          <span class="font-semibold text-[#333333] block">{{ mobile() ? ('+91 ' + mobile()) : '—' }}</span>
         </div>
         <div>
           <span class="text-[10px] font-medium text-[#777777] block uppercase">Age / Gender</span>
-          <span class="font-semibold text-[#333333] block">{{ genderAge() }}</span>
+          <span class="font-semibold text-[#333333] block">{{ genderAge() || '—' }}</span>
         </div>
         <div>
           <span class="text-[10px] font-medium text-[#777777] block uppercase">Consulting Doctor</span>
-          <span class="font-bold text-[#d93848] block truncate">{{ practitioner() }}</span>
+          <span class="font-bold text-[#d93848] block truncate">{{ practitioner() || '—' }}</span>
         </div>
         <div>
           <span class="text-[10px] font-medium text-[#777777] block uppercase">Department</span>
-          <span class="font-semibold text-[#333333] block">{{ speciality() }}</span>
+          <span class="font-semibold text-[#333333] block">{{ speciality() || '—' }}</span>
         </div>
       </div>
     </div>
@@ -154,6 +165,13 @@
                       <button (click)="removeItem(item.id)" title="Remove Item" class="text-rose-500 hover:text-rose-700 cursor-pointer p-1">
                         <i class="fa-solid fa-trash-can text-[12px]"></i>
                       </button>
+                    </td>
+                } @empty {
+                  <tr>
+                    <td colspan="7" class="p-6 text-center text-[#64748b] bg-slate-50/50">
+                      <i class="fa-solid fa-receipt text-slate-300 text-2xl mb-1 block"></i>
+                      <p class="font-medium text-[11px]">No line items loaded yet.</p>
+                      <p class="text-[10px] text-slate-400">Search for a patient or select a service from the dropdown above to add items to bill.</p>
                     </td>
                   </tr>
                 }
@@ -252,12 +270,19 @@
             </div>
           </div>
 
-          <!-- Process Payment Button -->
-          <button (click)="processPayment()" type="button" 
-                  class="w-full py-2.5 bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[12px] uppercase tracking-wider rounded shadow-md cursor-pointer transition-all active:scale-[0.99] flex items-center justify-center space-x-2">
-            <i class="fa-solid fa-credit-card text-[13px]"></i>
-            <span>PROCESS PAYMENT & GENERATE RECEIPT</span>
-          </button>
+          <!-- Process Payment & Cancel Bill Buttons -->
+          <div class="grid grid-cols-1 gap-2 pt-1">
+            <button (click)="processPayment()" type="button" 
+                    class="w-full py-2.5 bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11.5px] uppercase tracking-wider rounded shadow-md cursor-pointer transition-all active:scale-[0.99] flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-credit-card text-[13px]"></i>
+              <span>PROCESS PAYMENT & GENERATE RECEIPT</span>
+            </button>
+            <button (click)="openCancelBillModal()" type="button"
+                    class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] uppercase tracking-wider rounded border border-rose-300 cursor-pointer transition-all flex items-center justify-center space-x-1.5">
+              <i class="fa-solid fa-file-circle-xmark text-[12px]"></i>
+              <span>CANCEL / VOID BILL & ISSUE REFUND</span>
+            </button>
+          </div>
 
         </div>
 
@@ -276,7 +301,7 @@
         <!-- Header -->
         <div class="bg-[#d93848] text-white px-4 py-3 flex items-center justify-between">
           <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-[#d93848] fa-file-invoice text-lg"></i>
+            <i class="fa-solid fa-file-invoice text-lg"></i>
             <span class="font-bold text-[13px] tracking-wide uppercase">Outpatient Official Receipt</span>
           </div>
           <button (click)="closeReceipt()" class="text-white hover:text-gray-200 cursor-pointer">
@@ -335,23 +360,253 @@
           <div class="pt-4 flex items-center justify-between border-t border-dashed border-[#cbd5e1]">
             <div class="text-[9px] text-[#64748b]">
               <p>Generated by: {{ authService.currentUser()?.name || 'Cashier' }}</p>
-              <p>System Visit Status: ACTIVE OP VISIT</p>
+              <p>System Visit Status: {{ isBillCancelled() ? 'CANCELLED / REFUNDED' : 'ACTIVE OP VISIT' }}</p>
             </div>
-            <div class="border-2 border-emerald-600 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase rotate-[-3deg]">
-              PAID & VERIFIED
-            </div>
+            @if (isBillCancelled()) {
+              <div class="border-2 border-rose-600 text-rose-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase rotate-[-3deg]">
+                VOIDED & REFUNDED
+              </div>
+            } @else {
+              <div class="border-2 border-emerald-600 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase rotate-[-3deg]">
+                PAID & VERIFIED
+              </div>
+            }
           </div>
 
         </div>
 
         <!-- Actions -->
-        <div class="bg-[#f8fafc] px-4 py-3 border-t border-[#cccccc] flex justify-end space-x-2">
-          <button (click)="closeReceipt()" class="px-3 py-1.5 bg-white border border-[#cbd5e1] rounded text-[11px] font-bold text-[#475569] hover:bg-slate-100 cursor-pointer">
+        <div class="bg-[#f8fafc] px-4 py-3 border-t border-[#cccccc] flex justify-between items-center">
+          <div>
+            @if (!isBillCancelled()) {
+              <button (click)="openCancelBillModal()" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 border border-rose-300 rounded text-[11px] font-bold cursor-pointer flex items-center space-x-1">
+                <i class="fa-solid fa-ban text-[11px]"></i>
+                <span>Cancel & Refund Bill</span>
+              </button>
+            }
+          </div>
+          <div class="flex items-center space-x-2">
+            <button (click)="closeReceipt()" class="px-3 py-1.5 bg-white border border-[#cbd5e1] rounded text-[11px] font-bold text-[#475569] hover:bg-slate-100 cursor-pointer">
+              Close
+            </button>
+            <button (click)="printReceipt()" class="px-4 py-1.5 bg-[#0088cc] hover:bg-[#0077bb] text-white rounded text-[11px] font-bold cursor-pointer flex items-center space-x-1.5">
+              <i class="fa-solid fa-print"></i>
+              <span>Print Official Receipt</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- MULTIPLE PATIENTS MATCHING SELECTION MODAL -->
+  @if (matchingPatientsModal()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-[4px] shadow-2xl w-full max-w-2xl overflow-hidden border border-[#cccccc]">
+        
+        <div class="bg-[#d93848] text-white px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-users text-[14px]"></i>
+            <h3 class="font-bold text-[13px]">Select Patient for OP Billing</h3>
+          </div>
+          <button (click)="matchingPatientsModal.set(false)" class="text-white hover:text-gray-200 cursor-pointer">
+            <i class="fa-solid fa-xmark text-[14px]"></i>
+          </button>
+        </div>
+
+        <div class="p-4 space-y-3">
+          <p class="text-[11px] text-[#555555]">
+            Multiple patient profiles match your mobile number / search query. Please select the specific patient to load for OP billing:
+          </p>
+
+          <div class="border border-[#e2e8f0] rounded overflow-hidden max-h-72 overflow-y-auto">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-[#f8fafc] text-[#475569] font-bold border-b border-[#e2e8f0] sticky top-0">
+                <tr>
+                  <th class="p-2">Patient Name</th>
+                  <th class="p-2">UHID</th>
+                  <th class="p-2">Mobile</th>
+                  <th class="p-2">Age / Gender</th>
+                  <th class="p-2">Doctor / Dept</th>
+                  <th class="p-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#e2e8f0]">
+                @for (patient of matchingPatients(); track patient.uhid) {
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-2 font-bold text-slate-900">{{ patient.name }}</td>
+                    <td class="p-2 font-mono text-[#0088cc] font-semibold">{{ patient.uhid }}</td>
+                    <td class="p-2 font-mono text-slate-700">+91 {{ patient.mobile }}</td>
+                    <td class="p-2 text-slate-600">{{ patient.ageGender }}</td>
+                    <td class="p-2 text-slate-700">{{ patient.doctor }}</td>
+                    <td class="p-2 text-right">
+                      <button (click)="selectPatientForBilling(patient)"
+                              type="button"
+                              class="px-3 py-1 bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[10px] rounded cursor-pointer uppercase tracking-wider shadow-2xs">
+                        Select Patient
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-[#f8fafc] px-4 py-2.5 border-t border-[#cccccc] flex justify-end">
+          <button (click)="matchingPatientsModal.set(false)" class="px-4 py-1 bg-white border border-[#cbd5e1] rounded text-[11px] font-bold text-[#475569] hover:bg-slate-100 cursor-pointer">
+            Cancel
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- CANCEL / VOID BILL & ISSUE REFUND MODAL -->
+  @if (showCancelBillModal()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-[4px] shadow-2xl w-full max-w-md overflow-hidden border border-[#cccccc] animate-fade-in">
+        
+        <div class="bg-[#d93848] text-white px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-file-circle-xmark text-[14px]"></i>
+            <h3 class="font-bold text-[13px]">Cancel Bill & Process Refund</h3>
+          </div>
+          <button (click)="showCancelBillModal.set(false)" class="text-white hover:text-gray-200 cursor-pointer">
+            <i class="fa-solid fa-xmark text-[14px]"></i>
+          </button>
+        </div>
+
+        <div class="p-4 space-y-3 text-[11px]">
+          <!-- Context Box -->
+          <div class="p-3 bg-rose-50 border border-rose-200 rounded space-y-1">
+            <div><span class="font-semibold text-slate-600">Patient Name:</span> <span class="font-bold text-slate-900 ml-1">{{ patientName() || 'Patient' }}</span></div>
+            <div><span class="font-semibold text-slate-600">UHID:</span> <span class="font-bold text-cyan-800 ml-1">{{ uhid() || '—' }}</span></div>
+            <div><span class="font-semibold text-slate-600">Receipt No:</span> <span class="font-bold text-rose-700 ml-1">{{ receiptNumber() || 'OPR-2026-REFUND' }}</span></div>
+            <div><span class="font-semibold text-slate-600">Refund Amount:</span> <span class="font-bold text-emerald-700 ml-1">INR {{ netAmountPayable() | number:'1.2-2' }}</span></div>
+          </div>
+
+          <!-- Cancellation Reason -->
+          <div>
+            <label class="block font-bold text-[#555555] mb-1">Select Cancellation Reason *</label>
+            <select [ngModel]="cancelReason()" (ngModelChange)="cancelReason.set($event)" class="w-full h-8 px-2 border border-[#cccccc] rounded text-[11px] bg-white">
+              <option value="Patient Request / Service Not Availed">Patient Request / Service Not Availed</option>
+              <option value="Doctor Unavailable / Consultation Cancelled">Doctor Unavailable / Consultation Cancelled</option>
+              <option value="Billing Error / Incorrect Tariff Applied">Billing Error / Incorrect Tariff Applied</option>
+              <option value="Duplicate Payment Collected">Duplicate Payment Collected</option>
+              <option value="Other Reason">Other Reason</option>
+            </select>
+          </div>
+
+          <!-- Remarks -->
+          <div>
+            <label class="block font-semibold text-[#555555] mb-1">Cancellation Remarks / Notes</label>
+            <input type="text" [ngModel]="cancelNotes()" (ngModelChange)="cancelNotes.set($event)" placeholder="Enter additional notes..." class="w-full h-8 px-2 border border-[#cccccc] rounded text-[11px]" />
+          </div>
+
+          <div class="p-2.5 bg-amber-50 border border-amber-200 rounded text-[10.5px] text-amber-900 leading-tight">
+            <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i>
+            Cancelling this bill will void official receipt <strong>{{ receiptNumber() || 'OPR-2026' }}</strong>, mark the visit status as CANCELLED, and issue a credit refund note.
+          </div>
+        </div>
+
+        <div class="px-4 py-2.5 bg-gray-50 border-t border-[#cccccc] flex items-center justify-end space-x-2">
+          <button (click)="showCancelBillModal.set(false)" class="px-3.5 py-1 bg-white border border-[#cccccc] rounded text-[11px] hover:bg-gray-100 font-medium cursor-pointer">
             Close
           </button>
-          <button (click)="printReceipt()" class="px-4 py-1.5 bg-[#0088cc] hover:bg-[#0077bb] text-white rounded text-[11px] font-bold cursor-pointer flex items-center space-x-1.5">
-            <i class="fa-solid fa-print"></i>
-            <span>Print Official Receipt</span>
+          <button (click)="confirmCancelBill()" type="button" class="px-4 py-1 bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold rounded text-[11px] cursor-pointer shadow-2xs uppercase tracking-wider">
+            Confirm Cancel & Refund
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- PAST BILLS & RECEIPTS HISTORY MODAL -->
+  @if (showPastBillsModal()) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-[4px] shadow-2xl w-full max-w-3xl overflow-hidden border border-[#cccccc] animate-fade-in">
+        
+        <div class="bg-[#d93848] text-white px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-clock-rotate-left text-[14px]"></i>
+            <h3 class="font-bold text-[13px]">Previous Bills & Receipts History</h3>
+          </div>
+          <button (click)="showPastBillsModal.set(false)" class="text-white hover:text-gray-200 cursor-pointer">
+            <i class="fa-solid fa-xmark text-[14px]"></i>
+          </button>
+        </div>
+
+        <div class="p-4 space-y-3">
+          <p class="text-[11px] text-[#555555]">
+            Select any previous bill to view receipt details or process a cancellation and refund:
+          </p>
+
+          <div class="border border-[#e2e8f0] rounded overflow-hidden max-h-80 overflow-y-auto">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-[#f8fafc] text-[#475569] font-bold border-b border-[#e2e8f0] sticky top-0">
+                <tr>
+                  <th class="p-2">Receipt No</th>
+                  <th class="p-2">Patient Name</th>
+                  <th class="p-2">UHID</th>
+                  <th class="p-2">Doctor / Dept</th>
+                  <th class="p-2 text-right">Amount (INR)</th>
+                  <th class="p-2 text-center">Status</th>
+                  <th class="p-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#e2e8f0]">
+                @for (bill of pastBillsList(); track bill.receiptNumber || bill.id) {
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-2 font-mono font-bold text-[#d93848]">{{ bill.receiptNumber || 'OPR-2026' }}</td>
+                    <td class="p-2 font-bold text-slate-900">{{ bill.patientName || 'Patient' }}</td>
+                    <td class="p-2 font-mono text-[#0088cc] font-semibold">{{ bill.uhid || '—' }}</td>
+                    <td class="p-2 text-slate-700">{{ bill.practitioner || 'OPD Clinic' }}</td>
+                    <td class="p-2 text-right font-mono font-bold text-slate-900">{{ (bill.fee || 1500) | number:'1.2-2' }}</td>
+                    <td class="p-2 text-center">
+                      @if (bill.status === 'CANCELLED') {
+                        <span class="px-2 py-0.5 text-[9.5px] font-bold uppercase rounded bg-rose-100 text-rose-700 border border-rose-300">
+                          CANCELLED
+                        </span>
+                      } @else {
+                        <span class="px-2 py-0.5 text-[9.5px] font-bold uppercase rounded bg-emerald-100 text-emerald-700 border border-emerald-300">
+                          BILLED
+                        </span>
+                      }
+                    </td>
+                    <td class="p-2 text-right space-x-1.5">
+                      <button (click)="loadPastBillIntoScreen(bill, false)"
+                              type="button"
+                              class="px-2.5 py-1 bg-slate-700 hover:bg-slate-800 text-white font-bold text-[10px] rounded cursor-pointer uppercase tracking-wider shadow-2xs">
+                        View Bill
+                      </button>
+                      @if (bill.status !== 'CANCELLED') {
+                        <button (click)="loadPastBillIntoScreen(bill, true)"
+                                type="button"
+                                class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] rounded cursor-pointer uppercase tracking-wider shadow-2xs">
+                          Cancel & Refund
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="7" class="p-6 text-center text-[#64748b] bg-slate-50">
+                      No previous billed receipts found.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-[#f8fafc] px-4 py-2.5 border-t border-[#cccccc] flex justify-end">
+          <button (click)="showPastBillsModal.set(false)" class="px-4 py-1 bg-white border border-[#cbd5e1] rounded text-[11px] font-bold text-[#475569] hover:bg-slate-100 cursor-pointer">
+            Close
           </button>
         </div>
 

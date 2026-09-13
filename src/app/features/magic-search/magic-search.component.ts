@@ -354,36 +354,84 @@ export class MagicSearchComponent implements OnInit {
   showPdfModal = signal<boolean>(false);
   selectedPdfData = signal<{ name: string; uhid: string; visitId: string; mobile: string; ageGender: string; doctorName: string; department: string; dateStr: string; timeStr: string } | null>(null);
 
+  isPatientBilled(patient: any): boolean {
+    const status = (patient.status || patient.statusCode || '').toString().toUpperCase();
+    const statusText = (patient.statusText || patient.description || '').toString().toLowerCase();
+    return (
+      patient.isBilled || 
+      status === 'BILLED' || 
+      status === 'CS' || 
+      status === 'PAID' || 
+      statusText.includes('billed') || 
+      statusText.includes('receipt') || 
+      statusText.includes('cashier scroll') || 
+      statusText.includes('paid')
+    );
+  }
+
+  isPatientScheduled(patient: any): boolean {
+    const status = (patient.status || patient.statusCode || '').toString().toUpperCase();
+    const statusText = (patient.statusText || patient.description || '').toString().toLowerCase();
+    return (
+      (status === 'SCHEDULED' || statusText.includes('scheduled')) && 
+      !statusText.includes('arrived') &&
+      !statusText.includes('desk') &&
+      !this.isPatientBilled(patient)
+    );
+  }
+
   openPatientPdf(patient: any): void {
-    let visitId = patient.visitId;
-    let isArrived = patient.isArrivalMarked || patient.status === 'ARRIVED AT DESK' || (patient.statusText && patient.statusText.includes('Arrived'));
+    const cleanUhid = (patient.uhid || '').toLowerCase().trim();
+    const cleanName = (patient.name || patient.patientName || '').toLowerCase().trim();
 
-    if (!isArrived || !visitId) {
-      visitId = 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000);
-      patient.visitId = visitId;
-      patient.status = 'ARRIVED AT DESK';
-      patient.isArrivalMarked = true;
+    const checkIsBilled = (p: any) => {
+      const status = (p.status || p.statusCode || '').toString().toUpperCase();
+      const statusText = (p.statusText || p.description || '').toString().toLowerCase();
+      return p.isBilled || 
+             status === 'BILLED' || 
+             status === 'CS' || 
+             status === 'PAID' || 
+             statusText.includes('billed') || 
+             statusText.includes('receipt') || 
+             statusText.includes('cashier scroll') || 
+             statusText.includes('paid');
+    };
 
-      const newAppointmentVisit = {
-        dateStr: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        patientName: patient.name || patient.patientName || '',
-        uhid: patient.uhid || '',
-        mobile: (patient.mobile || '').replace(/\+91\s?/, ''),
-        practitioner: patient.doctorName || patient.initiatedBy || patient.practitioner || '',
-        fee: patient.fee || 1500,
-        status: 'ARRIVED AT DESK',
-        visitId: visitId,
-        type: patient.type || 'OP',
-        description: `Auto Desk Arrival on PDF Click (${visitId})`,
-        bookedOn: new Date().toISOString()
-      };
-
-      this.apiService.post('appointments', newAppointmentVisit).subscribe();
-      this.toastService.success(`⚡ Desk Arrival automatically marked for "${patient.name || patient.patientName}"! Visit ID: ${visitId}`);
-    } else {
-      this.toastService.info(`Opening Patient Case Paper PDF for ${patient.name || patient.patientName}...`);
+    if (checkIsBilled(patient)) {
+      this.displayPdfModal(patient);
+      return;
     }
+
+    this.apiService.get<any[]>('appointments').subscribe({
+      next: (appts) => {
+        let isBilledInApi = false;
+        if (Array.isArray(appts)) {
+          isBilledInApi = appts.some(a => {
+            const aUhid = (a.uhid || '').toLowerCase().trim();
+            const aName = (a.patientName || '').toLowerCase().trim();
+            const isMatch = (cleanUhid && aUhid === cleanUhid) || (cleanName && (aName.includes(cleanName) || cleanName.includes(aName)));
+            return isMatch && checkIsBilled(a);
+          });
+        }
+
+        if (isBilledInApi) {
+          patient.isBilled = true;
+          this.displayPdfModal(patient);
+        } else {
+          const patientName = patient.name || patient.patientName || 'Record';
+          this.toastService.warning(`Cannot open PDF: Patient "${patientName}" is not billed yet. Please complete OP Billing first.`);
+        }
+      },
+      error: () => {
+        const patientName = patient.name || patient.patientName || 'Record';
+        this.toastService.warning(`Cannot open PDF: Patient "${patientName}" is not billed yet. Please complete OP Billing first.`);
+      }
+    });
+  }
+
+  private displayPdfModal(patient: any): void {
+    let visitId = patient.visitId || ('OPV-2026-' + Math.floor(10000 + Math.random() * 90000));
+    patient.visitId = visitId;
 
     this.selectedPdfData.set({
       name: patient.name || patient.patientName || '',
@@ -397,6 +445,7 @@ export class MagicSearchComponent implements OnInit {
       timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
     this.showPdfModal.set(true);
+    this.toastService.info(`Opening Billed Patient Case Paper PDF for ${patient.name || patient.patientName}...`);
   }
 
   printPdf(): void {

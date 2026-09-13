@@ -255,8 +255,7 @@
         {
           "time": "09:30 AM",
           "type": "normal",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "10:00 AM",
@@ -266,8 +265,7 @@
         {
           "time": "10:30 AM",
           "type": "emergency",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "11:00 AM",
@@ -292,8 +290,7 @@
         {
           "time": "03:00 PM",
           "type": "phc",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "04:00 PM",
@@ -314,8 +311,7 @@
         {
           "time": "10:30 AM",
           "type": "priority",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "11:00 AM",
@@ -330,8 +326,7 @@
         {
           "time": "02:00 PM",
           "type": "emergency",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "03:00 PM",
@@ -362,8 +357,7 @@
         {
           "time": "10:30 AM",
           "type": "walkin",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "11:00 AM",
@@ -388,8 +382,7 @@
         {
           "time": "03:30 PM",
           "type": "free",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         }
       ]
     }
@@ -407,8 +400,7 @@
         {
           "time": "08:30 AM",
           "type": "normal",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "09:00 AM",
@@ -428,8 +420,7 @@
         {
           "time": "11:30 AM",
           "type": "emergency",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "01:00 PM",
@@ -460,8 +451,7 @@
         {
           "time": "09:30 AM",
           "type": "normal",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "10:30 AM",
@@ -476,8 +466,7 @@
         {
           "time": "02:00 PM",
           "type": "emergency",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         }
       ]
     },
@@ -503,8 +492,7 @@
         {
           "time": "11:00 AM",
           "type": "normal",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         },
         {
           "time": "02:00 PM",
@@ -514,62 +502,14 @@
         {
           "time": "03:30 PM",
           "type": "free",
-          "isAvailable": false,
-          "isBooked": true
+          "isAvailable": true
         }
       ]
     }
   ],
   "patients": [
     {
-      "id": "1",
-      "uhid": "RFH2026001",
-      "name": "Jagdish Ramji Thakkar",
-      "gender": "Male",
-      "dob": "1982-05-14",
-      "mobile": "9820198201",
-      "city": "Mumbai",
-      "registeredOn": "2026-09-07"
-    },
-    {
-      "id": "2",
-      "uhid": "RFH2026002",
-      "name": "Mohd. Zubair Qureshi",
-      "gender": "Male",
-      "dob": "1990-11-22",
-      "mobile": "9819298192",
-      "city": "Thane",
-      "registeredOn": "2026-09-08"
-    },
-    {
-      "uhid": "RFH23241854",
-      "registrationType": "VIP",
-      "title": "Mr.",
-      "name": "Mr. PRATHAMESH SHASHANK KHOCHADE",
-      "firstName": "PRATHAMESH",
-      "middleName": "SHASHANK",
-      "lastName": "KHOCHADE",
-      "mobile": "9326538837",
-      "whatsapp": "",
-      "dob": "",
-      "age": "",
-      "gender": "Male",
-      "maritalStatus": "Single",
-      "email": "khochadeprathamesh670@gmail.com",
-      "nationality": "Indian",
-      "address": {
-        "houseNo": "",
-        "street": "",
-        "city": "Mumbai",
-        "state": "Maharashtra",
-        "pinCode": ""
-      },
-      "bloodGroup": "O+",
-      "registeredOn": "2026-09-12T19:04:47.999Z",
-      "id": "IgyoeJMWCmo"
-    },
-    {
-      "uhid": "RFH29970327",
+      "uhid": "RFH94442610",
       "registrationType": "General",
       "title": "Mr.",
       "name": "Mr. PRATHAMESH SHASHANK KHOCHADE",
@@ -578,222 +518,58 @@
       "lastName": "KHOCHADE",
       "mobile": "9326538837",
       "whatsapp": "",
-      "dob": "",
-      "age": "32",
+      "dob": "15/09/2001",
+      "age": "24",
       "gender": "Male",
       "maritalStatus": "Single",
       "email": "khochadeprathamesh670@gmail.com",
       "nationality": "Indian",
       "address": {
         "houseNo": "",
-        "street": "",
+        "street": "Room No-110, 1st Floor",
         "city": "Mumbai",
         "state": "Maharashtra",
-        "pinCode": ""
+        "pinCode": "400012"
       },
       "bloodGroup": "O+",
-      "registeredOn": "2026-09-13T14:42:14.673Z",
-      "id": "i9i0KXpkmxg"
+      "updatedOn": "2026-09-13T16:34:56.845Z",
+      "id": "aff_FMMNl34"
     }
   ],
   "appointments": [
     {
-      "id": "1",
-      "dateStr": "SAT 12 SEP",
-      "time": "09:30 AM",
-      "patientName": "Jagdish Thakkar",
-      "practitioner": "Dr. Susheel Bindroo",
-      "fee": 1500,
-      "status": "CONFIRMED"
-    },
-    {
-      "id": "2",
-      "dateStr": "SAT 12 SEP",
-      "time": "10:30 AM",
-      "patientName": "Mohd Qureshi",
-      "practitioner": "Dr. Alok Shah",
-      "fee": 2000,
-      "status": "CONFIRMED"
-    },
-    {
-      "dateStr": "SAT 12 SEP",
-      "time": "10:04",
-      "patientName": "Jagdish Ramji Thakkar",
-      "uhid": "RFH2026001",
-      "mobile": "9820198201",
-      "practitioner": "General OPD Clinic",
-      "fee": 1500,
-      "status": "ARRIVED AT DESK",
-      "visitId": "OPV-2026-87427",
-      "type": "OP",
-      "description": "Active Desk Arrival Visit (OPV-2026-87427)",
-      "bookedOn": "2026-09-13T04:34:34.699Z",
-      "id": "ynSIkoam1Ds"
-    },
-    {
-      "dateStr": "SUN 13 SEP",
-      "time": "10:00 AM",
-      "patientName": "11",
-      "mobile": "111",
-      "practitioner": "Dr. Susheel Bindroo",
-      "fee": 1500,
-      "status": "ARRIVED AT DESK",
-      "visitId": "OPV-2026-56384",
-      "type": "OP",
-      "description": "Active Desk Arrival Visit (OPV-2026-56384) - Dr. Susheel Bindroo",
-      "bookedOn": "2026-09-13T04:39:28.361Z",
-      "id": "WbNYgjNP0JM"
-    },
-    {
-      "dateStr": "SUN 13 SEP",
-      "time": "11:30 AM",
-      "patientName": "11",
-      "mobile": "111",
-      "practitioner": "Dr. Susheel Bindroo",
-      "fee": 1500,
-      "status": "CONFIRMED",
-      "type": "OP",
-      "description": "Doctor Consultation - Dr. Susheel Bindroo",
-      "bookedOn": "2026-09-13T04:39:36.707Z",
-      "id": "36qu1Ep2y3o"
-    },
-    {
-      "dateStr": "SAT 12 SEP",
-      "time": "10:15 AM",
-      "patientName": "VIP Priority Patient",
-      "mobile": "9820198201",
-      "practitioner": "Dr. Susheel Bindroo",
-      "fee": 1500,
-      "status": "CONFIRMED",
-      "type": "OP",
-      "description": "Priority Slot (Emergency Consultation) - Dr. Susheel Bindroo",
-      "bookedOn": "2026-09-13T04:43:33.848Z",
-      "id": "_3-yjMJNcvo"
-    },
-    {
-      "dateStr": "SUN 13 SEP",
-      "time": "10:00 AM",
-      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
-      "mobile": "9820198201",
-      "practitioner": "Dr. Susheel Bindroo",
-      "fee": 1500,
-      "status": "CONFIRMED",
-      "type": "OP",
-      "description": "Doctor Consultation - Dr. Susheel Bindroo",
-      "bookedOn": "2026-09-13T14:33:13.658Z",
-      "id": "8BM9BkV3tz0"
-    },
-    {
-      "dateStr": "SUN 13 SEP",
-      "time": "10:00 AM",
-      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
-      "mobile": "9820198201",
-      "practitioner": "Dr. Susheel Bindroo",
-      "fee": 1500,
-      "status": "CONFIRMED",
-      "type": "OP",
-      "description": "Doctor Consultation - Dr. Susheel Bindroo",
-      "bookedOn": "2026-09-13T14:33:19.274Z",
-      "id": "J1R-AbT4N-I"
-    },
-    {
-      "dateStr": "SAT 12 SEP",
-      "time": "10:00 AM",
-      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
-      "mobile": "9820198201",
-      "practitioner": "Dr. Susheel Bindroo",
-      "fee": 1500,
-      "status": "CONFIRMED",
-      "type": "OP",
-      "description": "Doctor Consultation - Dr. Susheel Bindroo",
-      "bookedOn": "2026-09-13T14:33:49.939Z",
-      "id": "TuDKAaJHrXM"
-    },
-    {
-      "dateStr": "SAT 12 SEP",
-      "time": "09:15 AM",
-      "patientName": "Mohd. Zubair Qureshi (RFH2026002)",
-      "mobile": "9819298192",
-      "practitioner": "Dr. Pankaj Gupta",
-      "fee": 1900,
-      "status": "CONFIRMED",
-      "type": "OP",
-      "description": "Doctor Consultation - Dr. Pankaj Gupta",
-      "bookedOn": "2026-09-13T14:37:46.814Z",
-      "id": "NsPC9fjDpKc"
-    },
-    {
-      "dateStr": "SAT 12 SEP",
+      "dateStr": "MON 14 SEP",
       "time": "09:00 AM",
-      "patientName": "Mohd. Zubair Qureshi (RFH2026002)",
-      "mobile": "9819298192",
-      "practitioner": "Dr. Pankaj Gupta",
-      "fee": 1900,
+      "patientName": "Mr. PRATHAMESH SHASHANK KHOCHADE",
+      "uhid": "RFH94442610",
+      "mobile": "9326538837",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
       "status": "CONFIRMED",
       "type": "OP",
-      "description": "Doctor Consultation - Dr. Pankaj Gupta",
-      "bookedOn": "2026-09-13T14:37:52.728Z",
-      "id": "Moy_ZzKC614"
+      "description": "Doctor Consultation - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T16:38:00.580Z",
+      "id": "xMCo2EkCgIU"
     },
     {
-      "dateStr": "SAT 12 SEP",
-      "time": "20:27",
-      "patientName": "Jagdish Ramji Thakkar",
-      "uhid": "RFH2026001",
-      "mobile": "9820198201",
-      "practitioner": "General OPD Clinic",
-      "fee": 1500,
-      "status": "ARRIVED AT DESK",
-      "visitId": "OPV-2026-11223",
-      "type": "OP",
-      "description": "Active Desk Arrival Visit (OPV-2026-11223)",
-      "bookedOn": "2026-09-13T14:57:44.294Z",
-      "id": "xNQY571P8OU"
-    },
-    {
-      "dateStr": "SAT 12 SEP",
-      "time": "10:30 AM",
-      "patientName": "Mohd Qureshi",
-      "uhid": "",
+      "uhid": "RFH94442610",
+      "patientName": "Mr. PRATHAMESH SHASHANK KHOCHADE",
       "mobile": "",
-      "practitioner": "Dr. Alok Shah",
-      "fee": 2000,
-      "status": "ARRIVED AT DESK",
-      "visitId": "OPV-2026-41759",
+      "visitId": "OPV-2026-95064",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1600,
+      "status": "BILLED",
+      "isBilled": true,
+      "receiptNumber": "OPR-2026-12524",
+      "dateStr": "SUN 13 SEP",
+      "time": "10:11 PM",
       "type": "OP",
-      "description": "Auto Desk Arrival on PDF View (OPV-2026-41759)",
-      "bookedOn": "2026-09-13T15:37:43.187Z",
-      "id": "kKOW1QIct60"
+      "description": "OP Billing Completed (OPR-2026-12524)",
+      "bookedOn": "2026-09-13T16:41:19.692Z",
+      "id": "NZQxDeWnnYY"
     }
   ],
-  "tasks": [
-    {
-      "id": "1",
-      "date": "7 Sep 2026",
-      "time": "12:34 PM",
-      "description": "Admission Request Complete - RFH27AR34",
-      "type": "OP",
-      "uhid": "0010723243",
-      "patientName": "Jagdish Ramji Thakkar",
-      "initiatedBy": "Dr. Susheel Bindroo",
-      "patientLocation": "-",
-      "statusCode": "AR",
-      "statusText": "Admission Request Raised"
-    },
-    {
-      "id": "2",
-      "date": "8 Sep 2026",
-      "time": "03:22 PM",
-      "description": "Admission Request Complete - RFH27AR36",
-      "type": "OP",
-      "uhid": "0010109093",
-      "patientName": "Mohd. Zubair Azizur-Rehman Qureshi",
-      "initiatedBy": "Dr. Alok Shah",
-      "patientLocation": "-",
-      "statusCode": "AR",
-      "statusText": "Admission Request Raised"
-    }
-  ],
+  "tasks": [],
   "users": [
     {
       "id": "1",

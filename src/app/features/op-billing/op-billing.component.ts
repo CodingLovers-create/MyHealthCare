@@ -42,13 +42,13 @@ export class OpBillingComponent implements OnInit {
   activeModuleTab = signal<string>('OpBilling');
 
   // Patient & Visit Context
-  patientName = signal<string>('Jagdish Ramji Thakkar');
-  uhid = signal<string>('RFH2026001');
-  visitId = signal<string>('OPV-2026-98102');
-  mobile = signal<string>('9820198201');
-  genderAge = signal<string>('58 Y / Male');
-  practitioner = signal<string>('Dr. Susheel Bindroo');
-  speciality = signal<string>('Pulmonology');
+  patientName = signal<string>('');
+  uhid = signal<string>('');
+  visitId = signal<string>('');
+  mobile = signal<string>('');
+  genderAge = signal<string>('');
+  practitioner = signal<string>('');
+  speciality = signal<string>('');
 
   // Tariff & Discount Plans
   tariffPlans: TariffPlan[] = [
@@ -63,15 +63,22 @@ export class OpBillingComponent implements OnInit {
   paymentMode = signal<string>('Cash');
 
   // Billing Line Items
-  billItems = signal<BillItem[]>([
-    { id: '1', name: 'OPD Doctor Consultation Fee', department: 'Pulmonology OPD', qty: 1, rate: 1500 },
-    { id: '2', name: 'OP Patient Registration & ID Card Charge', department: 'Registration Desk', qty: 1, rate: 100 }
-  ]);
+  billItems = signal<BillItem[]>([]);
 
   // Modals & Printable Receipt
   showReceiptModal = signal<boolean>(false);
   receiptNumber = signal<string>('');
   receiptDate = signal<string>('');
+
+  // Bill Cancellation & Refund Signals
+  showCancelBillModal = signal<boolean>(false);
+  cancelReason = signal<string>('Patient Request / Service Not Availed');
+  cancelNotes = signal<string>('');
+  isBillCancelled = signal<boolean>(false);
+
+  // Past Bills History Signals
+  showPastBillsModal = signal<boolean>(false);
+  pastBillsList = signal<any[]>([]);
 
   selectedTariff = computed(() => {
     return this.tariffPlans.find(t => t.id === this.selectedTariffId()) || this.tariffPlans[0];
@@ -92,8 +99,11 @@ export class OpBillingComponent implements OnInit {
 
   // Patient Search & Quick Select Signals
   searchUhidQuery = signal<string>('');
+  matchingPatientsModal = signal<boolean>(false);
+  matchingPatients = signal<any[]>([]);
   quickPatientList = signal<any[]>([
     { uhid: 'RFH2026001', name: 'Jagdish Ramji Thakkar', mobile: '9820198201', ageGender: '58 Y / Male', doctor: 'Dr. Susheel Bindroo', spec: 'Pulmonology' },
+    { uhid: 'RFH2026008', name: 'Nita Jagdish Thakkar', mobile: '9820198201', ageGender: '54 Y / Female', doctor: 'Dr. Sneha Patil', spec: 'General Medicine' },
     { uhid: 'RFH2026002', name: 'Mohd. Zubair Qureshi', mobile: '9819283746', ageGender: '42 Y / Male', doctor: 'Dr. Alok Shah', spec: 'Cardiology' },
     { uhid: 'RFH23241854', name: 'Mr. PRATHAMESH SHASHANK KHOCHADE', mobile: '9892011223', ageGender: '30 Y / Male', doctor: 'Dr. Sneha Patil', spec: 'General Medicine' },
     { uhid: 'RFH2026003', name: 'Anuradha Jadhav', mobile: '9765432109', ageGender: '35 Y / Female', doctor: 'Pathology & Lab', spec: 'Diagnostics' },
@@ -171,14 +181,15 @@ export class OpBillingComponent implements OnInit {
       if (params['visitId']) this.visitId.set(params['visitId']);
       if (params['mobile']) this.mobile.set(params['mobile']);
       if (params['practitioner']) this.practitioner.set(params['practitioner']);
-      if (params['fee']) {
-        const feeNum = parseFloat(params['fee']);
-        if (!isNaN(feeNum) && feeNum > 0) {
-          this.billItems.set([
-            { id: '1', name: `OP Consultation Fee (${this.practitioner()})`, department: 'OPD Clinic', qty: 1, rate: feeNum },
-            { id: '2', name: 'OP Registration & Service Fee', department: 'Front Desk', qty: 1, rate: 100 }
-          ]);
-        }
+      
+      const docName = params['practitioner'] || this.practitioner() || 'Dr. Susheel Bindroo';
+      const feeNum = params['fee'] ? parseFloat(params['fee']) : 1500;
+
+      if (params['name'] || params['visitId'] || params['fee']) {
+        this.billItems.set([
+          { id: '101', name: `OPD Consultation Fee (${docName})`, department: 'Consultations & OPD', qty: 1, rate: feeNum },
+          { id: '102', name: 'OP Registration & Service Fee', department: 'Front Desk', qty: 1, rate: 100 }
+        ]);
       }
     });
   }
@@ -186,33 +197,120 @@ export class OpBillingComponent implements OnInit {
   searchPatientByUhid(): void {
     const query = this.searchUhidQuery().trim().toLowerCase();
     if (!query) {
-      this.toastService.warning('Please enter UHID, Mobile Number, or Patient Name to search.');
+      this.toastService.warning('Please enter UHID, Mobile Number, Receipt No, or Patient Name to search.');
       return;
     }
 
-    const match = this.quickPatientList().find(p => 
-      p.uhid.toLowerCase().includes(query) ||
-      p.mobile.includes(query) ||
-      p.name.toLowerCase().includes(query)
-    );
+    this.apiService.get<any[]>('appointments').subscribe({
+      next: (appts) => {
+        const pastBillMatches = Array.isArray(appts) ? appts.filter(a => 
+          (a.receiptNumber && a.receiptNumber.toLowerCase().includes(query)) ||
+          (a.visitId && a.visitId.toLowerCase().includes(query)) ||
+          (a.uhid && a.uhid.toLowerCase().includes(query)) ||
+          (a.mobile && a.mobile.includes(query)) ||
+          (a.patientName && a.patientName.toLowerCase().includes(query))
+        ) : [];
 
-    if (match) {
-      this.patientName.set(match.name);
-      this.uhid.set(match.uhid);
-      this.mobile.set(match.mobile);
-      this.genderAge.set(match.ageGender);
-      this.visitId.set('OPV-2026-' + Math.floor(10000 + Math.random() * 90000));
-      if (match.doctor) this.practitioner.set(match.doctor);
-      if (match.spec) this.speciality.set(match.spec);
-      this.toastService.success(`Patient Profile Retrieved: ${match.name} (UHID: ${match.uhid})`);
-    } else {
-      const generatedUhid = query.toUpperCase().startsWith('RFH') ? query.toUpperCase() : 'RFH2026' + Math.floor(1000 + Math.random() * 9000);
-      const generatedVisitId = 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000);
-      this.patientName.set(query.toUpperCase().startsWith('RFH') ? 'Registered Patient' : query);
-      this.uhid.set(generatedUhid);
-      this.visitId.set(generatedVisitId);
-      this.toastService.success(`Active Visit & UHID Context Loaded: ${this.patientName()} (${generatedUhid})`);
+        if (pastBillMatches.length > 0 && query.startsWith('opr')) {
+          this.loadPastBillIntoScreen(pastBillMatches[0]);
+          return;
+        }
+
+        const matches = this.quickPatientList().filter(p => 
+          p.uhid.toLowerCase().includes(query) ||
+          p.mobile.includes(query) ||
+          p.name.toLowerCase().includes(query)
+        );
+
+        if (matches.length > 1) {
+          this.matchingPatients.set(matches);
+          this.matchingPatientsModal.set(true);
+          this.toastService.info(`Found ${matches.length} patients matching your query. Please select one.`);
+        } else if (matches.length === 1) {
+          this.selectPatientForBilling(matches[0]);
+        } else if (pastBillMatches.length > 0) {
+          this.loadPastBillIntoScreen(pastBillMatches[0]);
+        } else {
+          const generatedUhid = query.toUpperCase().startsWith('RFH') ? query.toUpperCase() : 'RFH2026' + Math.floor(1000 + Math.random() * 9000);
+          const generatedVisitId = 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000);
+          this.patientName.set(query.toUpperCase().startsWith('RFH') ? 'Registered Patient' : query);
+          this.uhid.set(generatedUhid);
+          this.visitId.set(generatedVisitId);
+          this.toastService.success(`Active Visit & UHID Context Loaded: ${this.patientName()} (${generatedUhid})`);
+        }
+      },
+      error: () => {
+        const matches = this.quickPatientList().filter(p => 
+          p.uhid.toLowerCase().includes(query) ||
+          p.mobile.includes(query) ||
+          p.name.toLowerCase().includes(query)
+        );
+        if (matches.length > 0) {
+          this.selectPatientForBilling(matches[0]);
+        }
+      }
+    });
+  }
+
+  openPastBillsModal(): void {
+    this.apiService.get<any[]>('appointments').subscribe({
+      next: (data) => {
+        if (Array.isArray(data)) {
+          const billed = data.filter(a => a.isBilled || a.status === 'BILLED' || a.status === 'CANCELLED' || a.receiptNumber);
+          this.pastBillsList.set(billed.reverse());
+        } else {
+          this.pastBillsList.set([]);
+        }
+        this.showPastBillsModal.set(true);
+      },
+      error: () => {
+        this.pastBillsList.set([]);
+        this.showPastBillsModal.set(true);
+      }
+    });
+  }
+
+  loadPastBillIntoScreen(bill: any, openCancelModalImmediate: boolean = false): void {
+    this.patientName.set(bill.patientName || 'Patient');
+    this.uhid.set(bill.uhid || 'RFH2026' + Math.floor(1000 + Math.random() * 9000));
+    this.mobile.set(bill.mobile ? bill.mobile.replace(/\+91\s?/, '') : '');
+    this.visitId.set(bill.visitId || 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000));
+    this.practitioner.set(bill.practitioner || 'General OPD Clinic');
+    this.receiptNumber.set(bill.receiptNumber || 'OPR-2026-' + Math.floor(10000 + Math.random() * 90000));
+    this.receiptDate.set(bill.bookedOn ? new Date(bill.bookedOn).toLocaleString() : new Date().toLocaleString());
+    this.isBillCancelled.set(bill.status === 'CANCELLED');
+
+    const feeAmount = bill.fee || 1500;
+    this.billItems.set([
+      { id: '1', name: `OP Consultation & Service (${bill.practitioner || 'OPD Clinic'})`, department: 'OPD Clinic', qty: 1, rate: feeAmount }
+    ]);
+
+    this.showPastBillsModal.set(false);
+    this.toastService.success(`Loaded Previous Bill Receipt (${this.receiptNumber()}) for ${this.patientName()}`);
+
+    if (openCancelModalImmediate) {
+      this.openCancelBillModal();
     }
+  }
+
+  selectPatientForBilling(patient: any): void {
+    this.patientName.set(patient.name);
+    this.uhid.set(patient.uhid);
+    this.mobile.set(patient.mobile);
+    this.genderAge.set(patient.ageGender || '30 Y / Male');
+    this.visitId.set('OPV-2026-' + Math.floor(10000 + Math.random() * 90000));
+    if (patient.doctor) this.practitioner.set(patient.doctor);
+    if (patient.spec) this.speciality.set(patient.spec);
+    this.matchingPatientsModal.set(false);
+
+    // Preselect OPD Consult service item when patient is selected for billing
+    const docName = patient.doctor || 'Dr. Susheel Bindroo';
+    this.billItems.set([
+      { id: '101', name: `OPD Consultation Fee (${docName})`, department: 'Consultations & OPD', qty: 1, rate: 1500 },
+      { id: '102', name: 'OP Registration & Service Fee', department: 'Front Desk', qty: 1, rate: 100 }
+    ]);
+
+    this.toastService.success(`Patient Selected: ${patient.name} (${patient.uhid}) - Preselected OPD Consult`);
   }
 
   selectPatientFromQuickList(uhidVal: string): void {
@@ -262,9 +360,100 @@ export class OpBillingComponent implements OnInit {
   processPayment(): void {
     const recNo = 'OPR-2026-' + Math.floor(10000 + Math.random() * 90000);
     this.receiptNumber.set(recNo);
-    this.receiptDate.set(new Date().toLocaleString());
+    const now = new Date();
+    this.receiptDate.set(now.toLocaleString());
+    this.isBillCancelled.set(false);
+
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const dateStr = `${days[now.getDay()]} ${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]}`;
+    let hours = now.getHours();
+    const mins = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    const timeStr = `${hours.toString().padStart(2, '0')}:${mins} ${ampm}`;
+
+    const billedRecord = {
+      uhid: this.uhid(),
+      patientName: this.patientName(),
+      mobile: this.mobile(),
+      visitId: this.visitId(),
+      practitioner: this.practitioner(),
+      fee: this.netAmountPayable(),
+      status: 'BILLED',
+      isBilled: true,
+      receiptNumber: recNo,
+      dateStr: dateStr,
+      time: timeStr,
+      type: 'OP',
+      description: `OP Billing Completed (${recNo})`,
+      bookedOn: now.toISOString()
+    };
+    this.apiService.post('appointments', billedRecord).subscribe();
+
     this.showReceiptModal.set(true);
     this.toastService.success(`OP Consultation Payment Processed Successfully! Receipt No: ${recNo}`);
+  }
+
+  openCancelBillModal(): void {
+    if (!this.receiptNumber() && !this.uhid()) {
+      this.toastService.warning('Please select a billed patient or generate a receipt first to cancel.');
+      return;
+    }
+    this.showCancelBillModal.set(true);
+  }
+
+  resetBillingState(): void {
+    this.patientName.set('');
+    this.uhid.set('');
+    this.visitId.set('');
+    this.mobile.set('');
+    this.genderAge.set('');
+    this.practitioner.set('');
+    this.speciality.set('');
+    this.receiptNumber.set('');
+    this.receiptDate.set('');
+    this.searchUhidQuery.set('');
+    this.billItems.set([]);
+    this.isBillCancelled.set(false);
+    this.selectedServiceCategory.set('All Departments');
+    this.selectedServiceId.set('');
+  }
+
+  confirmCancelBill(): void {
+    if (!this.cancelReason()) {
+      this.toastService.warning('Please select a reason for bill cancellation.');
+      return;
+    }
+
+    const recNo = this.receiptNumber() || 'OPR-2026-REFUND';
+    const pName = this.patientName() || 'Patient';
+    const refundFee = this.netAmountPayable();
+
+    if (this.visitId()) {
+      this.apiService.get<any[]>('appointments').subscribe({
+        next: (appts) => {
+          if (Array.isArray(appts)) {
+            const match = appts.find(a => a.visitId === this.visitId() || a.uhid === this.uhid());
+            if (match && match.id) {
+              this.apiService.put(`appointments/${match.id}`, {
+                ...match,
+                status: 'CANCELLED',
+                statusCode: 'CANCELLED',
+                isBilled: false,
+                cancellationReason: this.cancelReason(),
+                cancelledAt: new Date().toISOString()
+              }).subscribe();
+            }
+          }
+        }
+      });
+    }
+
+    this.showCancelBillModal.set(false);
+    this.showReceiptModal.set(false);
+    this.resetBillingState();
+    this.toastService.success(`Bill Receipt (${recNo}) for ${pName} Voided & Refund of INR ${refundFee} Processed! Billing screen cleared.`);
   }
 
   closeReceipt(): void {

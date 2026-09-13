@@ -159,10 +159,12 @@
                   <td class="p-2 text-[#555555]">{{ patient.city }}</td>
                   <td class="p-2 text-[#555555] whitespace-nowrap">{{ patient.lastVisit }}</td>
                   <td class="p-2 text-right whitespace-nowrap space-x-1">
-                    <button (click)="openPatientPdf(patient)" title="View Patient Case Paper PDF & Auto Mark Arrival" class="px-2 py-0.5 bg-[#d93848] text-white rounded-[2px] text-[10px] font-semibold hover:bg-[#c22d3d] cursor-pointer inline-flex items-center space-x-1">
-                      <i class="fa-solid fa-file-pdf text-[10px]"></i>
-                      <span>PDF</span>
-                    </button>
+                    @if (isPatientBilled(patient)) {
+                      <button (click)="openPatientPdf(patient)" title="View Patient Case Paper PDF" class="px-2 py-0.5 bg-[#d93848] text-white rounded-[2px] text-[10px] font-semibold hover:bg-[#c22d3d] cursor-pointer inline-flex items-center space-x-1">
+                        <i class="fa-solid fa-file-pdf text-[10px]"></i>
+                        <span>PDF</span>
+                      </button>
+                    }
                     <button (click)="markArrival(patient)" title="Record Patient Desk Arrival & Create Visit" class="px-2 py-0.5 bg-[#059669] text-white rounded-[2px] text-[10px] font-semibold hover:bg-[#047857] cursor-pointer">
                       <i class="fa-solid fa-location-dot mr-1"></i>Mark Arrival
                     </button>

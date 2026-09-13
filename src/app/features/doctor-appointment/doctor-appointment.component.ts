@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, ViewChild, ViewChildren, ElementRef, QueryList } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -11,12 +11,11 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
 import { SubheaderComponent } from '../../shared/components/subheader/subheader.component';
 import { UhidFormatPipe } from '../../shared/pipes/uhid-format.pipe';
 import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
-import { PriorityHighlightDirective } from '../../shared/directives/priority-highlight.directive';
-import { CardContainerComponent, CardHeaderDirective, CardBodyDirective, CardFooterDirective } from '../../shared/components/card-container/card-container.component';
+import { CardContainerComponent, CardHeaderDirective, CardBodyDirective } from '../../shared/components/card-container/card-container.component';
 
 export interface TimeSlot {
   time: string;
-  type: 'walkin' | 'normal' | 'emergency' | 'blocked' | 'priority' | 'premium' | 'free' | 'phc';
+  type: 'walkin' | 'normal' | 'emergency' | 'blocked' | 'premium' | 'free' | 'phc';
   isBooked?: boolean;
   isAvailable?: boolean;
   patientName?: string;
@@ -51,7 +50,6 @@ export interface HospitalServiceItem {
     SubheaderComponent,
     UhidFormatPipe,
     InrCurrencyPipe,
-    PriorityHighlightDirective,
     CardContainerComponent,
     CardHeaderDirective,
     CardBodyDirective
@@ -59,10 +57,9 @@ export interface HospitalServiceItem {
   templateUrl: './doctor-appointment.component.html'
 })
 export class DoctorAppointmentComponent implements OnInit {
-  // @ViewChild and @ViewChildren references
+  // @ViewChild references
   @ViewChild('patientSearchInput') patientSearchInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('patientSelect') patientSelectRef?: ElementRef<HTMLSelectElement>;
-  @ViewChildren(PriorityHighlightDirective) prioritySlotDirectives!: QueryList<PriorityHighlightDirective>;
 
   focusSearchInput(): void {
     if (this.patientSearchInputRef?.nativeElement) {
@@ -89,7 +86,7 @@ export class DoctorAppointmentComponent implements OnInit {
   selectedSpeciality = signal<string>('All');
   selectedPractitioner = signal<string>('all');
   selectedMode = signal<string>('OP');
-  selectedService = signal<string>('');
+  selectedService = signal<string>('General OPD');
   payorType = signal<string>('Self');
 
   // Service Appointment Signals & State
@@ -97,13 +94,56 @@ export class DoctorAppointmentComponent implements OnInit {
   selectedServices = signal<HospitalServiceItem[]>([]);
 
   // Calendar State
-  currentYear = signal<number>(2026);
-  currentMonth = signal<number>(8); // September (0-indexed: 8)
-  selectedDate = signal<number>(12);
+  private todayNow = new Date();
+  currentYear = signal<number>(this.todayNow.getFullYear());
+  currentMonth = signal<number>(this.todayNow.getMonth());
+  selectedDate = signal<number>(this.todayNow.getDate());
 
   monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   shortDayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   shortMonthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+  isPastDate(dayNum: number): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(this.currentYear(), this.currentMonth(), dayNum, 0, 0, 0, 0);
+    return target < today;
+  }
+
+  getSlotDateTime(dayDate: Date, timeStr: string): Date {
+    const parts = timeStr.split(' ');
+    const time = parts[0];
+    const modifier = parts[1] || 'AM';
+    let [hours, minutes] = time.split(':').map(Number);
+    if (modifier === 'PM' && hours < 12) hours += 12;
+    if (modifier === 'AM' && hours === 12) hours = 0;
+    return new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate(), hours, minutes, 0, 0);
+  }
+
+  parseSlotDateTime(dateLabel: string, timeStr: string): Date | null {
+    if (!dateLabel || !timeStr) return null;
+    const parts = dateLabel.trim().split(/\s+/);
+    if (parts.length >= 3) {
+      const dayNum = parseInt(parts[1], 10);
+      const monthStr = parts[2].toUpperCase();
+      const monthIndex = this.shortMonthNames.indexOf(monthStr);
+      let year = this.currentYear();
+      if (parts.length >= 4 && !isNaN(parseInt(parts[3], 10))) {
+        year = parseInt(parts[3], 10);
+      }
+      if (monthIndex !== -1 && !isNaN(dayNum)) {
+        const dayDate = new Date(year, monthIndex, dayNum);
+        return this.getSlotDateTime(dayDate, timeStr);
+      }
+    }
+    return null;
+  }
+
+  isSlotInPast(dateLabel: string, timeStr: string): boolean {
+    const slotDt = this.parseSlotDateTime(dateLabel, timeStr);
+    if (!slotDt) return false;
+    return slotDt < new Date();
+  }
 
   get daysInCurrentMonth(): number[] {
     const totalDays = new Date(this.currentYear(), this.currentMonth() + 1, 0).getDate();
@@ -120,14 +160,36 @@ export class DoctorAppointmentComponent implements OnInit {
     return padding;
   }
 
+  selectDate(dayNum: number): void {
+    if (this.isPastDate(dayNum)) {
+      this.toastService.warning('Past dates cannot be selected for appointment booking.');
+      return;
+    }
+    this.selectedDate.set(dayNum);
+  }
+
   prevMonth(): void {
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+    
+    if (this.currentYear() === curYear && this.currentMonth() <= curMonth) {
+      this.toastService.warning('Cannot navigate to past months for appointment booking.');
+      return;
+    }
+
     if (this.currentMonth() === 0) {
       this.currentMonth.set(11);
       this.currentYear.update(y => y - 1);
     } else {
       this.currentMonth.update(m => m - 1);
     }
-    this.selectedDate.set(1);
+
+    if (this.currentYear() === curYear && this.currentMonth() === curMonth) {
+      this.selectedDate.set(now.getDate());
+    } else {
+      this.selectedDate.set(1);
+    }
   }
 
   nextMonth(): void {
@@ -145,6 +207,18 @@ export class DoctorAppointmentComponent implements OnInit {
   showBookingModal = signal<boolean>(false);
   patientName = signal<string>('');
   patientMobile = signal<string>('');
+
+  allAvailableTimes: string[] = [
+    '09:00 AM', '09:15 AM', '09:30 AM', '09:45 AM',
+    '10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM',
+    '11:00 AM', '11:15 AM', '11:30 AM', '11:45 AM',
+    '12:00 PM', '12:15 PM', '12:30 PM', '12:45 PM',
+    '01:00 PM', '01:15 PM', '01:30 PM', '01:45 PM',
+    '02:00 PM', '02:15 PM', '02:30 PM', '02:45 PM',
+    '03:00 PM', '03:15 PM', '03:30 PM', '03:45 PM',
+    '04:00 PM', '04:15 PM', '04:30 PM', '04:45 PM',
+    '05:00 PM', '05:30 PM', '06:00 PM'
+  ];
 
   practitioners: Practitioner[] = [
     { id: '1', name: 'Dr. Susheel Bindroo', speciality: 'Pulmonology', fee: 1500 },
@@ -269,7 +343,7 @@ export class DoctorAppointmentComponent implements OnInit {
           { time: '09:00 AM', type: 'walkin', isAvailable: true },
           { time: '09:15 AM', type: 'normal', isAvailable: true },
           { time: '09:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Pulmonary OPD Followup' },
-          { time: '10:00 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'VIP Priority Consult' },
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'emergency', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Acute Asthma Emergency' },
           { time: '11:00 AM', type: 'premium', isAvailable: true },
           { time: '11:30 AM', type: 'normal', isAvailable: true },
@@ -282,7 +356,7 @@ export class DoctorAppointmentComponent implements OnInit {
         dateLabel: 'SUN 13 SEP',
         slots: [
           { time: '10:00 AM', type: 'normal', isAvailable: true },
-          { time: '10:30 AM', type: 'priority', isAvailable: false, isBooked: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'Priority Chest Consult' },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:00 AM', type: 'normal', isAvailable: true },
           { time: '11:30 AM', type: 'premium', isAvailable: true },
           { time: '02:00 PM', type: 'emergency', isAvailable: false, isBooked: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Bronchoscopy Review' }
@@ -293,7 +367,7 @@ export class DoctorAppointmentComponent implements OnInit {
         slots: [
           { time: '09:00 AM', type: 'normal', isAvailable: true },
           { time: '09:30 AM', type: 'normal', isAvailable: true },
-          { time: '10:00 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Priority OPD Overbook' },
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'walkin', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Walkin Consultation' },
           { time: '11:00 AM', type: 'normal', isAvailable: true }
         ]
@@ -307,9 +381,9 @@ export class DoctorAppointmentComponent implements OnInit {
         slots: [
           { time: '08:30 AM', type: 'normal', isAvailable: true },
           { time: '09:00 AM', type: 'normal', isAvailable: true },
-          { time: '09:30 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Cardiology Priority' },
+          { time: '09:30 AM', type: 'normal', isAvailable: true },
           { time: '10:00 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'ECG & Echo Review' },
-          { time: '10:30 AM', type: 'priority', isAvailable: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'Priority Cardiac Overbook' },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:00 AM', type: 'premium', isAvailable: true },
           { time: '11:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Hypertension Followup' },
           { time: '02:30 PM', type: 'normal', isAvailable: true },
@@ -320,7 +394,7 @@ export class DoctorAppointmentComponent implements OnInit {
         dateLabel: 'SUN 13 SEP',
         slots: [
           { time: '09:00 AM', type: 'normal', isAvailable: true },
-          { time: '09:30 AM', type: 'priority', isAvailable: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Urgent Cardiac Review' },
+          { time: '09:30 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Angiography Followup' },
           { time: '11:30 AM', type: 'premium', isAvailable: true }
         ]
@@ -329,7 +403,7 @@ export class DoctorAppointmentComponent implements OnInit {
         dateLabel: 'MON 14 SEP',
         slots: [
           { time: '08:30 AM', type: 'normal', isAvailable: true },
-          { time: '09:30 AM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Priority Cardiac Punch' },
+          { time: '09:30 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'TMT Test Review' }
         ]
@@ -344,19 +418,19 @@ export class DoctorAppointmentComponent implements OnInit {
           { time: '09:30 AM', type: 'normal', isAvailable: true },
           { time: '10:00 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'General OPD Consult' },
-          { time: '11:00 AM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Priority OPD Slot' },
+          { time: '11:00 AM', type: 'normal', isAvailable: true },
           { time: '11:30 AM', type: 'normal', isAvailable: true },
           { time: '12:00 PM', type: 'premium', isAvailable: true },
           { time: '02:00 PM', type: 'walkin', isAvailable: true },
           { time: '02:30 PM', type: 'normal', isAvailable: true },
-          { time: '03:00 PM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Fever Clinic Priority' }
+          { time: '03:00 PM', type: 'normal', isAvailable: true }
         ]
       },
       {
         dateLabel: 'SUN 13 SEP',
         slots: [
           { time: '10:00 AM', type: 'normal', isAvailable: true },
-          { time: '10:30 AM', type: 'priority', isAvailable: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Priority Wellness' },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:00 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'General Health Review' }
         ]
       },
@@ -364,7 +438,7 @@ export class DoctorAppointmentComponent implements OnInit {
         dateLabel: 'MON 14 SEP',
         slots: [
           { time: '09:30 AM', type: 'normal', isAvailable: true },
-          { time: '10:30 AM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Priority Followup' },
+          { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:30 AM', type: 'normal', isAvailable: true }
         ]
       }
@@ -376,18 +450,18 @@ export class DoctorAppointmentComponent implements OnInit {
         dateLabel: 'SAT 12 SEP',
         slots: [
           { time: '09:00 AM', type: 'normal', isAvailable: true },
-          { time: '09:45 AM', type: 'priority', isAvailable: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'Spine Special Consult' },
+          { time: '09:45 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:15 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Joint Pain OPD' },
           { time: '02:00 PM', type: 'walkin', isAvailable: true },
-          { time: '02:45 PM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Fracture Review Priority' },
+          { time: '02:45 PM', type: 'normal', isAvailable: true },
           { time: '03:30 PM', type: 'normal', isAvailable: true }
         ]
       },
       {
         dateLabel: 'SUN 13 SEP',
         slots: [
-          { time: '09:45 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Knee Rehab Priority' },
+          { time: '09:45 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:15 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Orthopedic Consult' }
         ]
@@ -396,7 +470,7 @@ export class DoctorAppointmentComponent implements OnInit {
         dateLabel: 'MON 14 SEP',
         slots: [
           { time: '09:00 AM', type: 'normal', isAvailable: true },
-          { time: '09:45 AM', type: 'priority', isAvailable: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Priority Ortho Slot' },
+          { time: '09:45 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'normal', isAvailable: true }
         ]
       }
@@ -410,23 +484,23 @@ export class DoctorAppointmentComponent implements OnInit {
           { time: '10:00 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:00 AM', type: 'normal', isAvailable: false, isBooked: true, patientName: 'Anuradha Jadhav', patientUhid: 'RFH2026003', patientMobile: '9765432109', reason: 'Pediatric Vaccine OPD' },
-          { time: '11:30 AM', type: 'priority', isAvailable: true, patientName: 'Mohd. Zubair Qureshi', patientUhid: 'RFH2026002', patientMobile: '9819283746', reason: 'Priority Child Care' },
+          { time: '11:30 AM', type: 'normal', isAvailable: true },
           { time: '03:00 PM', type: 'walkin', isAvailable: true },
-          { time: '03:30 PM', type: 'priority', isAvailable: true, patientName: 'Jagdish Ramji Thakkar', patientUhid: 'RFH2026001', patientMobile: '9820198201', reason: 'Pediatric Emergency' }
+          { time: '03:30 PM', type: 'normal', isAvailable: true }
         ]
       },
       {
         dateLabel: 'SUN 13 SEP',
         slots: [
           { time: '10:00 AM', type: 'normal', isAvailable: true },
-          { time: '10:30 AM', type: 'priority', isAvailable: true, patientName: 'Pooja Dhanecha', patientUhid: 'RFH2026005', patientMobile: '9123456789', reason: 'Child Growth Consult' }
+          { time: '10:30 AM', type: 'normal', isAvailable: true }
         ]
       },
       {
         dateLabel: 'MON 14 SEP',
         slots: [
           { time: '10:00 AM', type: 'normal', isAvailable: true },
-          { time: '11:00 AM', type: 'priority', isAvailable: true, patientName: 'Mr. PRATHAMESH SHASHANK KHOCHADE', patientUhid: 'RFH23241854', patientMobile: '9892011223', reason: 'Pediatric Priority' }
+          { time: '11:00 AM', type: 'normal', isAvailable: true }
         ]
       }
     ]
@@ -440,7 +514,7 @@ export class DoctorAppointmentComponent implements OnInit {
         { time: '09:00 AM', type: 'walkin', isAvailable: true },
         { time: '09:15 AM', type: 'normal', isAvailable: true },
         { time: '09:30 AM', type: 'normal', isAvailable: false, isBooked: true },
-        { time: '10:00 AM', type: 'priority', isAvailable: true },
+        { time: '10:00 AM', type: 'normal', isAvailable: true },
         { time: '10:30 AM', type: 'emergency', isAvailable: false, isBooked: true },
         { time: '11:00 AM', type: 'premium', isAvailable: true },
         { time: '11:30 AM', type: 'normal', isAvailable: true }
@@ -450,7 +524,7 @@ export class DoctorAppointmentComponent implements OnInit {
       dateLabel: 'SUN 13 SEP',
       slots: [
         { time: '10:00 AM', type: 'normal', isAvailable: true },
-        { time: '10:30 AM', type: 'priority', isAvailable: false, isBooked: true },
+        { time: '10:30 AM', type: 'normal', isAvailable: true },
         { time: '11:00 AM', type: 'normal', isAvailable: true }
       ]
     },
@@ -458,7 +532,7 @@ export class DoctorAppointmentComponent implements OnInit {
       dateLabel: 'MON 14 SEP',
       slots: [
         { time: '09:00 AM', type: 'normal', isAvailable: true },
-        { time: '10:00 AM', type: 'priority', isAvailable: true }
+        { time: '10:00 AM', type: 'normal', isAvailable: true }
       ]
     }
   ];
@@ -471,7 +545,7 @@ export class DoctorAppointmentComponent implements OnInit {
         { time: '08:00 AM', type: 'normal', isAvailable: true },
         { time: '08:30 AM', type: 'normal', isAvailable: false, isBooked: true },
         { time: '09:00 AM', type: 'normal', isAvailable: true },
-        { time: '10:00 AM', type: 'priority', isAvailable: true },
+        { time: '10:00 AM', type: 'normal', isAvailable: true },
         { time: '11:00 AM', type: 'normal', isAvailable: true },
         { time: '11:30 AM', type: 'emergency', isAvailable: false, isBooked: true },
         { time: '01:00 PM', type: 'premium', isAvailable: true },
@@ -484,7 +558,7 @@ export class DoctorAppointmentComponent implements OnInit {
       slots: [
         { time: '08:30 AM', type: 'normal', isAvailable: true },
         { time: '09:30 AM', type: 'normal', isAvailable: false, isBooked: true },
-        { time: '10:30 AM', type: 'priority', isAvailable: true },
+        { time: '10:30 AM', type: 'normal', isAvailable: true },
         { time: '11:30 AM', type: 'normal', isAvailable: true },
         { time: '02:00 PM', type: 'emergency', isAvailable: false, isBooked: true }
       ]
@@ -494,7 +568,7 @@ export class DoctorAppointmentComponent implements OnInit {
       slots: [
         { time: '08:00 AM', type: 'normal', isAvailable: true },
         { time: '09:00 AM', type: 'normal', isAvailable: true },
-        { time: '10:00 AM', type: 'priority', isAvailable: true },
+        { time: '10:00 AM', type: 'normal', isAvailable: true },
         { time: '11:00 AM', type: 'normal', isAvailable: false, isBooked: true },
         { time: '02:00 PM', type: 'premium', isAvailable: true },
         { time: '03:30 PM', type: 'free', isAvailable: false, isBooked: true }
@@ -508,6 +582,7 @@ export class DoctorAppointmentComponent implements OnInit {
     const year = this.currentYear();
     const isService = this.appointmentType() === 'service';
     const docId = this.selectedPractitioner();
+    const now = new Date();
 
     // Base date selected on calendar
     const baseDate = new Date(year, month, selDay);
@@ -528,15 +603,13 @@ export class DoctorAppointmentComponent implements OnInit {
       const dateLabel = `${dayName} ${dayNum} ${monthName}`;
 
       // Check if existingDays already has schedule for this dateLabel
-      const existing = existingDays.find(ed => ed.dateLabel === dateLabel);
-      if (existing) {
-        resultDays.push(existing);
-      } else {
+      let targetDay = existingDays.find(ed => ed.dateLabel === dateLabel);
+      if (!targetDay) {
         // Create new dynamic schedule day for future date
         const newSlots: TimeSlot[] = [
           { time: '09:00 AM', type: 'walkin', isAvailable: true },
           { time: '09:30 AM', type: 'normal', isAvailable: true },
-          { time: '10:00 AM', type: 'priority', isAvailable: true },
+          { time: '10:00 AM', type: 'normal', isAvailable: true },
           { time: '10:30 AM', type: 'normal', isAvailable: true },
           { time: '11:00 AM', type: 'premium', isAvailable: true },
           { time: '11:30 AM', type: 'normal', isAvailable: true },
@@ -546,10 +619,24 @@ export class DoctorAppointmentComponent implements OnInit {
           { time: '03:30 PM', type: 'free', isAvailable: true }
         ];
 
-        const newDay = { dateLabel, slots: newSlots };
-        existingDays.push(newDay);
-        resultDays.push(newDay);
+        targetDay = { dateLabel, slots: newSlots };
+        existingDays.push(targetDay);
       }
+
+      // Map slots to update availability based on whether slot time is in the past
+      const updatedSlots = targetDay.slots.map(slot => {
+        const slotDt = this.getSlotDateTime(d, slot.time);
+        const isPast = slotDt < now;
+        return {
+          ...slot,
+          isAvailable: !slot.isBooked && slot.type !== 'blocked' && !isPast
+        };
+      });
+
+      resultDays.push({
+        dateLabel,
+        slots: updatedSlots
+      });
     }
 
     return resultDays;
@@ -629,22 +716,21 @@ export class DoctorAppointmentComponent implements OnInit {
   getSlotPatientName(slot: TimeSlot): string {
     if (slot.patientName) return slot.patientName;
     if (this.activeSelectedPatientInfo()) return this.activeSelectedPatientInfo()!.name;
-    if (slot.type === 'priority') return 'Mohd. Zubair Qureshi';
-    return 'Jagdish Ramji Thakkar';
+    if (this.patientName()) return this.patientName();
+    return 'Registered Patient';
   }
 
   getSlotPatientUhid(slot: TimeSlot): string {
     if (slot.patientUhid) return slot.patientUhid;
     if (this.activeSelectedPatientInfo()) return this.activeSelectedPatientInfo()!.uhid;
-    if (slot.type === 'priority') return 'RFH2026002';
-    return 'RFH2026001';
+    return 'RFH2026' + Math.floor(1000 + Math.random() * 9000);
   }
 
   getSlotPatientMobile(slot: TimeSlot): string {
     if (slot.patientMobile) return slot.patientMobile;
     if (this.activeSelectedPatientInfo()) return this.activeSelectedPatientInfo()!.mobile;
-    if (slot.type === 'priority') return '9819283746';
-    return '9820198201';
+    if (this.patientMobile()) return this.patientMobile();
+    return this.mobileNo() || '9820198201';
   }
 
   ngOnInit(): void {
@@ -668,14 +754,17 @@ export class DoctorAppointmentComponent implements OnInit {
       }
     });
 
-    // Check for query parameters passed from Magic Search
+    // Check for query parameters passed from Magic Search or Registration
     this.route.queryParams.subscribe(params => {
       if (params['mobile']) {
         this.mobileNo.set(params['mobile']);
       }
       if (params['name']) {
-        this.onSelectPatientChange(params['name']);
-        this.toastService.info(`Loaded patient "${params['name']}" for appointment booking.`);
+        const nameVal = params['name'];
+        const uhidVal = params['uhid'] ? ` (${params['uhid']})` : '';
+        const fullSel = nameVal.includes('(') ? nameVal : `${nameVal}${uhidVal}`;
+        this.onSelectPatientChange(fullSel);
+        this.toastService.info(`Loaded patient "${nameVal}" for appointment booking.`);
       }
     });
 
@@ -812,10 +901,6 @@ export class DoctorAppointmentComponent implements OnInit {
   quickCity = signal<string>('Mumbai');
   quickPayor = signal<string>('Self');
 
-  selectDate(day: number): void {
-    this.selectedDate.set(day);
-    this.toastService.info(`Selected date: ${day} ${this.monthNames[this.currentMonth()]} ${this.currentYear()}`);
-  }
 
   searchPatientByPhone(): void {
     const val = this.mobileNo().trim();
@@ -941,7 +1026,7 @@ export class DoctorAppointmentComponent implements OnInit {
     const doc = this.practitioners.find(p => p.id === this.selectedPractitioner()) || this.practitioners[0];
 
     // If slot is booked, open Cancel & Release Slot modal!
-    if (slot.isBooked || (!slot.isAvailable && slot.type !== 'blocked')) {
+    if (slot.isBooked) {
       const patientNameVal = this.getSlotPatientName(slot);
       const patientUhidVal = this.getSlotPatientUhid(slot);
       const patientMobileVal = this.getSlotPatientMobile(slot);
@@ -956,6 +1041,11 @@ export class DoctorAppointmentComponent implements OnInit {
         fee: doc.fee
       });
       this.showCancelSlotModal.set(true);
+      return;
+    }
+
+    if (this.isSlotInPast(dateLabel, slot.time)) {
+      this.toastService.warning('Past time slots cannot be booked for appointments.');
       return;
     }
 
@@ -977,6 +1067,16 @@ export class DoctorAppointmentComponent implements OnInit {
       summary = selectedSrvs.length > 0
         ? selectedSrvs.map(s => s.name).join(', ')
         : 'General Diagnostics & OPD Service';
+    }
+
+    const selInfo = this.activeSelectedPatientInfo();
+    if (selInfo) {
+      this.patientName.set(selInfo.name);
+      this.patientMobile.set(selInfo.mobile || this.mobileNo());
+    } else if (this.selectedPatient()) {
+      const matchGroup = this.selectedPatient().match(/^(.*?)\s*\((.*?)\)$/);
+      this.patientName.set(matchGroup ? matchGroup[1].trim() : this.selectedPatient());
+      if (this.mobileNo()) this.patientMobile.set(this.mobileNo());
     }
 
     this.selectedSlot.set({
@@ -1017,11 +1117,11 @@ export class DoctorAppointmentComponent implements OnInit {
     const slot = this.selectedSlot();
     if (!slot) return;
 
-    const patientNameVal = this.selectedPatient() || this.patientName() || 'Walk-in Patient';
-    const patientUhidVal = this.activeSelectedPatientInfo()?.uhid || ('RFH2026' + Math.floor(1000 + Math.random() * 9000));
-    const patientMobileVal = this.mobileNo() || this.patientMobile() || '9820198201';
+    const selInfo = this.activeSelectedPatientInfo();
+    const finalPatientName = this.patientName().trim() || selInfo?.name || this.selectedPatient() || 'Walk-in Patient';
+    const finalPatientUhid = selInfo?.uhid || ('RFH2026' + Math.floor(1000 + Math.random() * 9000));
+    const finalPatientMobile = this.patientMobile().trim() || selInfo?.mobile || this.mobileNo() || '9820198201';
 
-    // Find slot in active scheduleDays and mark as booked & unavailable with full patient details
     const activeDays = this.scheduleDays();
     for (const day of activeDays) {
       if (day.dateLabel === slot.dateStr) {
@@ -1029,9 +1129,9 @@ export class DoctorAppointmentComponent implements OnInit {
         if (target) {
           target.isAvailable = false;
           target.isBooked = true;
-          target.patientName = patientNameVal;
-          target.patientUhid = patientUhidVal;
-          target.patientMobile = patientMobileVal;
+          target.patientName = finalPatientName;
+          target.patientUhid = finalPatientUhid;
+          target.patientMobile = finalPatientMobile;
           target.reason = slot.servicesSummary || 'OPD Consultation';
         }
       }
@@ -1042,8 +1142,9 @@ export class DoctorAppointmentComponent implements OnInit {
     const newAppointment = {
       dateStr: slot.dateStr,
       time: slot.time,
-      patientName: this.selectedPatient() || this.patientName() || 'Walk-in Patient',
-      mobile: this.mobileNo() || this.patientMobile() || '9820198201',
+      patientName: finalPatientName,
+      uhid: finalPatientUhid,
+      mobile: finalPatientMobile,
       practitioner: slot.practitioner,
       fee: slot.fee,
       status: markArrival ? 'ARRIVED AT DESK' : 'CONFIRMED',
@@ -1071,7 +1172,7 @@ export class DoctorAppointmentComponent implements OnInit {
       this.router.navigate(['/op-billing'], {
         queryParams: {
           name: newAppointment.patientName,
-          uhid: 'RFH2026' + Math.floor(1000 + Math.random() * 9000),
+          uhid: finalPatientUhid,
           visitId: visitId,
           practitioner: slot.practitioner,
           fee: slot.fee
@@ -1079,105 +1180,6 @@ export class DoctorAppointmentComponent implements OnInit {
       });
     } else {
       this.toastService.success(`Appointment confirmed for ${slot.dateStr} at ${slot.time}! Stored in Worklist.`);
-    }
-  }
-
-  // Priority Slot Punching State
-  showPrioritySlotModal = signal<boolean>(false);
-  priorityDateLabel = signal<string>('SAT 12 SEP');
-  priorityTime = signal<string>('10:15 AM');
-  priorityReason = signal<string>('VIP Overbook / Emergency');
-  priorityPatientName = signal<string>('');
-  priorityPatientMobile = signal<string>('');
-  priorityPractitioner = signal<string>('Dr. Susheel Bindroo');
-
-  createPrioritySlot(): void {
-    const docId = this.selectedPractitioner();
-    const doc = this.practitioners.find(p => p.id === docId);
-    if (doc) {
-      this.priorityPractitioner.set(doc.name);
-    } else {
-      this.priorityPractitioner.set('Dr. Susheel Bindroo');
-    }
-
-    if (this.selectedPatient()) {
-      const info = this.activeSelectedPatientInfo();
-      if (info) {
-        this.priorityPatientName.set(info.name);
-        this.priorityPatientMobile.set(info.mobile);
-      }
-    } else {
-      this.priorityPatientName.set('');
-      this.priorityPatientMobile.set('');
-    }
-
-    this.showPrioritySlotModal.set(true);
-  }
-
-  savePrioritySlot(autoBook: boolean = false): void {
-    const timeVal = this.priorityTime().trim();
-    const dateLabel = this.priorityDateLabel();
-    const practitionerName = this.priorityPractitioner();
-
-    if (!timeVal) {
-      this.toastService.warning('Please specify time for the priority slot.');
-      return;
-    }
-
-    const activeDays = this.scheduleDays();
-    const targetDay = activeDays.find(d => d.dateLabel === dateLabel);
-
-    const patientNameVal = this.priorityPatientName().trim() || this.selectedPatient() || 'VIP Priority Patient';
-    const mobVal = this.priorityPatientMobile().trim() || this.mobileNo() || '9820198201';
-    const uhidVal = this.activeSelectedPatientInfo()?.uhid || 'RFH2026002';
-
-    if (targetDay) {
-      const newSlot: TimeSlot = {
-        time: timeVal,
-        type: 'priority',
-        isAvailable: !autoBook,
-        isBooked: autoBook,
-        patientName: autoBook ? patientNameVal : undefined,
-        patientUhid: autoBook ? uhidVal : undefined,
-        patientMobile: autoBook ? mobVal : undefined,
-        reason: this.priorityReason() || 'Priority Consult'
-      };
-
-      // Add priority slot to target day
-      targetDay.slots.unshift(newSlot);
-    }
-
-    if (autoBook) {
-      const patient = this.priorityPatientName().trim() || this.selectedPatient() || 'VIP Priority Patient';
-      const mob = this.priorityPatientMobile().trim() || this.mobileNo() || '9820198201';
-
-      const newAppointment = {
-        dateStr: dateLabel,
-        time: timeVal,
-        patientName: patient,
-        mobile: mob,
-        practitioner: practitionerName,
-        fee: 1500,
-        status: 'CONFIRMED',
-        type: 'OP',
-        description: `Priority Slot (${this.priorityReason()}) - ${practitionerName}`,
-        bookedOn: new Date().toISOString()
-      };
-
-      this.apiService.post('appointments', newAppointment).subscribe({
-        next: (res) => {
-          console.log('[JSON-Server] Priority appointment booked:', res);
-        }
-      });
-
-      this.toastService.success(`⭐ Priority Slot (${timeVal} - ${dateLabel}) Punched & Booked for ${patient}!`);
-    } else {
-      this.toastService.success(`⭐ Additional Priority Slot (${timeVal} - ${dateLabel}) Punched into schedule for ${practitionerName}!`);
-    }
-
-    this.showPrioritySlotModal.set(false);
-    if (autoBook) {
-      this.clearPatientSelection();
     }
   }
 
