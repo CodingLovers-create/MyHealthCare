@@ -888,6 +888,8 @@ export class DoctorAppointmentComponent implements OnInit {
       this.router.navigate(['/vitals-recording']);
     } else if (tabId === 'DoctorPatientList') {
       this.router.navigate(['/doctor-patient-list']);
+    } else if (tabId === 'MedicalRecords') {
+      this.router.navigate(['/medical-records']);
     }
   }
 

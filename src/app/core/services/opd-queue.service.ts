@@ -86,7 +86,7 @@ export class OpdQueueService {
     ));
   }
 
-  updateConsultation(uhid: string, data: { complaints: string; clinicalFindings: string; diagnosis: string; prescription: PrescriptionItem[] }): void {
+  updateConsultation(uhid: string, data: { complaints: string; clinicalFindings: string; diagnosis: string; prescription: PrescriptionItem[]; doctorName?: string }): void {
     this.patients.update(list => list.map(p =>
       p.uhid === uhid ? { ...p, ...data } : p
     ));

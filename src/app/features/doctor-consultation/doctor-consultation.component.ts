@@ -7,13 +7,16 @@ import { ToastService } from '../../core/services/toast.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { OpdQueueService } from '../../core/services/opd-queue.service';
+import { MedicalRecordsService } from '../../core/services/medical-records.service';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { PrescriptionItem } from '../../core/models/opd-queue.model';
+import { Visit } from '../../core/models/visit.model';
 import { classifyVital, statusDotClass, statusTextClass, statusLabel, VITAL_RANGES } from '../../core/utils/vital-status.util';
 
 @Component({
   selector: 'app-doctor-consultation',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
   templateUrl: './doctor-consultation.component.html'
 })
 export class DoctorConsultationComponent {
@@ -33,6 +36,8 @@ export class DoctorConsultationComponent {
 
   medicineNameInput = viewChild<ElementRef<HTMLInputElement>>('medicineNameInput');
 
+  showSummaryModal = signal<boolean>(false);
+
   moduleTabs = computed(() => this.authService.allowedModules());
 
   patient = computed(() => this.queueService.getPatient(this.uhid()));
@@ -51,9 +56,10 @@ export class DoctorConsultationComponent {
     private toastService: ToastService,
     public sidebarService: SidebarService,
     public authService: AuthService,
-    public queueService: OpdQueueService
+    public queueService: OpdQueueService,
+    private medicalRecordsService: MedicalRecordsService
   ) {
-    if (this.authService.isPatientExecutive() || this.authService.isNurse()) {
+    if (!this.authService.isDoctor()) {
       this.toastService.warning('This screen is restricted to doctors.');
       const role = this.authService.currentRole() || 'admin';
       this.router.navigate([this.authService.loginAs(role)]);
@@ -94,6 +100,8 @@ export class DoctorConsultationComponent {
       this.router.navigate(['/vitals-recording']);
     } else if (tabId === 'DoctorPatientList') {
       this.router.navigate(['/doctor-patient-list']);
+    } else if (tabId === 'MedicalRecords') {
+      this.router.navigate(['/medical-records']);
     }
   }
 
@@ -138,14 +146,46 @@ export class DoctorConsultationComponent {
       this.toastService.warning('Please record presenting complaints and diagnosis before completing.');
       return;
     }
-    this.queueService.updateConsultation(this.uhid(), {
+    const consultationData = {
       complaints: this.complaints(),
       clinicalFindings: this.clinicalFindings(),
       diagnosis: this.diagnosis(),
-      prescription: this.prescription()
-    });
+      prescription: this.prescription(),
+      doctorName: this.authService.currentUser()?.name
+    };
+    this.queueService.updateConsultation(this.uhid(), consultationData);
     this.queueService.completeConsultation(this.uhid());
-    this.toastService.success('Consultation completed and prescription generated.');
+
+    const completedPatient = this.queueService.getPatient(this.uhid());
+    if (completedPatient) {
+      const visit: Visit = {
+        visitId: 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000),
+        uhid: completedPatient.uhid,
+        patientName: completedPatient.name,
+        ageGender: completedPatient.ageGender,
+        mobile: completedPatient.mobile,
+        visitDate: new Date().toLocaleDateString('en-IN'),
+        visitTime: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+        doctorName: completedPatient.doctorName,
+        department: completedPatient.department,
+        complaints: completedPatient.complaints,
+        clinicalFindings: completedPatient.clinicalFindings,
+        diagnosis: completedPatient.diagnosis,
+        prescription: completedPatient.prescription
+      };
+      this.medicalRecordsService.saveVisit(visit).subscribe();
+    }
+
+    this.showSummaryModal.set(true);
+    this.toastService.success('Consultation completed. Review and print the summary.');
+  }
+
+  printConsultation(): void {
+    window.print();
+  }
+
+  closeSummary(): void {
+    this.showSummaryModal.set(false);
     this.router.navigate(['/doctor-patient-list']);
   }
 

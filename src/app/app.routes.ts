@@ -8,6 +8,7 @@ import { VitalsRecordingComponent } from './features/vitals-recording/vitals-rec
 import { DoctorPatientListComponent } from './features/doctor-patient-list/doctor-patient-list.component';
 import { DoctorConsultationComponent } from './features/doctor-consultation/doctor-consultation.component';
 import { OpBillingComponent } from './features/op-billing/op-billing.component';
+import { MedicalRecordsComponent } from './features/medical-records/medical-records.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
@@ -29,8 +30,9 @@ export const routes: Routes = [
   { path: 'op-billing', component: OpBillingComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin'] } },
   { path: 'op-bill', redirectTo: 'op-billing', pathMatch: 'full' },
   { path: 'vitals-recording', component: VitalsRecordingComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin', 'nurse'] } },
-  { path: 'doctor-patient-list', component: DoctorPatientListComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin', 'doctor'] } },
+  { path: 'doctor-patient-list', component: DoctorPatientListComponent, canActivate: [authGuard, roleGuard], data: { roles: ['doctor'] } },
   { path: 'doctor-queue', redirectTo: 'doctor-patient-list', pathMatch: 'full' },
-  { path: 'doctor-consultation/:uhid', component: DoctorConsultationComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin', 'doctor'] } },
+  { path: 'doctor-consultation/:uhid', component: DoctorConsultationComponent, canActivate: [authGuard, roleGuard], data: { roles: ['doctor'] } },
+  { path: 'medical-records', component: MedicalRecordsComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin', 'doctor', 'nurse', 'patient_executive'] } },
   { path: '**', redirectTo: 'dashboard' }
 ];

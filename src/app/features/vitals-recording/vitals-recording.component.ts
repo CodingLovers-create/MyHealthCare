@@ -7,6 +7,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { OpdQueueService } from '../../core/services/opd-queue.service';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { Vitals, OpdQueuePatient } from '../../core/models/opd-queue.model';
 import {
   classifyVital,
@@ -23,7 +24,7 @@ import { SubheaderComponent } from '../../shared/components/subheader/subheader.
 @Component({
   selector: 'app-vitals-recording',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, SubheaderComponent],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, SubheaderComponent],
   templateUrl: './vitals-recording.component.html'
 })
 export class VitalsRecordingComponent {
@@ -148,12 +149,13 @@ export class VitalsRecordingComponent {
     } else if (tabId === 'Registration') {
       this.router.navigate(['/registration']);
     } else if (tabId === 'DoctorAppointment') {
-      const role = this.authService.currentRole() || 'admin';
-      this.router.navigate([this.authService.loginAs(role)]);
+      this.router.navigate(['/doctor-appointment']);
     } else if (tabId === 'VitalsRecording') {
       this.router.navigate(['/vitals-recording']);
     } else if (tabId === 'DoctorPatientList') {
       this.router.navigate(['/doctor-patient-list']);
+    } else if (tabId === 'MedicalRecords') {
+      this.router.navigate(['/medical-records']);
     }
   }
 

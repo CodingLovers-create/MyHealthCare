@@ -534,6 +534,86 @@
       "bloodGroup": "O+",
       "updatedOn": "2026-09-13T16:34:56.845Z",
       "id": "aff_FMMNl34"
+    },
+    {
+      "id": "1",
+      "uhid": "RFH2026001",
+      "name": "Jagdish Ramji Thakkar",
+      "gender": "Male",
+      "dob": "1982-05-14",
+      "mobile": "9820198201",
+      "city": "Mumbai",
+      "registeredOn": "2026-09-07"
+    },
+    {
+      "id": "2",
+      "uhid": "RFH2026002",
+      "name": "Mohd. Zubair Qureshi",
+      "gender": "Male",
+      "dob": "1990-11-22",
+      "mobile": "9819298192",
+      "city": "Thane",
+      "registeredOn": "2026-09-08"
+    },
+    {
+      "id": "3",
+      "uhid": "RFH2026003",
+      "name": "Anuradha Jadhav",
+      "gender": "Female",
+      "dob": "1991-02-18",
+      "mobile": "9765432109",
+      "city": "Mumbai",
+      "registeredOn": "2026-01-03"
+    },
+    {
+      "id": "4",
+      "uhid": "RFH2026004",
+      "name": "Rushikesh Mondkar",
+      "gender": "Male",
+      "dob": "1997-04-09",
+      "mobile": "9892011223",
+      "city": "Thane",
+      "registeredOn": "2026-01-03"
+    },
+    {
+      "id": "5",
+      "uhid": "RFH2026005",
+      "name": "Pooja Dhanecha",
+      "gender": "Female",
+      "dob": "1995-07-22",
+      "mobile": "9123456789",
+      "city": "Mumbai",
+      "registeredOn": "2026-01-03"
+    },
+    {
+      "id": "6",
+      "uhid": "RFH2026006",
+      "name": "Kunal Parab",
+      "gender": "Male",
+      "dob": "1979-11-30",
+      "mobile": "9988776655",
+      "city": "Navi Mumbai",
+      "registeredOn": "2026-02-15"
+    },
+    {
+      "id": "7",
+      "uhid": "RFH2026007",
+      "name": "Ashmita Rao",
+      "gender": "Female",
+      "dob": "2000-05-12",
+      "mobile": "9871234560",
+      "city": "Mumbai",
+      "registeredOn": "2026-09-11"
+    },
+    {
+      "id": "8",
+      "uhid": "RFH2026008",
+      "name": "Siddhi Kolekar",
+      "gender": "Female",
+      "dob": "1987-08-04",
+      "mobile": "9822011234",
+      "city": "Thane",
+      "registeredOn": "2026-03-20"
     }
   ],
   "appointments": [
@@ -567,6 +647,282 @@
       "description": "OP Billing Completed (OPR-2026-12524)",
       "bookedOn": "2026-09-13T16:41:19.692Z",
       "id": "NZQxDeWnnYY"
+    },
+    {
+      "id": "1",
+      "dateStr": "SAT 12 SEP",
+      "time": "09:30 AM",
+      "patientName": "Jagdish Thakkar",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "2",
+      "dateStr": "SAT 12 SEP",
+      "time": "10:30 AM",
+      "patientName": "Mohd Qureshi",
+      "practitioner": "Dr. Alok Shah",
+      "fee": 2000,
+      "status": "CONFIRMED"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "10:04",
+      "patientName": "Jagdish Ramji Thakkar",
+      "uhid": "RFH2026001",
+      "mobile": "9820198201",
+      "practitioner": "General OPD Clinic",
+      "fee": 1500,
+      "status": "ARRIVED AT DESK",
+      "visitId": "OPV-2026-87427",
+      "type": "OP",
+      "description": "Active Desk Arrival Visit (OPV-2026-87427)",
+      "bookedOn": "2026-09-13T04:34:34.699Z",
+      "id": "ynSIkoam1Ds"
+    },
+    {
+      "dateStr": "SUN 13 SEP",
+      "time": "10:00 AM",
+      "patientName": "11",
+      "mobile": "111",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "ARRIVED AT DESK",
+      "visitId": "OPV-2026-56384",
+      "type": "OP",
+      "description": "Active Desk Arrival Visit (OPV-2026-56384) - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T04:39:28.361Z",
+      "id": "WbNYgjNP0JM"
+    },
+    {
+      "dateStr": "SUN 13 SEP",
+      "time": "11:30 AM",
+      "patientName": "11",
+      "mobile": "111",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T04:39:36.707Z",
+      "id": "36qu1Ep2y3o"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "10:15 AM",
+      "patientName": "VIP Priority Patient",
+      "mobile": "9820198201",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Priority Slot (Emergency Consultation) - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T04:43:33.848Z",
+      "id": "_3-yjMJNcvo"
+    },
+    {
+      "dateStr": "SUN 13 SEP",
+      "time": "10:00 AM",
+      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
+      "mobile": "9820198201",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T14:33:13.658Z",
+      "id": "8BM9BkV3tz0"
+    },
+    {
+      "dateStr": "SUN 13 SEP",
+      "time": "10:00 AM",
+      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
+      "mobile": "9820198201",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T14:33:19.274Z",
+      "id": "J1R-AbT4N-I"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "10:00 AM",
+      "patientName": "Jagdish Ramji Thakkar (RFH2026001)",
+      "mobile": "9820198201",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Susheel Bindroo",
+      "bookedOn": "2026-09-13T14:33:49.939Z",
+      "id": "TuDKAaJHrXM"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "09:15 AM",
+      "patientName": "Mohd. Zubair Qureshi (RFH2026002)",
+      "mobile": "9819298192",
+      "practitioner": "Dr. Pankaj Gupta",
+      "fee": 1900,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Pankaj Gupta",
+      "bookedOn": "2026-09-13T14:37:46.814Z",
+      "id": "NsPC9fjDpKc"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "09:00 AM",
+      "patientName": "Mohd. Zubair Qureshi (RFH2026002)",
+      "mobile": "9819298192",
+      "practitioner": "Dr. Pankaj Gupta",
+      "fee": 1900,
+      "status": "CONFIRMED",
+      "type": "OP",
+      "description": "Doctor Consultation - Dr. Pankaj Gupta",
+      "bookedOn": "2026-09-13T14:37:52.728Z",
+      "id": "Moy_ZzKC614"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "20:27",
+      "patientName": "Jagdish Ramji Thakkar",
+      "uhid": "RFH2026001",
+      "mobile": "9820198201",
+      "practitioner": "General OPD Clinic",
+      "fee": 1500,
+      "status": "ARRIVED AT DESK",
+      "visitId": "OPV-2026-11223",
+      "type": "OP",
+      "description": "Active Desk Arrival Visit (OPV-2026-11223)",
+      "bookedOn": "2026-09-13T14:57:44.294Z",
+      "id": "xNQY571P8OU"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "10:30 AM",
+      "patientName": "Mohd Qureshi",
+      "uhid": "",
+      "mobile": "",
+      "practitioner": "Dr. Alok Shah",
+      "fee": 2000,
+      "status": "ARRIVED AT DESK",
+      "visitId": "OPV-2026-41759",
+      "type": "OP",
+      "description": "Auto Desk Arrival on PDF View (OPV-2026-41759)",
+      "bookedOn": "2026-09-13T15:37:43.187Z",
+      "id": "kKOW1QIct60"
+    },
+    {
+      "dateStr": "SAT 12 SEP",
+      "time": "09:30 AM",
+      "patientName": "Jagdish Thakkar",
+      "uhid": "",
+      "mobile": "",
+      "practitioner": "Dr. Susheel Bindroo",
+      "fee": 1500,
+      "status": "ARRIVED AT DESK",
+      "visitId": "OPV-2026-31499",
+      "type": "OP",
+      "description": "Auto Desk Arrival on PDF View (OPV-2026-31499)",
+      "bookedOn": "2026-09-13T16:51:45.045Z",
+      "id": "SyNVdId4AEk"
+    }
+  ],
+  "visits": [
+    {
+      "id": "v1",
+      "visitId": "OPV-2026-10234",
+      "uhid": "RFH2026001",
+      "patientName": "Jagdish Ramji Thakkar",
+      "ageGender": "58 Y / Male",
+      "mobile": "+91 9820198201",
+      "visitDate": "12/06/2026",
+      "visitTime": "10:00 AM",
+      "doctorName": "Dr. Susheel Bindroo",
+      "department": "General Medicine",
+      "complaints": "Routine annual health checkup.",
+      "clinicalFindings": "All parameters within normal range.",
+      "diagnosis": "Healthy - Annual checkup, no concerns.",
+      "prescription": [
+        {
+          "id": "p1",
+          "medicine": "Multivitamin",
+          "dosage": "1 Tablet",
+          "frequency": "Once Daily",
+          "duration": "30 Days",
+          "instructions": "After breakfast"
+        }
+      ]
+    },
+    {
+      "id": "v2",
+      "visitId": "OPV-2026-10567",
+      "uhid": "RFH2026001",
+      "patientName": "Jagdish Ramji Thakkar",
+      "ageGender": "58 Y / Male",
+      "mobile": "+91 9820198201",
+      "visitDate": "07/09/2026",
+      "visitTime": "09:30 AM",
+      "doctorName": "Dr. Susheel Bindroo",
+      "department": "General Medicine",
+      "complaints": "Follow-up for blood pressure management.",
+      "clinicalFindings": "Blood pressure well controlled on current medication.",
+      "diagnosis": "Essential Hypertension - Stable",
+      "prescription": [
+        {
+          "id": "p1",
+          "medicine": "Amlodipine 5mg",
+          "dosage": "1 Tablet",
+          "frequency": "Once Daily",
+          "duration": "90 Days",
+          "instructions": "At bedtime"
+        }
+      ]
+    },
+    {
+      "id": "v3",
+      "visitId": "OPV-2026-11098",
+      "uhid": "RFH2026002",
+      "patientName": "Mohd. Zubair Qureshi",
+      "ageGender": "42 Y / Male",
+      "mobile": "+91 9819283746",
+      "visitDate": "08/09/2026",
+      "visitTime": "09:45 AM",
+      "doctorName": "Dr. Alok Shah",
+      "department": "Cardiology",
+      "complaints": "Chest discomfort evaluation, intermittent over 1 week.",
+      "clinicalFindings": "Mild tachycardia noted. Chest clear on auscultation.",
+      "diagnosis": "Stage 1 Hypertension",
+      "prescription": [
+        {
+          "id": "p1",
+          "medicine": "Telmisartan 40mg",
+          "dosage": "1 Tablet",
+          "frequency": "Once Daily",
+          "duration": "30 Days",
+          "instructions": "After breakfast"
+        }
+      ]
+    },
+    {
+      "visitId": "OPV-2026-63831",
+      "uhid": "RFH2026002",
+      "patientName": "Mohd. Zubair Qureshi",
+      "ageGender": "42 Y / Male",
+      "mobile": "+91 9819283746",
+      "visitDate": "13/9/2026",
+      "visitTime": "10:22 pm",
+      "doctorName": "Mr. PRATHAMESH KHOCHADE",
+      "department": "Cardiology",
+      "complaints": "fsfdafds",
+      "clinicalFindings": "",
+      "diagnosis": "fsdfasds",
+      "prescription": [],
+      "id": "e6R3-tHvLyY"
     }
   ],
   "tasks": [],
@@ -621,9 +977,9 @@
           "route": "/vitals-recording"
         },
         {
-          "id": "DoctorPatientList",
-          "label": "OPD Queue",
-          "route": "/doctor-patient-list"
+          "id": "MedicalRecords",
+          "label": "Medical Records",
+          "route": "/medical-records"
         }
       ]
     },
@@ -677,9 +1033,9 @@
           "route": "/vitals-recording"
         },
         {
-          "id": "DoctorPatientList",
-          "label": "OPD Queue",
-          "route": "/doctor-patient-list"
+          "id": "MedicalRecords",
+          "label": "Medical Records",
+          "route": "/medical-records"
         }
       ]
     },
@@ -701,6 +1057,11 @@
           "id": "DoctorAppointment",
           "label": "Doctor Appointment",
           "route": "/doctor-appointment"
+        },
+        {
+          "id": "MedicalRecords",
+          "label": "Medical Records",
+          "route": "/medical-records"
         }
       ]
     },
@@ -721,6 +1082,11 @@
           "id": "VitalsRecording",
           "label": "Vitals Recording",
           "route": "/vitals-recording"
+        },
+        {
+          "id": "MedicalRecords",
+          "label": "Medical Records",
+          "route": "/medical-records"
         }
       ]
     },
@@ -742,6 +1108,11 @@
           "id": "DoctorPatientList",
           "label": "OPD Queue",
           "route": "/doctor-patient-list"
+        },
+        {
+          "id": "MedicalRecords",
+          "label": "Medical Records",
+          "route": "/medical-records"
         }
       ]
     }

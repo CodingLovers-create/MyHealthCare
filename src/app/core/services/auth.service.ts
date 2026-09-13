@@ -56,17 +56,20 @@ export class AuthService {
     }
     if (user.role === 'patient_executive') {
       return [
-        { id: 'DoctorAppointment', label: 'Doctor Appointment', route: '/doctor-appointment' }
+        { id: 'DoctorAppointment', label: 'Doctor Appointment', route: '/doctor-appointment' },
+        { id: 'MedicalRecords', label: 'Medical Records', route: '/medical-records' }
       ];
     }
     if (user.role === 'nurse') {
       return [
-        { id: 'VitalsRecording', label: 'Vitals Recording', route: '/vitals-recording' }
+        { id: 'VitalsRecording', label: 'Vitals Recording', route: '/vitals-recording' },
+        { id: 'MedicalRecords', label: 'Medical Records', route: '/medical-records' }
       ];
     }
     if (user.role === 'doctor') {
       return [
-        { id: 'DoctorPatientList', label: 'OPD Queue', route: '/doctor-patient-list' }
+        { id: 'DoctorPatientList', label: 'OPD Queue', route: '/doctor-patient-list' },
+        { id: 'MedicalRecords', label: 'Medical Records', route: '/medical-records' }
       ];
     }
     return [
@@ -76,7 +79,7 @@ export class AuthService {
       { id: 'DoctorAppointment', label: 'Doctor Appointment', route: '/doctor-appointment' },
       { id: 'OpBilling', label: 'OP Billing & Cashier', route: '/op-billing' },
       { id: 'VitalsRecording', label: 'Vitals Recording', route: '/vitals-recording' },
-      { id: 'DoctorPatientList', label: 'OPD Queue', route: '/doctor-patient-list' }
+      { id: 'MedicalRecords', label: 'Medical Records', route: '/medical-records' }
     ];
   });
 

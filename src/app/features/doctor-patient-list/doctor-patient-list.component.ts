@@ -7,11 +7,12 @@ import { ToastService } from '../../core/services/toast.service';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { AuthService } from '../../core/services/auth.service';
 import { OpdQueueService } from '../../core/services/opd-queue.service';
+import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-doctor-patient-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
   templateUrl: './doctor-patient-list.component.html'
 })
 export class DoctorPatientListComponent {
@@ -39,7 +40,7 @@ export class DoctorPatientListComponent {
     public authService: AuthService,
     public queueService: OpdQueueService
   ) {
-    if (this.authService.isPatientExecutive() || this.authService.isNurse()) {
+    if (!this.authService.isDoctor()) {
       this.toastService.warning('This screen is restricted to doctors.');
       const role = this.authService.currentRole() || 'admin';
       this.router.navigate([this.authService.loginAs(role)]);
@@ -64,6 +65,8 @@ export class DoctorPatientListComponent {
       this.router.navigate(['/vitals-recording']);
     } else if (tabId === 'DoctorPatientList') {
       this.router.navigate(['/doctor-patient-list']);
+    } else if (tabId === 'MedicalRecords') {
+      this.router.navigate(['/medical-records']);
     }
   }
 

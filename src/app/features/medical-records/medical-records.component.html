@@ -1,0 +1,208 @@
+<div class="min-h-screen bg-[#dedede] flex flex-col font-sans text-[#333333] select-none text-[11px]">
+
+  <!-- Shared Top Header & Module Navigation Bar -->
+  <app-navbar activeModule="MedicalRecords"></app-navbar>
+
+  <!-- 3. PAGE TITLE -->
+  <div class="bg-white px-5 py-2.5 border-b border-[#cccccc]">
+    <h1 class="text-[15px] font-bold text-[#222222] leading-none">Medical Records</h1>
+    <span class="text-[10.5px] text-[#666666]">Search a patient to view and print their consultation history.</span>
+  </div>
+
+  <!-- 4. MAIN CONTENT -->
+  <main class="flex-1 p-3 bg-white flex flex-col lg:flex-row gap-3 overflow-y-auto">
+
+    <!-- LEFT: SEARCH PANEL -->
+    <div class="w-full lg:w-[320px] shrink-0 border border-[#cccccc] rounded-[2px] flex flex-col bg-[#fafafa]">
+      <div class="p-2 border-b border-[#cccccc] bg-white">
+        <div class="relative">
+          <input type="text"
+                 [ngModel]="searchQuery()"
+                 (ngModelChange)="searchQuery.set($event)"
+                 placeholder="Search by Name / UHID / Mobile"
+                 class="w-full pl-3 pr-8 h-8 bg-white border border-[#bbbbbb] rounded-[2px] text-[11px] text-[#333333] placeholder:text-[#777777] focus:outline-none focus:border-[#d93848]" />
+          <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-[#666666]">
+            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          </span>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto divide-y divide-[#eeeeee]">
+        @if (searchQuery().trim().length === 0) {
+          <div class="p-4 text-center text-[#999999] text-[10.5px]">Type a name, UHID, or mobile number to search.</div>
+        } @else if (matchedPatients().length === 0) {
+          <div class="p-4 text-center text-[#999999] text-[10.5px]">No matching patients found.</div>
+        } @else {
+          @for (p of matchedPatients(); track p.uhid) {
+            <div (click)="selectPatient(p)"
+                 [class]="'p-2.5 cursor-pointer hover:bg-white transition-colors ' + (selectedPatient()?.uhid === p.uhid ? 'bg-white border-l-2 border-[#d93848]' : '')">
+              <div class="font-bold text-[#222222] text-[11.5px]">{{ p.name }}</div>
+              <div class="text-[10px] text-[#666666]">{{ p.uhid }} &middot; {{ p.mobile }}</div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- RIGHT: VISIT HISTORY -->
+    <div class="flex-1 space-y-3">
+      @if (!selectedPatient()) {
+        <div class="h-full flex items-center justify-center text-[#999999] text-[11px] border border-dashed border-[#cccccc] rounded-[2px] p-10">
+          Search and select a patient on the left to view their visit history.
+        </div>
+      } @else {
+        <div class="border border-[#cccccc] rounded-[2px]">
+          <div class="bg-[#777777] text-white px-3 py-1.5 font-bold text-[11px] rounded-t-[1px] flex items-center justify-between">
+            <span>{{ selectedPatient()!.name }} &middot; {{ selectedPatient()!.uhid }}</span>
+            <button type="button" (click)="clearSelection()" class="text-white hover:text-gray-200 cursor-pointer">
+              <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+          </div>
+          <div class="p-3 bg-[#fafafa] grid grid-cols-2 md:grid-cols-4 gap-2 text-[10.5px]">
+            <div><span class="text-[#777777]">Mobile:</span> <span class="font-semibold">{{ selectedPatient()!.mobile }}</span></div>
+            @if (selectedPatient()!.gender) {
+              <div><span class="text-[#777777]">Gender:</span> <span class="font-semibold">{{ selectedPatient()!.gender }}</span></div>
+            }
+            @if (selectedPatient()!.dob) {
+              <div><span class="text-[#777777]">DOB:</span> <span class="font-semibold">{{ selectedPatient()!.dob }}</span></div>
+            }
+            @if (selectedPatient()!.city) {
+              <div><span class="text-[#777777]">City:</span> <span class="font-semibold">{{ selectedPatient()!.city }}</span></div>
+            }
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <h2 class="text-[11px] font-bold text-[#555555] uppercase tracking-wider">Visit History ({{ sortedVisits().length }})</h2>
+
+          @if (isLoadingVisits()) {
+            <div class="text-center text-[#999999] text-[10.5px] py-6">Loading visit history...</div>
+          } @else if (sortedVisits().length === 0) {
+            <div class="text-center text-[#999999] text-[10.5px] py-6 border border-dashed border-[#cccccc] rounded-[2px]">No recorded visits for this patient yet.</div>
+          } @else {
+            @for (visit of sortedVisits(); track visit.visitId) {
+              <div class="border border-[#cccccc] rounded-[2px] bg-white">
+                <div class="flex items-center justify-between px-3 py-2 border-b border-[#eeeeee]">
+                  <div>
+                    <span class="font-bold text-[#222222] text-[11.5px]">{{ visit.visitDate }}</span>
+                    <span class="text-[10px] text-[#999999] ml-1.5">{{ visit.visitTime }}</span>
+                  </div>
+                  <span class="text-[9.5px] font-mono text-[#777777]">{{ visit.visitId }}</span>
+                </div>
+                <div class="p-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-[10.5px]">
+                  <div><span class="text-[#777777]">Doctor:</span> <span class="font-semibold">{{ visit.doctorName }}</span></div>
+                  <div><span class="text-[#777777]">Department:</span> <span class="font-semibold">{{ visit.department }}</span></div>
+                  <div><span class="text-[#777777]">Diagnosis:</span> <span class="font-semibold">{{ visit.diagnosis || 'Not recorded' }}</span></div>
+                </div>
+                <div class="px-3 pb-3">
+                  <button type="button" (click)="printVisit(visit)"
+                          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0088cc] hover:bg-[#0077bb] text-white font-semibold text-[10.5px] tracking-wider uppercase rounded-[2px] cursor-pointer">
+                    <i class="fa-solid fa-print text-[11px]"></i>
+                    Print Consultation Summary
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+
+  </main>
+
+  @if (selectedVisitForPrint(); as visit) {
+    <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-[6px] shadow-2xl max-w-lg w-full overflow-hidden border border-[#cccccc] animate-fade-in">
+
+        <!-- Header -->
+        <div class="bg-[#d93848] text-white px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-file-medical text-lg"></i>
+            <span class="font-bold text-[13px] tracking-wide uppercase">Consultation Summary</span>
+          </div>
+          <button (click)="closePrintModal()" class="text-white hover:text-gray-200 cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Summary Body -->
+        <div id="printableConsultation" class="p-5 text-[11px] text-[#333333] space-y-4 bg-white">
+
+          <!-- Hospital Header -->
+          <div class="text-center border-b border-[#e2e8f0] pb-3">
+            <h2 class="text-[16px] font-bold text-[#0277bd]">Reliance Foundation Hospital Trust</h2>
+            <p class="text-[10px] text-[#64748b]">Consultation & EMR Summary</p>
+          </div>
+
+          <!-- Patient Meta -->
+          <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded border border-slate-200 text-[10.5px]">
+            <div><strong>Patient Name:</strong> {{ visit.patientName }}</div>
+            <div><strong>UHID:</strong> {{ visit.uhid }}</div>
+            <div><strong>Age / Gender:</strong> {{ visit.ageGender }}</div>
+            <div><strong>Mobile:</strong> {{ visit.mobile }}</div>
+            <div><strong>Doctor:</strong> {{ visit.doctorName }}</div>
+            <div><strong>Department:</strong> {{ visit.department }}</div>
+            <div><strong>Visit Date:</strong> {{ visit.visitDate }}</div>
+            <div><strong>Visit ID:</strong> {{ visit.visitId }}</div>
+          </div>
+
+          <!-- Clinical Notes -->
+          <div class="space-y-2">
+            <div><strong>Presenting Complaints:</strong> {{ visit.complaints || 'Not recorded' }}</div>
+            <div><strong>Clinical Findings:</strong> {{ visit.clinicalFindings || 'Not recorded' }}</div>
+            <div><strong>Diagnosis:</strong> {{ visit.diagnosis || 'Not recorded' }}</div>
+          </div>
+
+          <!-- Prescription -->
+          @if (visit.prescription.length > 0) {
+            <table class="w-full text-left text-[10.5px] border-collapse">
+              <thead>
+                <tr class="border-b border-[#cbd5e1] text-[#475569] font-bold">
+                  <th class="py-1">Medicine</th>
+                  <th class="py-1">Dosage</th>
+                  <th class="py-1">Frequency</th>
+                  <th class="py-1">Duration</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#e2e8f0]">
+                @for (item of visit.prescription; track item.id) {
+                  <tr>
+                    <td class="py-1">{{ item.medicine }}</td>
+                    <td class="py-1">{{ item.dosage }}</td>
+                    <td class="py-1">{{ item.frequency }}</td>
+                    <td class="py-1">{{ item.duration }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+
+          <!-- Footer Stamp -->
+          <div class="pt-4 flex items-center justify-between border-t border-dashed border-[#cbd5e1]">
+            <div class="text-[9px] text-[#64748b]">
+              <p>Consulting Doctor: {{ visit.doctorName }}</p>
+              <p>Consultation Status: COMPLETED</p>
+            </div>
+            <div class="border-2 border-emerald-600 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase rotate-[-3deg]">
+              COMPLETED
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-[#f8fafc] px-4 py-3 border-t border-[#cccccc] flex justify-end space-x-2">
+          <button (click)="closePrintModal()" class="px-3 py-1.5 bg-white border border-[#cbd5e1] rounded text-[11px] font-bold text-[#475569] hover:bg-slate-100 cursor-pointer">
+            Close
+          </button>
+          <button (click)="triggerPrint()" class="px-4 py-1.5 bg-[#0088cc] hover:bg-[#0077bb] text-white rounded text-[11px] font-bold cursor-pointer flex items-center space-x-1.5">
+            <i class="fa-solid fa-print"></i>
+            <span>Print Consultation Summary</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

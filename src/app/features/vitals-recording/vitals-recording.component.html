@@ -1,73 +1,7 @@
 <div class="min-h-screen bg-[#dedede] flex flex-col font-sans text-[#333333] select-none text-[11px]">
 
-  <!-- 1. TOP HEADER NAVBAR -->
-  <header class="h-[46px] bg-white border-b border-[#cccccc] px-4 py-2 flex items-center justify-between">
-
-    <!-- Left Logo -->
-    <div class="flex items-center space-x-2 cursor-pointer" (click)="logout()" routerLink="/login">
-      <svg class="w-[22px] h-[22px]" viewBox="0 0 100 100" fill="none">
-        <path d="M50 88C50 88 12 60 12 34C12 19 24 10 38 10C46 10 50 14 50 14C50 14 54 10 62 10C76 10 88 19 88 34C88 60 50 88 50 88Z" fill="#d93848"/>
-        <path d="M22 38H34L42 24L50 52L58 30L66 38H78" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span class="text-[16px] font-bold tracking-tight">
-        <span class="text-[#0277bd]">My</span><span class="text-[#0091ea]">Healthcare</span>
-      </span>
-    </div>
-
-    <!-- Right User Info & Context Header -->
-    <div class="flex items-center">
-      <div class="text-right leading-tight pr-4">
-        <div class="text-[11px] text-[#333333]">
-          Reliance Foundation Hospital Trust | <span (click)="logout()" title="Click to Logout" class="font-bold text-[#000000] cursor-pointer hover:text-[#d93848] hover:underline transition-colors">{{ authService.currentUser()?.name || 'Staff Nurse' }}</span>
-        </div>
-        <div (click)="logout()" title="Click to Logout" class="text-[10px] font-bold text-[#d93848] text-right mt-0.5 cursor-pointer hover:underline">
-          {{ authService.currentUser()?.roleTitle || 'Staff Nurse' }}
-        </div>
-      </div>
-
-      <!-- Vertical Line Divider -->
-      <div class="h-6 w-[1px] bg-[#cccccc] mx-3"></div>
-
-      <!-- Far Right Emblem Badge -->
-      <div class="flex items-center space-x-1.5 pl-3">
-        <svg class="w-5 h-5" viewBox="0 0 100 90" fill="none">
-          <path d="M50 82C50 82 12 55 12 30C12 16.5 23.5 8 36.5 8C44.5 8 54 12.5 60 21C66 12.5 75.5 8 83.5 8C96.5 8 108 16.5 108 30C108 55 60 82 60 82Z" fill="#d93848"/>
-          <path d="M25 35H35L42 22L50 48L58 28L65 35H75" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div class="flex flex-col">
-          <span class="text-[7.5px] text-[#d93848] font-bold leading-none">MyHealthcare</span>
-          <span class="text-[6.5px] text-[#555555] font-semibold leading-tight">Enterprise Application</span>
-        </div>
-      </div>
-    </div>
-
-  </header>
-
-  <!-- 2. MODULE NAVIGATION TAB BAR -->
-  <nav class="bg-[#4c4c4c] text-white px-4 py-2 flex items-center justify-between text-[11px] h-[44px]">
-
-    <div class="flex items-center space-x-2 overflow-x-auto py-0.5">
-      <button (click)="toggleSidebar()" class="px-2.5 py-1.5 text-white hover:text-gray-200 cursor-pointer border-r border-[#666666] pr-4 mr-2 flex items-center justify-center">
-        <i class="fa-solid fa-bars text-[13px]"></i>
-      </button>
-
-      @for (tab of moduleTabs(); track tab.id) {
-        <button (click)="selectModuleTab(tab.id)"
-                [class]="'px-3.5 py-1.5 text-[11px] font-medium cursor-pointer whitespace-nowrap transition-all rounded-[4px] ' +
-                         (activeModuleTab() === tab.id
-                           ? 'bg-white text-[#222222] border-2 border-[#d93848] shadow-2xs'
-                           : 'bg-[#3f3f3f] border border-[#6b6b6b] text-white hover:bg-[#4a4a4a]')">
-          {{ tab.label }}
-        </button>
-      }
-    </div>
-
-    <button (click)="openHelp()" type="button" class="bg-[#d93848] hover:bg-[#c22d3d] text-white font-bold text-[11px] rounded-[3px] px-3.5 py-1.5 flex items-center space-x-1.5 shadow-2xs cursor-pointer uppercase tracking-wider ml-3 shrink-0">
-      <span>HELP</span>
-      <i class="fa-solid fa-video text-[10px]"></i>
-    </button>
-
-  </nav>
+  <!-- Shared Top Header & Module Navigation Bar -->
+  <app-navbar activeModule="VitalsRecording"></app-navbar>
 
   <!-- 3. PAGE TITLE SUB-HEADER -->
   <app-subheader title="Vitals Recording">
