@@ -31,50 +31,6 @@ export class AuthService {
   private apiService = inject(ApiService);
   private router = inject(Router);
 
-  private static readonly ADMIN_USER: UserProfile = {
-    id: '1',
-    name: 'Mr. PRATHAMESH KHOCHADE',
-    roleTitle: 'Administrator',
-    avatar: 'PK',
-    role: 'admin',
-    hospital: 'Reliance Foundation Hospital',
-    username: 'prathamesh',
-    permissions: ['all']
-  };
-
-  private static readonly EXECUTIVE_USER: UserProfile = {
-    id: '2',
-    name: 'Priya Sharma',
-    roleTitle: 'Patient Executive',
-    avatar: 'PS',
-    role: 'patient_executive',
-    hospital: 'Reliance Foundation Hospital',
-    username: 'priya',
-    permissions: ['doctor_appointment', 'book_appointment']
-  };
-
-  private static readonly NURSE_USER: UserProfile = {
-    id: '4',
-    name: 'Kavita Rane',
-    roleTitle: 'Staff Nurse',
-    avatar: 'KR',
-    role: 'nurse',
-    hospital: 'Reliance Foundation Hospital',
-    username: 'kavita',
-    permissions: ['vitals']
-  };
-
-  private static readonly DOCTOR_USER: UserProfile = {
-    id: '5',
-    name: 'Dr. Susheel Bindroo',
-    roleTitle: 'Consultant Physician',
-    avatar: 'SB',
-    role: 'doctor',
-    hospital: 'Reliance Foundation Hospital',
-    username: 'susheel',
-    permissions: ['consultation', 'queue']
-  };
-
   // BehaviorSubject holding the login user state (null if unauthenticated)
   private currentUserSubject = new BehaviorSubject<UserProfile | null>(this.getStoredUser());
   // Observable exposed to all components (Navbar, Worklist, Billing, Search, etc.)
@@ -133,16 +89,7 @@ export class AuthService {
     return user.permissions.includes('all') || user.permissions.includes(permission);
   }
 
-  private static defaultProfileForRole(role: UserRoleType): UserProfile {
-    switch (role) {
-      case 'patient_executive': return AuthService.EXECUTIVE_USER;
-      case 'nurse': return AuthService.NURSE_USER;
-      case 'doctor': return AuthService.DOCTOR_USER;
-      default: return AuthService.ADMIN_USER;
-    }
-  }
-
-  private static routeForRole(role: UserRoleType): string {
+  static routeForRole(role: UserRoleType): string {
     switch (role) {
       case 'patient_executive': return '/doctor-appointment';
       case 'nurse': return '/vitals-recording';
@@ -175,18 +122,21 @@ export class AuthService {
           role = matchedUser.role;
         }
 
-        const fallbackProfile = AuthService.defaultProfileForRole(role);
-        const profile: UserProfile = matchedUser ? {
-          id: matchedUser.id,
-          name: matchedUser.name || fallbackProfile.name,
-          roleTitle: matchedUser.roleTitle || fallbackProfile.roleTitle,
-          avatar: matchedUser.avatar || (matchedUser.name ? matchedUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : fallbackProfile.avatar),
-          role,
-          hospital: matchedUser.hospital || 'Reliance Foundation Hospital',
-          username: matchedUser.username,
-          permissions: matchedUser.permissions || fallbackProfile.permissions,
-          allowedModules: matchedUser.allowedModules
-        } : fallbackProfile;
+        const profileName = matchedUser?.name || (cleanId ? (cleanId.charAt(0).toUpperCase() + cleanId.slice(1)) : 'Mr. PRATHAMESH KHOCHADE');
+        const roleTitle = matchedUser?.roleTitle || (role === 'admin' ? 'Administrator' : role === 'nurse' ? 'Staff Nurse' : role === 'doctor' ? 'Consultant Physician' : 'Patient Executive');
+        const avatarInitials = matchedUser?.avatar || (profileName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'PK');
+
+        const profile: UserProfile = {
+          id: matchedUser ? matchedUser.id : 'user-' + Math.floor(100 + Math.random() * 900),
+          name: profileName,
+          roleTitle: roleTitle,
+          avatar: avatarInitials,
+          role: role,
+          hospital: matchedUser?.hospital || 'Reliance Foundation Hospital',
+          username: matchedUser ? matchedUser.username : cleanId,
+          permissions: matchedUser?.permissions || (role === 'admin' ? ['all'] : [role]),
+          allowedModules: matchedUser?.allowedModules
+        };
 
         this.setSessionUser(profile);
         const targetRoute = AuthService.routeForRole(role);
@@ -194,7 +144,16 @@ export class AuthService {
       }),
       catchError(() => {
         const fallbackRole = this.detectRoleFromIdentifier(cleanId);
-        const fallbackUser = AuthService.defaultProfileForRole(fallbackRole);
+        const fallbackUser: UserProfile = {
+          id: '1',
+          name: cleanId ? (cleanId.charAt(0).toUpperCase() + cleanId.slice(1)) : 'Mr. PRATHAMESH KHOCHADE',
+          roleTitle: fallbackRole === 'admin' ? 'Administrator' : 'Staff User',
+          avatar: 'PK',
+          role: fallbackRole,
+          hospital: 'Reliance Foundation Hospital',
+          username: cleanId || 'prathamesh',
+          permissions: ['all']
+        };
         this.setSessionUser(fallbackUser);
         return of({ user: fallbackUser, targetRoute: AuthService.routeForRole(fallbackRole) });
       })
@@ -214,8 +173,8 @@ export class AuthService {
   }
 
   loginAs(role: UserRoleType): string {
-    const user = AuthService.defaultProfileForRole(role);
-    this.setSessionUser(user);
+    const targetUsername = role === 'patient_executive' ? 'priya' : role === 'nurse' ? 'kavita' : role === 'doctor' ? 'susheel' : 'prathamesh';
+    this.authenticateUser(targetUsername).subscribe();
     return AuthService.routeForRole(role);
   }
 
@@ -236,6 +195,6 @@ export class AuthService {
         if (parsed && parsed.name && parsed.username) return parsed;
       } catch (e) {}
     }
-    return null; // Null when unauthenticated!
+    return null; // Pure unauthenticated state when no user in localStorage
   }
 }

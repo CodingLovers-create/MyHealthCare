@@ -741,6 +741,39 @@
       "allowedModules": [
         { "id": "DoctorAppointment", "label": "Doctor Appointment", "route": "/doctor-appointment" }
       ]
+    },
+    {
+      "id": "4",
+      "username": "kavita",
+      "role": "nurse",
+      "name": "Kavita Rane",
+      "roleTitle": "Staff Nurse",
+      "password": "Welcome@123",
+      "avatar": "KR",
+      "hospital": "Reliance Foundation Hospital",
+      "permissions": [
+        "vitals"
+      ],
+      "allowedModules": [
+        { "id": "VitalsRecording", "label": "Vitals Recording", "route": "/vitals-recording" }
+      ]
+    },
+    {
+      "id": "5",
+      "username": "susheel",
+      "role": "doctor",
+      "name": "Dr. Susheel Bindroo",
+      "roleTitle": "Consultant Physician",
+      "password": "Welcome@123",
+      "avatar": "SB",
+      "hospital": "Reliance Foundation Hospital",
+      "permissions": [
+        "consultation",
+        "queue"
+      ],
+      "allowedModules": [
+        { "id": "DoctorPatientList", "label": "OPD Queue", "route": "/doctor-patient-list" }
+      ]
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
