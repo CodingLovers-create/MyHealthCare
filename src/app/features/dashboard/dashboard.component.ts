@@ -218,7 +218,7 @@ export class DashboardComponent implements OnInit {
       }
     }
 
-    return {
+    const task: WorklistTask = {
       id: apt.id ? `apt-${apt.id}` : 'apt-' + Math.floor(Math.random() * 100000),
       date: dateVal,
       time: timeVal,
@@ -237,6 +237,8 @@ export class DashboardComponent implements OnInit {
       practitioner: apt.practitioner,
       department: apt.department
     };
+
+    return task;
   }
 
   markPatientArrival(task: WorklistTask): void {

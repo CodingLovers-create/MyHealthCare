@@ -1,6 +1,7 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -12,12 +13,13 @@ import { SubheaderComponent } from '../../shared/components/subheader/subheader.
 @Component({
   selector: 'app-patient-registration',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, SubheaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, SubheaderComponent],
   templateUrl: './patient-registration.component.html'
 })
 export class PatientRegistrationComponent implements OnInit {
   private apiService = inject(ApiService);
-  // ...
+  private fb = inject(FormBuilder);
+  
   constructor(
     private router: Router, 
     private toastService: ToastService,
@@ -37,27 +39,94 @@ export class PatientRegistrationComponent implements OnInit {
   // Navigation tab state
   activeModuleTab = signal<string>('Registration');
   
-  // Registration Form Signals
-  registrationType = signal<string>('General');
-  mobileCountryCode = signal<string>('+91');
-  mobileNo = signal<string>('');
-  whatsappCountryCode = signal<string>('+91');
-  whatsappNo = signal<string>('');
-  uhid = signal<string>('');
+  // Reactive Form Definition
+  patientForm: FormGroup = this.fb.group({
+    registrationType: ['General', Validators.required],
+    mobileCountryCode: ['+91'],
+    mobileNo: ['', [Validators.required]],
+    whatsappCountryCode: ['+91'],
+    whatsappNo: [''],
+    uhid: [''],
+    aadharId: [''],
+    abhaId: [''],
+    title: ['Mr.', Validators.required],
+    firstName: ['', Validators.required],
+    middleName: [''],
+    lastName: ['', Validators.required],
+    dob: [''],
+    isAgeChecked: [false],
+    age: [''],
+    ageUnit: ['Year'],
+    gender: ['Male', Validators.required],
+    maritalStatus: ['Single'],
+    fatherSpouseType: ['Father'],
+    fatherSpouseName: [''],
+    isEmailNA: [false],
+    email: [''],
+    nationality: ['Indian'],
+    panCardNo: [''],
+    emergencyContactName: [''],
+    relation: ['Spouse'],
+    emergencyCountryCode: ['+91'],
+    emergencyNo: [''],
+    registrationSource: ['Walk-in'],
+    employmentStatus: [''],
+    grade: [''],
+    department: [''],
+    plant: [''],
+    employeeCadre: [''],
+    // Present Address
+    country: ['India'],
+    pinCode: [''],
+    houseNo: [''],
+    streetLocality: [''],
+    state: ['Maharashtra'],
+    city: ['Mumbai'],
+    area: [''],
+    // Permanent Address
+    permCountry: ['India'],
+    permPinCode: [''],
+    permHouseNo: [''],
+    permStreetLocality: [''],
+    permState: ['Maharashtra'],
+    permCity: ['Mumbai'],
+    permArea: [''],
+    isSameAddress: [false],
+    // Other details
+    occupation: [''],
+    bloodGroup: ['O+'],
+    referredBy: [''],
+    // Family details
+    kinName: [''],
+    kinRelation: ['Spouse'],
+    kinContact: [''],
+    // Payor Details
+    payorType: ['self'],
+    corporateName: [''],
+    employeeId: [''],
+    insuranceCompany: [''],
+    tpaCardNo: [''],
+    // Consents
+    consentResearch: [true],
+    consentPromotional: [true]
+  });
+
+  // Signal representation of reactive form values
+  formValues = toSignal(this.patientForm.valueChanges, { initialValue: this.patientForm.value });
 
   // Existing Patient Matching Popup Signals
   patientsList = signal<any[]>([]);
-
   matchingPatientsList = signal<any[]>([]);
   showMatchingPatientsDropdown = signal<boolean>(false);
 
   isExistingPatient = computed(() => {
-    const currentUhid = this.uhid().trim();
+    const currentUhid = (this.formValues().uhid || '').trim();
     if (!currentUhid) return false;
     return this.patientsList().some(p => p.uhid && p.uhid.toLowerCase() === currentUhid.toLowerCase());
   });
 
   ngOnInit(): void {
+    // API Data Load
     this.apiService.get<any[]>('patients').subscribe({
       next: (apiData) => {
         if (Array.isArray(apiData) && apiData.length > 0) {
@@ -90,13 +159,12 @@ export class PatientRegistrationComponent implements OnInit {
     });
   }
 
-  onMobileInputChange(val: string): void {
-    this.mobileNo.set(val);
-    const cleanVal = val.trim().replace(/\+91\s?/, '');
-    if (cleanVal.length >= 3) {
+  onMobileInput(): void {
+    const val = (this.patientForm.value.mobileNo || '').trim().replace(/\+91\s?/, '');
+    if (val.length >= 3) {
       const matches = this.patientsList().filter(p => 
-        (p.mobile && p.mobile.includes(cleanVal)) || 
-        (p.name && p.name.toLowerCase().includes(cleanVal.toLowerCase()))
+        (p.mobile && p.mobile.includes(val)) || 
+        (p.name && p.name.toLowerCase().includes(val.toLowerCase()))
       );
       this.matchingPatientsList.set(matches);
       this.showMatchingPatientsDropdown.set(matches.length > 0);
@@ -107,105 +175,33 @@ export class PatientRegistrationComponent implements OnInit {
   }
 
   selectExistingPatient(p: any): void {
-    if (p.title) this.title.set(p.title);
-    if (p.firstName) this.firstName.set(p.firstName);
-    if (p.middleName) this.middleName.set(p.middleName);
-    if (p.lastName) this.lastName.set(p.lastName);
-    if (p.mobile) this.mobileNo.set(p.mobile);
-    if (p.uhid) this.uhid.set(p.uhid);
-    if (p.dob) this.dob.set(p.dob);
-    if (p.age) this.age.set(p.age);
-    if (p.gender) this.gender.set(p.gender);
-    if (p.email) this.email.set(p.email);
-    if (p.city) this.city.set(p.city);
-    if (p.state) this.state.set(p.state);
-    if (p.houseNo) this.houseNo.set(p.houseNo);
-    if (p.streetLocality) this.streetLocality.set(p.streetLocality);
-    if (p.pinCode) this.pinCode.set(p.pinCode);
+    this.patientForm.patchValue({
+      title: p.title || 'Mr.',
+      firstName: p.firstName || '',
+      middleName: p.middleName || '',
+      lastName: p.lastName || '',
+      mobileNo: p.mobile || '',
+      uhid: p.uhid || '',
+      dob: p.dob || '',
+      age: p.age || '',
+      gender: p.gender || 'Male',
+      email: p.email || '',
+      city: p.city || 'Mumbai',
+      state: p.state || 'Maharashtra',
+      houseNo: p.houseNo || '',
+      streetLocality: p.streetLocality || '',
+      pinCode: p.pinCode || ''
+    });
 
     this.showMatchingPatientsDropdown.set(false);
     this.toastService.success(`Loaded profile for "${p.name || p.firstName}" (UHID: ${p.uhid})`);
   }
-  
-  aadharId = signal<string>('');
-  abhaId = signal<string>('');
-  title = signal<string>('Mr.');
-  firstName = signal<string>('');
-  middleName = signal<string>('');
-  lastName = signal<string>('');
-  
-  dob = signal<string>('');
-  isAgeChecked = signal<boolean>(false);
-  age = signal<string>('');
-  ageUnit = signal<string>('Year');
-  gender = signal<string>('Male');
-  maritalStatus = signal<string>('Single');
-  fatherSpouseType = signal<string>('Father');
-  fatherSpouseName = signal<string>('');
-  
-  isEmailNA = signal<boolean>(false);
-  email = signal<string>('');
-  nationality = signal<string>('Indian');
-  panCardNo = signal<string>('');
-  
-  emergencyContactName = signal<string>('');
-  relation = signal<string>('Spouse');
-  emergencyCountryCode = signal<string>('+91');
-  emergencyNo = signal<string>('');
-  registrationSource = signal<string>('Walk-in');
-  
-  employmentStatus = signal<string>('');
-  grade = signal<string>('');
-  department = signal<string>('');
-  plant = signal<string>('');
-  employeeCadre = signal<string>('');
 
   // Photo & Document Upload State
   capturedPhoto = signal<string | null>(null);
 
-  // Address Section Tab & Fields
+  // Address Section Tab State
   activeAddressTab = signal<'present' | 'permanent' | 'other' | 'family'>('present');
-  
-  // Present Address
-  country = signal<string>('India');
-  pinCode = signal<string>('');
-  houseNo = signal<string>('');
-  streetLocality = signal<string>('');
-  state = signal<string>('Maharashtra');
-  city = signal<string>('Mumbai');
-  area = signal<string>('');
-  
-  // Permanent Address
-  permCountry = signal<string>('India');
-  permPinCode = signal<string>('');
-  permHouseNo = signal<string>('');
-  permStreetLocality = signal<string>('');
-  permState = signal<string>('Maharashtra');
-  permCity = signal<string>('Mumbai');
-  permArea = signal<string>('');
-  
-  isSameAddress = signal<boolean>(false);
-
-  // Other details
-  occupation = signal<string>('');
-  bloodGroup = signal<string>('O+');
-  referredBy = signal<string>('');
-
-  // Family details
-  kinName = signal<string>('');
-  kinRelation = signal<string>('Spouse');
-  kinContact = signal<string>('');
-
-  // Payor Details
-  payorType = signal<'self' | 'corporate' | 'insurance'>('self');
-  corporateName = signal<string>('');
-  employeeId = signal<string>('');
-  insuranceCompany = signal<string>('');
-  tpaCardNo = signal<string>('');
-
-  // Consents
-  consentResearch = signal<boolean>(true);
-  consentPromotional = signal<boolean>(true);
 
   // Success Feedback Toast/Modal
   showSuccessModal = signal<boolean>(false);
@@ -223,11 +219,13 @@ export class PatientRegistrationComponent implements OnInit {
   };
 
   availableCities = computed(() => {
-    return this.citiesByState[this.state()] || ['Mumbai', 'Pune', 'Thane', 'Navi Mumbai'];
+    const currentState = this.formValues().state || 'Maharashtra';
+    return this.citiesByState[currentState] || ['Mumbai', 'Pune', 'Thane', 'Navi Mumbai'];
   });
 
   availablePermCities = computed(() => {
-    return this.citiesByState[this.permState()] || ['Mumbai', 'Pune', 'Thane', 'Navi Mumbai'];
+    const currentPermState = this.formValues().permState || 'Maharashtra';
+    return this.citiesByState[currentPermState] || ['Mumbai', 'Pune', 'Thane', 'Navi Mumbai'];
   });
 
   moduleTabs = computed(() => this.authService.allowedModules());
@@ -255,24 +253,24 @@ export class PatientRegistrationComponent implements OnInit {
     this.activeAddressTab.set(tab);
   }
 
-  onStateChange(newState: string): void {
-    this.state.set(newState);
+  onStateChange(): void {
+    const newState = this.patientForm.value.state;
     const cities = this.citiesByState[newState];
     if (cities && cities.length > 0) {
-      this.city.set(cities[0]);
+      this.patientForm.patchValue({ city: cities[0] });
     }
   }
 
-  onPermStateChange(newState: string): void {
-    this.permState.set(newState);
+  onPermStateChange(): void {
+    const newState = this.patientForm.value.permState;
     const cities = this.citiesByState[newState];
     if (cities && cities.length > 0) {
-      this.permCity.set(cities[0]);
+      this.patientForm.patchValue({ permCity: cities[0] });
     }
   }
 
-  onDobChange(dobValue: string): void {
-    this.dob.set(dobValue);
+  onDobChange(): void {
+    const dobValue = this.patientForm.value.dob;
     if (dobValue) {
       const parts = dobValue.split(/[-/]/);
       let birthDate: Date | null = null;
@@ -291,47 +289,44 @@ export class PatientRegistrationComponent implements OnInit {
           years--;
         }
         if (years >= 1) {
-          this.age.set(years.toString());
-          this.ageUnit.set('Year');
+          this.patientForm.patchValue({ age: years.toString(), ageUnit: 'Year', isAgeChecked: true });
         } else {
           let months = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
           if (months >= 1) {
-            this.age.set(months.toString());
-            this.ageUnit.set('Month');
+            this.patientForm.patchValue({ age: months.toString(), ageUnit: 'Month', isAgeChecked: true });
           } else {
             const diffTime = Math.abs(today.getTime() - birthDate.getTime());
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            this.age.set(diffDays.toString());
-            this.ageUnit.set('Day');
+            this.patientForm.patchValue({ age: diffDays.toString(), ageUnit: 'Day', isAgeChecked: true });
           }
         }
-        this.isAgeChecked.set(true);
       }
     }
   }
 
-  toggleEmailNA(checked: boolean): void {
-    this.isEmailNA.set(checked);
-    if (checked) {
-      this.email.set('');
+  toggleEmailNA(): void {
+    if (this.patientForm.value.isEmailNA) {
+      this.patientForm.patchValue({ email: '' });
     }
   }
 
-  toggleSameAddress(checked: boolean): void {
-    this.isSameAddress.set(checked);
-    if (checked) {
-      this.permCountry.set(this.country());
-      this.permPinCode.set(this.pinCode());
-      this.permHouseNo.set(this.houseNo());
-      this.permStreetLocality.set(this.streetLocality());
-      this.permState.set(this.state());
-      this.permCity.set(this.city());
-      this.permArea.set(this.area());
+  toggleSameAddress(): void {
+    if (this.patientForm.value.isSameAddress) {
+      const val = this.patientForm.value;
+      this.patientForm.patchValue({
+        permCountry: val.country,
+        permPinCode: val.pinCode,
+        permHouseNo: val.houseNo,
+        permStreetLocality: val.streetLocality,
+        permState: val.state,
+        permCity: val.city,
+        permArea: val.area
+      });
     }
   }
 
   setPayorType(type: 'self' | 'corporate' | 'insurance'): void {
-    this.payorType.set(type);
+    this.patientForm.patchValue({ payorType: type });
   }
 
   sendAbhaOtp(): void {
@@ -366,35 +361,70 @@ export class PatientRegistrationComponent implements OnInit {
   }
 
   onClear(): void {
-    this.mobileNo.set('');
-    this.whatsappNo.set('');
-    this.uhid.set('');
-    this.aadharId.set('');
-    this.abhaId.set('');
-    this.firstName.set('');
-    this.middleName.set('');
-    this.lastName.set('');
-    this.dob.set('');
-    this.age.set('');
-    this.isAgeChecked.set(false);
-    this.email.set('');
-    this.isEmailNA.set(false);
-    this.emergencyContactName.set('');
-    this.emergencyNo.set('');
-    this.employmentStatus.set('');
-    this.grade.set('');
-    this.department.set('');
-    this.plant.set('');
-    this.employeeCadre.set('');
-    this.pinCode.set('');
-    this.houseNo.set('');
-    this.streetLocality.set('');
-    this.area.set('');
-    this.isSameAddress.set(false);
-    this.corporateName.set('');
-    this.employeeId.set('');
-    this.insuranceCompany.set('');
-    this.tpaCardNo.set('');
+    this.patientForm.reset({
+      registrationType: 'General',
+      mobileCountryCode: '+91',
+      mobileNo: '',
+      whatsappCountryCode: '+91',
+      whatsappNo: '',
+      uhid: '',
+      aadharId: '',
+      abhaId: '',
+      title: 'Mr.',
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      dob: '',
+      isAgeChecked: false,
+      age: '',
+      ageUnit: 'Year',
+      gender: 'Male',
+      maritalStatus: 'Single',
+      fatherSpouseType: 'Father',
+      fatherSpouseName: '',
+      isEmailNA: false,
+      email: '',
+      nationality: 'Indian',
+      panCardNo: '',
+      emergencyContactName: '',
+      relation: 'Spouse',
+      emergencyCountryCode: '+91',
+      emergencyNo: '',
+      registrationSource: 'Walk-in',
+      employmentStatus: '',
+      grade: '',
+      department: '',
+      plant: '',
+      employeeCadre: '',
+      country: 'India',
+      pinCode: '',
+      houseNo: '',
+      streetLocality: '',
+      state: 'Maharashtra',
+      city: 'Mumbai',
+      area: '',
+      permCountry: 'India',
+      permPinCode: '',
+      permHouseNo: '',
+      permStreetLocality: '',
+      permState: 'Maharashtra',
+      permCity: 'Mumbai',
+      permArea: '',
+      isSameAddress: false,
+      occupation: '',
+      bloodGroup: 'O+',
+      referredBy: '',
+      kinName: '',
+      kinRelation: 'Spouse',
+      kinContact: '',
+      payorType: 'self',
+      corporateName: '',
+      employeeId: '',
+      insuranceCompany: '',
+      tpaCardNo: '',
+      consentResearch: true,
+      consentPromotional: true
+    });
     this.capturedPhoto.set(null);
     this.toastService.info('Registration form cleared.');
   }
@@ -407,66 +437,65 @@ export class PatientRegistrationComponent implements OnInit {
   isArrivalMarked = signal<boolean>(false);
 
   onRegister(markArrival: boolean = false): void {
-    if (!this.firstName().trim()) {
+    const val = this.patientForm.value;
+
+    if (!val.firstName?.trim()) {
       this.toastService.warning('Please enter First Name.');
       return;
     }
-    if (!this.lastName().trim()) {
+    if (!val.lastName?.trim()) {
       this.toastService.warning('Please enter Last Name.');
       return;
     }
-    if (!this.mobileNo().trim()) {
+    if (!val.mobileNo?.trim()) {
       this.toastService.warning('Please enter Mobile No.');
       return;
     }
 
-    const currentUhid = this.uhid().trim();
+    const currentUhid = (val.uhid || '').trim();
     const existing = currentUhid ? this.patientsList().find(p => p.uhid && p.uhid.toLowerCase() === currentUhid.toLowerCase()) : null;
     const isUpdate = !!existing;
 
     const targetUhid = isUpdate ? currentUhid : ('RFH' + Math.floor(10000000 + Math.random() * 90000000));
-    const fullName = `${this.title()} ${this.firstName()} ${this.middleName()} ${this.lastName()}`.replace(/\s+/g, ' ').trim();
+    const fullName = `${val.title} ${val.firstName} ${val.middleName || ''} ${val.lastName}`.replace(/\s+/g, ' ').trim();
 
     const patientData = {
       uhid: targetUhid,
-      registrationType: this.registrationType(),
-      title: this.title(),
+      registrationType: val.registrationType,
+      title: val.title,
       name: fullName,
-      firstName: this.firstName(),
-      middleName: this.middleName(),
-      lastName: this.lastName(),
-      mobile: this.mobileNo(),
-      whatsapp: this.whatsappNo(),
-      dob: this.dob(),
-      age: this.age(),
-      gender: this.gender(),
-      maritalStatus: this.maritalStatus(),
-      email: this.email(),
-      nationality: this.nationality(),
+      firstName: val.firstName,
+      middleName: val.middleName,
+      lastName: val.lastName,
+      mobile: val.mobileNo,
+      whatsapp: val.whatsappNo,
+      dob: val.dob,
+      age: val.age,
+      gender: val.gender,
+      maritalStatus: val.maritalStatus,
+      email: val.email,
+      nationality: val.nationality,
       address: {
-        houseNo: this.houseNo(),
-        street: this.streetLocality(),
-        city: this.city(),
-        state: this.state(),
-        pinCode: this.pinCode()
+        houseNo: val.houseNo,
+        street: val.streetLocality,
+        city: val.city,
+        state: val.state,
+        pinCode: val.pinCode
       },
-      bloodGroup: this.bloodGroup(),
+      bloodGroup: val.bloodGroup,
       updatedOn: new Date().toISOString()
     };
 
     if (isUpdate) {
-      // Update existing patient in patientsList signal
       const updatedList = this.patientsList().map(p => p.uhid?.toLowerCase() === targetUhid.toLowerCase() ? { ...p, ...patientData, id: p.id } : p);
       this.patientsList.set(updatedList);
 
-      // Save update to JSON Server
       if (existing.id) {
         this.apiService.put(`patients/${existing.id}`, { ...existing, ...patientData }).subscribe();
       } else {
         this.apiService.post('patients', patientData).subscribe();
       }
     } else {
-      // Create new patient
       this.patientsList.update(list => [patientData, ...list]);
       this.apiService.post('patients', patientData).subscribe();
     }
@@ -483,7 +512,7 @@ export class PatientRegistrationComponent implements OnInit {
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         patientName: fullName,
         uhid: targetUhid,
-        mobile: this.mobileNo(),
+        mobile: val.mobileNo,
         practitioner: 'General OPD Clinic',
         fee: 1500,
         status: 'CONFIRMED',
@@ -503,17 +532,17 @@ export class PatientRegistrationComponent implements OnInit {
   }
 
   goToOpBilling(): void {
+    const val = this.patientForm.value;
     this.showSuccessModal.set(false);
     this.router.navigate(['/op-billing'], {
       queryParams: {
-        name: `${this.title()} ${this.firstName()} ${this.lastName()}`.trim(),
+        name: `${val.title} ${val.firstName} ${val.lastName}`.trim(),
         uhid: this.registeredUhid(),
         visitId: this.activeVisitId() || 'OPV-2026-' + Math.floor(10000 + Math.random() * 90000),
-        mobile: this.mobileNo()
+        mobile: val.mobileNo
       }
     });
   }
-
 
   closeModal(): void {
     this.showSuccessModal.set(false);
@@ -529,4 +558,3 @@ export class PatientRegistrationComponent implements OnInit {
     this.toastService.info('Help documentation & video tutorials opening...');
   }
 }
-

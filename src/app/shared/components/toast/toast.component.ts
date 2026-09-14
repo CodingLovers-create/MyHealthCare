@@ -37,7 +37,12 @@ import { ToastService } from '../../../core/services/toast.service';
               }
             }
 
-            <span class="font-medium text-[#333333] leading-snug">{{ toast.message }}</span>
+            <div class="flex flex-col">
+              @if (toast.title) {
+                <span class="font-bold text-[#111111] leading-tight mb-0.5">{{ toast.title }}</span>
+              }
+              <span class="font-medium text-[#333333] leading-snug">{{ toast.message }}</span>
+            </div>
           </div>
 
           <!-- Close Button -->

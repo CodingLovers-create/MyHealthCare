@@ -156,7 +156,7 @@ export class DoctorAppointmentComponent implements OnInit {
   get startPaddingDays(): number[] {
     const firstDayOfWeek = new Date(this.currentYear(), this.currentMonth(), 1).getDay();
     const prevMonthDays = new Date(this.currentYear(), this.currentMonth(), 0).getDate();
-    const padding: number[] = [];
+    const padding: number[] = [];       
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       padding.push(prevMonthDays - i);
     }
